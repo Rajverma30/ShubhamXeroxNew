@@ -1,0 +1,117 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  SUBHAM XEROX — COMBINED RAW ENV FILE (ALL SERVICES)
+#  Note: Do NOT commit this file or real passwords/secrets to GitHub!
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ==============================================================================
+# 1. SUBHAM-BACKEND (.env)
+# ==============================================================================
+NODE_ENV=production
+PORT=5005
+
+# ── Database ────────────────────────────────────────────────────
+MONGO_URI=mongodb+srv://hypersagetech:7oDb5EZK9YnnBSkl@salon.ovdjb.mongodb.net/subhamxerox?retryWrites=true&w=majority&appName=subhamxerox
+
+# ── Auth ────────────────────────────────────────────────────────
+JWT_SECRET=LgheaBXCakULjqQUtEm6eHYJ6vY--Ue5UKOuUEqE54NxnuBbcZisafdMDvRlTpqZ
+JWT_EXPIRE=7d
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+ADMIN_EMAIL=admin@subhamxerox.com
+POWERED_BY_TEXT=Powered by Hypernxt Technology
+POWERED_BY_URL=https://www.thehypernxt.com
+
+# ── CORS / links ────────────────────────────────────────────────
+FRONTEND_URL=https://subhamxerox-nxt.web.app
+ADMIN_URL=https://subham-xerox-admin.web.app
+BACKEND_URL=https://subhamapi.hypernxt.space
+
+CORS_ORIGINS=https://subhamxerox-nxt.web.app,https://subham-xerox-admin.web.app,https://www.shubhamxerox.in,https://shubhamxerox.in,*.web.app
+
+CORS_ALLOW_LOCALHOST=true
+CORS_ALLOW_ALL=false
+
+# ── Razorpay ────────────────────────────────────────────────
+RAZORPAY_KEY_ID=rzp_live_TPXmnQvX2FpttX
+RAZORPAY_KEY_SECRET=eCTfVioIGjYlyaA7sDdDhaYQ
+RAZORPAY_WEBHOOK_SECRET=NzmMesMZx83woRKTa2nbqsrXFy1L217B
+
+# ── Fast2SMS (OTP) ──────────────────────────────────────────
+FAST2SMS_API_KEY=N5sfzkl5t
+FAST2SMS_ROUTE=otp
+FAST2SMS_SENDER_ID=FSTSMS
+FAST2SMS_DLT_TEMPLATE_ID=
+
+OTP_TTL_MINUTES=5
+GUEST_TOKEN_TTL=30m
+
+OTP_DEV_FALLBACK=true
+# ⚠️ Turn OTP_DEV_MODE to false before launching to public customers!
+OTP_DEV_MODE=true
+
+# ── Shiprocket ───────────────────────────────────────────
+SHIPROCKET_EMAIL=
+SHIPROCKET_PASSWORD=
+SHIPROCKET_BASE_URL=https://apiv2.shiprocket.in/v1/external
+SHIPROCKET_CHANNEL_ID=
+SHIPROCKET_PICKUP_LOCATION=Primary
+
+SHIPROCKET_CHECKOUT_ENABLED=false
+SHIPROCKET_CHECKOUT_ACCEPT_ORDERS=false
+
+# ── Store / pickup address ──────────────────────────────────────
+STORE_NAME=Subham Xerox
+STORE_EMAIL=support@subhamxerox.com
+STORE_PHONE=YOUR_REAL_SHOP_NUMBER
+STORE_PINCODE=YOUR_REAL_PINCODE
+STORE_CITY=
+STORE_STATE=
+STORE_COUNTRY=India
+STORE_ADDRESS=
+
+# ── Mail ────────────────────────────────────────────────────────
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_EMAIL=
+SMTP_PASSWORD=
+SMTP_FROM_NAME=Subham Xerox
+SMTP_FROM_EMAIL=no-reply@subhamxerox.com
+
+# ── Cloudinary (optional) ───────────────────────────────────────
+USE_CLOUDINARY=false
+CLOUDINARY_NAME=
+CLOUDINARY_KEY=
+CLOUDINARY_SECRET=
+
+# ── Uploads ─────────────────────────────────────────────────────
+UPLOAD_DIR=uploads
+MAX_IMAGE_MB=15
+MAX_PDF_MB=60
+PDF_PREVIEW_PAGES=5
+PDFTOPPM_PATH=pdftoppm
+
+# ── Rate limiting ───────────────────────────────────────────────
+RATE_LIMIT_WINDOW_MIN=15
+RATE_LIMIT_MAX=600
+
+
+# ==============================================================================
+# 2. SUBHAM-USER (.env)
+# ==============================================================================
+VITE_API_URL=https://subhamapi.hypernxt.space/api
+VITE_UPLOADS_ORIGIN=https://subhamapi.hypernxt.space
+VITE_SITE_URL=https://www.shubhamxerox.in
+VITE_STORE_NAME=Subham Xerox
+VITE_LOGO=/logo.png
+VITE_GA_ID=
+
+
+# ==============================================================================
+# 3. SUBHAM-ADMIN (.env)
+# ==============================================================================
+VITE_API_URL=https://subhamapi.hypernxt.space/api
+VITE_UPLOADS_ORIGIN=https://subhamapi.hypernxt.space
+VITE_SITE_URL=http://localhost:5173
+VITE_STORE_NAME=Subham Xerox
+VITE_LOGO=/logo.png

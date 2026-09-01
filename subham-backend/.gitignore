@@ -1,0 +1,27 @@
+# Node artifact files
+node_modules/
+dist/
+
+# Environment secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Large upload binaries — do not commit to git
+uploads/products/*
+!uploads/products/.gitkeep
+uploads/tmp/*
+!uploads/tmp/.gitkeep
+uploads/pdf/*
+!uploads/pdf/.gitkeep
+uploads/ebooks/*
+!uploads/ebooks/.gitkeep
+uploads/banners/*
+!uploads/banners/.gitkeep
+uploads/media/*
+!uploads/media/.gitkeep
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+*.log

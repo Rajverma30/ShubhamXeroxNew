@@ -50,6 +50,16 @@ export async function verifyOtp(phone, code) {
   return data.token;
 }
 
+/** POST /auth/direct-session → instant guest token without OTP delay */
+export async function createDirectSession(phone) {
+  const clean = normalisePhone(phone);
+  if (!clean) throw new Error('Enter a valid 10-digit mobile number');
+  const res = await api.raw.post('/auth/direct-session', { phone: clean });
+  const data = res.data?.data ?? res.data;
+  if (!data?.token) throw new Error('Could not start checkout session. Please try again.');
+  return data.token;
+}
+
 /* ──────────────────────────── quote ──────────────────────────── */
 
 /**

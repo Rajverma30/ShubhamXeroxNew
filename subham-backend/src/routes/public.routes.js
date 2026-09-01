@@ -42,6 +42,7 @@ const otpLimiter = rateLimit({
 
 router.post('/auth/otp/send', otpLimiter, guestAuthCtrl.sendOtp);
 router.post('/auth/otp/verify', otpLimiter, guestAuthCtrl.verifyOtp);
+router.post('/auth/direct-session', writeLimiter, guestAuthCtrl.directSession);
 
 router.post('/checkout/quote', writeLimiter, checkoutCtrl.quote);
 router.post('/checkout/order', writeLimiter, requireVerifiedPhone, checkoutCtrl.createOrder);

@@ -141,4 +141,27 @@ exports.verifyOtp = asyncHandler(async (req, res) => {
   return ok(res, { token, phone, expiresIn: GUEST_TOKEN_TTL });
 });
 
+/**
+ * POST /api/auth/direct-session  { phone }
+ * Mint an instant guest checkout token for a valid 10-digit mobile number.
+ */
+exports.directSession = asyncHandler(async (req, res) => {
+  const phone = normalisePhone(req.body.phone);
+  if (!phone) throw ApiError.badRequest('Enter a valid 10-digit mobile number');
+
+  const jti = crypto.randomUUID();
+  const expiresMs = 30 * 60 * 1000;
+  await GuestCheckoutSession.create({
+    jti,
+    phone,
+    expiresAt: new Date(Date.now() + expiresMs),
+  });
+
+  const token = jwt.sign({ phone, scope: 'guest-checkout', jti }, process.env.JWT_SECRET, { expiresIn: GUEST_TOKEN_TTL });
+  logger.info(`Direct guest session created for ${phone.slice(0, 3)}****${phone.slice(-2)}`);
+
+  return ok(res, { token, phone, expiresIn: GUEST_TOKEN_TTL });
+});
+
 exports.normalisePhone = normalisePhone;
+

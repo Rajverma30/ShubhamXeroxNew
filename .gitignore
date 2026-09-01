@@ -1,0 +1,6 @@
+.env
+.env.*
+RAW_ENV.txt
+node_modules/
+.DS_Store
+Thumbs.db

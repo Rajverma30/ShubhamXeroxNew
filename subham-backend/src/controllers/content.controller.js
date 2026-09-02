@@ -61,6 +61,10 @@ exports.adminUpdateSettings = asyncHandler(async (req, res) => {
     body.checkout.mode = 'razorpay';
   }
   Object.assign(s, body);
+  s.markModified('checkout');
+  s.markModified('policies');
+  s.markModified('seo');
+  s.markModified('social');
   await s.save();
   return ok(res, s);
 });

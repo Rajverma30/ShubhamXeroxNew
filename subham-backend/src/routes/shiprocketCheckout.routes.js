@@ -39,4 +39,12 @@ router.get('/products', ctrl.products);      // also COLLECTION PRODUCT FETCH vi
 router.get('/collections', ctrl.collections);
 router.get('/collections/:collectionId/products', ctrl.collectionProducts);
 
+// Loyalty Points endpoints (Shiprocket Custom Integration)
+router.post('/loyalty/points', ctrl.getLoyaltyPoints);
+router.post('/loyalty-points', ctrl.getLoyaltyPoints);
+router.post('/loyalty/block', ctrl.blockLoyaltyPoints);
+router.post('/loyalty-block', ctrl.blockLoyaltyPoints);
+router.post('/loyalty/unblock', ctrl.unblockLoyaltyPoints);
+router.post('/loyalty-unblock', ctrl.unblockLoyaltyPoints);
+
 module.exports = router;

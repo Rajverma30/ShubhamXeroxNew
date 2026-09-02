@@ -241,9 +241,9 @@ export default function Settings() {
               <button
                 type="button"
                 className="btn-outline btn-sm"
-                disabled={resyncMutation.isPending || !shiprocket?.autoSync?.configured}
+                disabled={resyncMutation.isPending}
                 onClick={() => resyncMutation.mutate()}
-                title={shiprocket?.autoSync?.configured ? 'Push all current products and collections now' : 'Set Shiprocket auto-sync environment variables first'}
+                title="Push or queue all current products and collections for sync"
               >
                 {resyncMutation.isPending ? 'Queueing…' : 'Sync catalogue now'}
               </button>

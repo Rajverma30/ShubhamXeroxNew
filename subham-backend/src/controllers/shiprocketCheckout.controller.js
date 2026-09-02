@@ -178,3 +178,43 @@ exports.ping = asyncHandler(async (req, res) => {
 
   return res.json(body);
 });
+
+/** POST /shiprocket-checkout/loyalty/points — fetch customer loyalty points */
+exports.getLoyaltyPoints = asyncHandler(async (req, res) => {
+  const { mobile_number } = req.body || {};
+  return res.json({
+    data: {
+      mobile_number: String(mobile_number || ''),
+      available_points: 0,
+      applicable_points: 0,
+    },
+  });
+});
+
+/** POST /shiprocket-checkout/loyalty/block — block points for order */
+exports.blockLoyaltyPoints = asyncHandler(async (req, res) => {
+  const { order_id } = req.body || {};
+  return res.json({
+    data: {
+      status: true,
+      available_points: 0,
+      message: 'Valid Customer Id',
+      debited_points: 0,
+      transaction_id: String(order_id || Date.now()),
+      discount_value: 0,
+      additional_properties: {
+        redemptionFactor: 1,
+      },
+    },
+  });
+});
+
+/** POST /shiprocket-checkout/loyalty/unblock — unblock points for order */
+exports.unblockLoyaltyPoints = asyncHandler(async (req, res) => {
+  return res.json({
+    data: {
+      status: 'Success',
+    },
+  });
+});
+

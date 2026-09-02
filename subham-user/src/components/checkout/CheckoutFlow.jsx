@@ -90,7 +90,24 @@ export default function CheckoutFlow({ onClose, items }) {
     setShiprocketStarting(true);
     setShiprocketError('');
     beginShiprocketCheckout(cart)
-      .then(({ checkoutUrl }) => { if (active) window.location.assign(checkoutUrl); })
+      .then(({ checkoutUrl }) => {
+        if (!active) return;
+        const width = 480;
+        const height = 750;
+        const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+        const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+        const popup = window.open(
+          checkoutUrl,
+          'FastrrCheckoutWindow',
+          `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes,status=yes`,
+        );
+        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+          window.location.assign(checkoutUrl);
+        } else {
+          popup.focus();
+          onClose?.();
+        }
+      })
       .catch((err) => {
         if (!active) return;
         shiprocketStarted.current = false;

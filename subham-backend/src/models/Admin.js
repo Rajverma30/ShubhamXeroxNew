@@ -11,7 +11,7 @@ const adminSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true, lowercase: true, trim: true, minlength: 3 },
     email: { type: String, lowercase: true, trim: true },
     name: { type: String, default: 'Store Admin', trim: true },
-    password: { type: String, required: true, select: false, minlength: 12 },
+    password: { type: String, required: true, select: false, minlength: 4 },
     avatar: String,
     phone: String,
     role: { type: String, enum: ['admin', 'manager'], default: 'admin' },

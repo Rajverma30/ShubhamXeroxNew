@@ -22,9 +22,9 @@ POWERED_BY_TEXT=Powered by Hypernxt Technology
 POWERED_BY_URL=https://www.thehypernxt.com
 
 # ── CORS / links ────────────────────────────────────────────────
-FRONTEND_URL=https://subhamxerox-nxt.web.app
-ADMIN_URL=https://subham-xerox-admin.web.app
-BACKEND_URL=https://shubhamxeroxnew-production.up.railway.app
+FRONTEND_URL=https://www.shubhamxerox.in
+ADMIN_URL=https://admin.shubhamxerox.in
+BACKEND_URL=https://api.shubhamxerox.in
 
 CORS_ORIGINS=https://subhamxerox-nxt.web.app,https://subham-xerox-admin.web.app,https://www.shubhamxerox.in,https://shubhamxerox.in,*.web.app
 CORS_ALLOW_ALL=true
@@ -96,8 +96,8 @@ RATE_LIMIT_MAX=600
 # ==============================================================================
 # 2. SUBHAM-USER (.env)
 # ==============================================================================
-VITE_API_URL=https://shubhamxeroxnew-production.up.railway.app/api
-VITE_UPLOADS_ORIGIN=https://subhamapi.hypernxt.space
+VITE_API_URL=https://api.shubhamxerox.in/api
+VITE_UPLOADS_ORIGIN=https://api.shubhamxerox.in
 VITE_SITE_URL=https://www.shubhamxerox.in
 VITE_STORE_NAME=Subham Xerox
 VITE_LOGO=/logo.png
@@ -107,7 +107,7 @@ VITE_GA_ID=
 # ==============================================================================
 # 3. SUBHAM-ADMIN (.env)
 # ==============================================================================
-VITE_API_URL=https://shubhamxeroxnew-production.up.railway.app/api
+VITE_API_URL=https://api.shubhamxerox.in/api
 VITE_UPLOADS_ORIGIN=https://subhamapi.hypernxt.space
 VITE_SITE_URL=http://localhost:5173
 VITE_STORE_NAME=Subham Xerox

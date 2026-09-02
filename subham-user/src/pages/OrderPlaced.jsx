@@ -36,7 +36,7 @@ export default function OrderPlaced() {
   const phone = params.get('phone') || '';
 
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(Boolean(orderNumber && phone));
+  const [loading, setLoading] = useState(Boolean(orderNumber));
 
   /* Empty the cart. Safe to run twice. */
   useEffect(() => { clearCart?.(); }, [clearCart]);
@@ -49,10 +49,9 @@ export default function OrderPlaced() {
     return () => window.removeEventListener('popstate', onPop);
   }, [navigate]);
 
-  /* The receipt. A failure here is not worth alarming anyone about — the
-     order is already paid and confirmed; only the detail view is missing. */
+  /* The receipt. */
   useEffect(() => {
-    if (!orderNumber || !phone) { setLoading(false); return; }
+    if (!orderNumber) { setLoading(false); return; }
     let cancelled = false;
     fetchOrder(orderNumber, phone)
       .then((d) => { if (!cancelled) setOrder(d); })

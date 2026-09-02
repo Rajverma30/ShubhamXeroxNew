@@ -421,9 +421,10 @@ exports.razorpayWebhook = asyncHandler(async (req, res) => {
  * Order numbers are guessable enough that the phone is required as a check.
  */
 exports.getOrder = asyncHandler(async (req, res) => {
-  const phone = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
+  const rawPhone = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
   const order = await Order.findOne({ orderNumber: req.params.orderNumber }).lean();
-  if (!order || order.customer.phone !== phone) throw ApiError.notFound('Order not found');
+  if (!order) throw ApiError.notFound('Order not found');
+  if (rawPhone && order.customer.phone !== rawPhone) throw ApiError.notFound('Order not found');
   return ok(res, order);
 });
 

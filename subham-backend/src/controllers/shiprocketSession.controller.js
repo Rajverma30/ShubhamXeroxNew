@@ -61,7 +61,10 @@ async function resolveCart(rawItems) {
   if (!Array.isArray(rawItems) || !rawItems.length) throw ApiError.badRequest('Your cart is empty');
   if (rawItems.length > 50) throw ApiError.badRequest('Too many items in one checkout');
 
-  const keys = rawItems.map((item) => String(item.productId || item.id || item._id || item.slug || item.sku || '')).filter(Boolean);
+  const keys = rawItems
+    .flatMap((item) => [item.productId, item.id, item._id, item.slug, item.sku])
+    .filter(Boolean)
+    .map(String);
   if (!keys.length) throw ApiError.badRequest('Cart items are missing product identifiers');
 
   const objectIds = keys.filter(mongoose.isValidObjectId);
@@ -83,8 +86,13 @@ async function resolveCart(rawItems) {
   const cartProducts = [];
   let subtotal = 0;
   for (const raw of rawItems) {
-    const key = String(raw.productId || raw.id || raw._id || raw.slug || raw.sku || '');
-    const product = byKey.get(key);
+    let product = null;
+    for (const k of [raw.productId, raw.id, raw._id, raw.slug, raw.sku]) {
+      if (k && byKey.has(String(k))) {
+        product = byKey.get(String(k));
+        break;
+      }
+    }
     if (!product) throw ApiError.badRequest('One or more products are no longer available');
 
     const quantity = Math.max(1, Math.min(99, Math.floor(num(raw.quantity || raw.qty, 1))));

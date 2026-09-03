@@ -127,7 +127,7 @@ async function resolveCart(rawItems) {
       quantity,
       vendor: serialised.vendor || 'Subham Xerox',
       product_type: serialised.product_type || '',
-      ...(serialised.image?.src ? { image: serialised.image.src } : {}),
+      ...(variant.image?.src ? { image: variant.image.src } : {}),
     });
     subtotal += lineTotal;
   }

@@ -82,7 +82,7 @@ exports.products = asyncHandler(async (req, res) => {
     const scoped = await collectionFilter(ref);
     if (scoped === undefined) {
       logger.warn(`Shiprocket Checkout asked for unknown collection "${ref}"`);
-      return res.json(envelope('products', [], { page, limit, total: 0 }));
+      return res.status(404).json(envelope('products', [], { page, limit, total: 0 }));
     }
     Object.assign(filter, scoped);
   }

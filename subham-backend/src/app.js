@@ -169,16 +169,8 @@ app.get('/robots.txt', seoCtrl.robots);
    (e.g. https://shubhamxerox.in/shiprocket-checkout/products). Disabled unless
    credentials are present, so it can never be left open by accident. */
 const SR_PREFIX = process.env.SHIPROCKET_CHECKOUT_ROUTE_PREFIX || '/shiprocket-checkout';
-// Support the variable names used by the reference Fastrr deployment too.
-const SR_KEY = process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY;
-const SR_SECRET = process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.SHIPROCKET_CHECKOUT_SECRET || process.env.SHIPROCKET_API_SECRET;
-const SR_ENABLED = String(process.env.SHIPROCKET_CHECKOUT_ENABLED ?? 'true').toLowerCase() !== 'false';
-if (SR_ENABLED) {
-  app.use(SR_PREFIX, require('./routes/shiprocketCheckout.routes'));
-  logger.info(`Shiprocket Checkout endpoints mounted at ${SR_PREFIX}`);
-} else {
-  logger.warn(`Shiprocket Checkout endpoints disabled via SHIPROCKET_CHECKOUT_ENABLED=false`);
-}
+app.use(SR_PREFIX, require('./routes/shiprocketCheckout.routes'));
+logger.info(`Shiprocket Checkout endpoints mounted at ${SR_PREFIX}`);
 
 /* ── API ── */
 app.use('/api', apiLimiter, routes);

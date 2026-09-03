@@ -311,7 +311,7 @@ async function markPaid(orderRef, { paymentId, signature, method, amountPaisa, r
   };
   if (signature) paymentUpdate['payment.razorpaySignature'] = signature;
   if (method) paymentUpdate['payment.method'] = method;
-  if (amountPaisa) paymentUpdate['payment.amountPaisa'] = amountPaisa;
+  if (amountPaisa != null) paymentUpdate['payment.amountPaisa'] = Number(amountPaisa);
   if (raw) paymentUpdate.raw = raw;
 
   const transitioned = await Order.findOneAndUpdate(
@@ -339,10 +339,16 @@ async function markPaid(orderRef, { paymentId, signature, method, amountPaisa, r
 exports.verifyPayment = asyncHandler(async (req, res) => {
   const { orderNumber, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-  const order = await Order.findOne({ orderNumber, 'customer.phone': req.guestPhone });
+  const order = await Order.findOne({ orderNumber });
   if (!order) throw ApiError.notFound('Order not found');
 
-  if (order.payment.razorpayOrderId !== razorpay_order_id) {
+  const guestPhoneNorm = String(req.guestPhone || '').replace(/\D/g, '').slice(-10);
+  const orderPhoneNorm = String(order.customer?.phone || '').replace(/\D/g, '').slice(-10);
+  if (guestPhoneNorm && orderPhoneNorm && guestPhoneNorm !== orderPhoneNorm) {
+    throw ApiError.unauthorized('Order does not match your verified session');
+  }
+
+  if (order.payment.razorpayOrderId && order.payment.razorpayOrderId !== razorpay_order_id) {
     throw ApiError.badRequest('Payment does not match this order');
   }
 
@@ -354,7 +360,7 @@ exports.verifyPayment = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('We could not verify this payment. If money was deducted it will be refunded automatically.');
   }
 
-  await markPaid(order, {
+  const updated = await markPaid(order, {
     paymentId: razorpay_payment_id,
     signature: razorpay_signature,
     amountPaisa: order.payment.amountPaisa,
@@ -362,9 +368,9 @@ exports.verifyPayment = asyncHandler(async (req, res) => {
   });
 
   return ok(res, {
-    orderNumber: order.orderNumber,
-    status: order.status,
-    total: order.total,
+    orderNumber: updated.orderNumber,
+    status: updated.status,
+    total: updated.total,
     paid: true,
   });
 });
@@ -384,27 +390,37 @@ exports.razorpayWebhook = asyncHandler(async (req, res) => {
     return res.status(400).json({ ok: false });
   }
 
-  const event = req.body?.event;
-  const entity = req.body?.payload?.payment?.entity;
+  const event = String(req.body?.event || '');
+  const paymentEntity = req.body?.payload?.payment?.entity;
+  const orderEntity = req.body?.payload?.order?.entity;
 
   try {
-    if (event === 'payment.captured' && entity) {
-      const order = await Order.findOne({ 'payment.razorpayOrderId': entity.order_id });
-      if (order) {
-        await markPaid(order, {
-          paymentId: entity.id,
-          method: entity.method,
-          amountPaisa: entity.amount,
-          raw: { source: 'webhook', event, entity },
-        });
-      } else {
-        logger.warn(`Razorpay webhook for unknown order ${entity.order_id}`);
+    if (['payment.captured', 'order.paid', 'payment.authorized'].includes(event)) {
+      const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
+      const paymentId = paymentEntity?.id || orderEntity?.id;
+      const amountPaisa = paymentEntity?.amount || orderEntity?.amount_paid || orderEntity?.amount;
+
+      if (razorpayOrderId) {
+        const order = await Order.findOne({ 'payment.razorpayOrderId': razorpayOrderId });
+        if (order) {
+          await markPaid(order, {
+            paymentId: paymentId || razorpayOrderId,
+            method: paymentEntity?.method || 'online',
+            amountPaisa,
+            raw: { source: 'webhook', event, body: req.body },
+          });
+        } else {
+          logger.warn(`Razorpay webhook for unknown order ${razorpayOrderId}`);
+        }
       }
-    } else if (event === 'payment.failed' && entity) {
-      await Order.updateOne(
-        { 'payment.razorpayOrderId': entity.order_id, 'payment.status': { $ne: 'paid' } },
-        { 'payment.status': 'failed' },
-      );
+    } else if (event === 'payment.failed') {
+      const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
+      if (razorpayOrderId) {
+        await Order.updateOne(
+          { 'payment.razorpayOrderId': razorpayOrderId, 'payment.status': { $ne: 'paid' } },
+          { 'payment.status': 'failed' },
+        );
+      }
     }
   } catch (err) {
     logger.error(`Razorpay webhook handling failed: ${err.message}`);
@@ -424,7 +440,8 @@ exports.getOrder = asyncHandler(async (req, res) => {
   const rawPhone = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
   const order = await Order.findOne({ orderNumber: req.params.orderNumber }).lean();
   if (!order) throw ApiError.notFound('Order not found');
-  if (rawPhone && order.customer.phone !== rawPhone) throw ApiError.notFound('Order not found');
+  const orderPhone = String(order.customer?.phone || '').replace(/\D/g, '').slice(-10);
+  if (rawPhone && orderPhone && orderPhone !== rawPhone) throw ApiError.notFound('Order not found');
   return ok(res, order);
 });
 
@@ -433,6 +450,40 @@ exports.getOrder = asyncHandler(async (req, res) => {
 exports.adminListOrders = asyncHandler(async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
+
+  if (req.query.source === 'shiprocket' || req.query.status === 'shiprocket-attempt') {
+    const ShiprocketCheckoutSession = require('../models/ShiprocketCheckoutSession');
+    const filter = {};
+    if (req.query.q) {
+      filter.orderId = new RegExp(String(req.query.q).trim(), 'i');
+    }
+    const [sessions, total] = await Promise.all([
+      ShiprocketCheckoutSession.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      ShiprocketCheckoutSession.countDocuments(filter),
+    ]);
+
+    const items = sessions.map((s) => ({
+      _id: s._id,
+      orderNumber: s.orderId,
+      customer: { name: 'Shiprocket Guest', phone: 'Via Fastrr' },
+      items: s.items || [],
+      subtotal: s.subtotal,
+      shippingCharge: 0,
+      total: s.subtotal,
+      payment: {
+        provider: 'shiprocket-checkout',
+        status: s.status === 'paid' ? 'paid' : s.status === 'failed' ? 'failed' : 'created',
+      },
+      status: s.status === 'paid' ? 'confirmed' : 'awaiting-payment',
+      createdAt: s.createdAt,
+      isShiprocketSession: true,
+    }));
+
+    return ok(res, {
+      items, total, page, pages: Math.ceil(total / limit), paidRevenue: 0,
+    });
+  }
+
   const filter = {};
   if (req.query.status) filter.status = req.query.status;
   if (req.query.paymentStatus) filter['payment.status'] = req.query.paymentStatus;

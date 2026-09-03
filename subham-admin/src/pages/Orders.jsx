@@ -75,6 +75,47 @@ export default function Orders() {
         }
       />
 
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-3">
+        <div className="flex flex-wrap gap-1">
+          <button
+            type="button"
+            onClick={() => update({ status: '', paymentStatus: '', source: '' })}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              !params.status && !params.paymentStatus && !params.source ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+            }`}
+          >
+            All Orders
+          </button>
+          <button
+            type="button"
+            onClick={() => update({ status: '', paymentStatus: 'paid', source: '' })}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              params.paymentStatus === 'paid' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+            }`}
+          >
+            Paid Orders
+          </button>
+          <button
+            type="button"
+            onClick={() => update({ status: 'awaiting-payment', paymentStatus: '', source: '' })}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              (params.status === 'awaiting-payment' || params.paymentStatus === 'created') && !params.source ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+            }`}
+          >
+            Manual Attempts
+          </button>
+          <button
+            type="button"
+            onClick={() => update({ status: 'shiprocket-attempt', paymentStatus: '', source: 'shiprocket' })}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              params.source === 'shiprocket' || params.status === 'shiprocket-attempt' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'
+            }`}
+          >
+            Shiprocket Attempts
+          </button>
+        </div>
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
         <SearchInput
           value={search}
@@ -97,7 +138,7 @@ export default function Orders() {
         >
           <option value="">Any payment</option>
           <option value="paid">Paid</option>
-          <option value="created">Not paid</option>
+          <option value="created">Not paid / Attempted</option>
           <option value="failed">Failed</option>
         </Select>
       </div>
@@ -110,7 +151,7 @@ export default function Orders() {
         <EmptyState
           icon={FiPackage}
           title="No orders yet"
-          description="Orders placed through the storefront will appear here as soon as payment is confirmed."
+          description="Orders placed or attempted through the storefront will appear here."
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
@@ -141,8 +182,8 @@ export default function Orders() {
                   <td className="hidden px-4 py-3 text-ink-500 md:table-cell">{(o.items || []).length}</td>
                   <td className="px-4 py-3 text-right font-semibold text-ink-900">{money(o.total)}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={o.payment?.status === 'paid' ? 'green' : 'rose'}>
-                      {o.payment?.status || 'created'}
+                    <Badge tone={o.payment?.status === 'paid' ? 'green' : o.payment?.status === 'failed' ? 'rose' : 'amber'}>
+                      {o.payment?.status === 'created' ? 'Attempted' : (o.payment?.status || 'Attempted')}
                     </Badge>
                     {o.payment?.method && <p className="mt-0.5 text-2xs text-ink-400">{o.payment.method}</p>}
                   </td>

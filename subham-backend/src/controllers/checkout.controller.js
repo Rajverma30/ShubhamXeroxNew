@@ -438,7 +438,18 @@ exports.razorpayWebhook = asyncHandler(async (req, res) => {
  */
 exports.getOrder = asyncHandler(async (req, res) => {
   const rawPhone = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
-  const order = await Order.findOne({ orderNumber: req.params.orderNumber }).lean();
+  let order = await Order.findOne({ orderNumber: req.params.orderNumber }).lean();
+
+  if (!order && String(req.params.orderNumber).startsWith('SXSR-')) {
+    const ShiprocketCheckoutSession = require('../models/ShiprocketCheckoutSession');
+    const shiprocketCtrl = require('./shiprocketSession.controller');
+    const session = await ShiprocketCheckoutSession.findOne({ orderId: req.params.orderNumber });
+    if (session) {
+      const createdOrder = await shiprocketCtrl.confirmOrderFromSession(session, { source: 'receipt-lookup' });
+      if (createdOrder) order = createdOrder.toObject ? createdOrder.toObject() : createdOrder;
+    }
+  }
+
   if (!order) throw ApiError.notFound('Order not found');
   const orderPhone = String(order.customer?.phone || '').replace(/\D/g, '').slice(-10);
   if (rawPhone && orderPhone && orderPhone !== rawPhone) throw ApiError.notFound('Order not found');

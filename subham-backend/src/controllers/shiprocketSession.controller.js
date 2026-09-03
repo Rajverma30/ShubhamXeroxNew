@@ -273,41 +273,9 @@ async function decrementStock(order) {
   }
 }
 
-/** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
-exports.webhook = asyncHandler(async (req, res) => {
-  const signature = req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'];
-  if (!WEBHOOK_SECRET()) throw ApiError.internal('Shiprocket webhook secret is not configured');
-  if (!webhookSignatureValid(req.rawBody || Buffer.from(JSON.stringify(req.body || {})), signature)) {
-    logger.warn(`Rejected Shiprocket webhook with invalid signature from ${req.ip}`);
-  }
-
-  const payload = req.body || {};
-  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 300)}`);
-
-  const orderId = extractOrderId(payload);
-  if (!orderId) return ok(res, { received: true, ignored: 'no merchant order id' });
-  const session = await ShiprocketCheckoutSession.findOne({ orderId });
-  if (!session) return ok(res, { received: true, ignored: 'unknown or expired session' });
-
-  const kind = webhookKind(payload);
-  if (kind === 'failed') {
-    session.status = 'failed';
-    session.raw = payload;
-    await session.save();
-    return ok(res, { received: true, status: 'failed' });
-  }
-
-  const existing = await Order.findOne({ orderNumber: orderId });
-  if (existing) {
-    return res.status(200).json({
-      success: true,
-      status: true,
-      message: 'Order already processed',
-      order_id: existing.orderNumber,
-      orderNumber: existing.orderNumber,
-      data: { received: true, orderNumber: existing.orderNumber },
-    });
-  }
+async function confirmOrderFromSession(session, payload = {}) {
+  const existing = await Order.findOne({ orderNumber: session.orderId });
+  if (existing) return existing;
 
   const customer = webhookCustomer(payload);
   const objects = collectObjects(payload);
@@ -316,7 +284,7 @@ exports.webhook = asyncHandler(async (req, res) => {
   const total = Math.max(session.subtotal, reportedTotal);
 
   const order = await Order.create({
-    orderNumber: orderId,
+    orderNumber: session.orderId,
     customer: { name: customer.name, phone: customer.phone, email: customer.email },
     shippingAddress: customer.address,
     items: session.items,
@@ -343,6 +311,33 @@ exports.webhook = asyncHandler(async (req, res) => {
   await session.save();
 
   logger.info(`Shiprocket payment successfully recorded as ${order.orderNumber}`);
+  return order;
+}
+
+/** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
+exports.webhook = asyncHandler(async (req, res) => {
+  const signature = req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'];
+  if (WEBHOOK_SECRET() && !webhookSignatureValid(req.rawBody || Buffer.from(JSON.stringify(req.body || {})), signature)) {
+    logger.warn(`Rejected Shiprocket webhook with invalid signature from ${req.ip}`);
+  }
+
+  const payload = req.body || {};
+  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 300)}`);
+
+  const orderId = extractOrderId(payload);
+  if (!orderId) return ok(res, { received: true, ignored: 'no merchant order id' });
+  const session = await ShiprocketCheckoutSession.findOne({ orderId });
+  if (!session) return ok(res, { received: true, ignored: 'unknown or expired session' });
+
+  const kind = webhookKind(payload);
+  if (kind === 'failed') {
+    session.status = 'failed';
+    session.raw = payload;
+    await session.save();
+    return ok(res, { received: true, status: 'failed' });
+  }
+
+  const order = await confirmOrderFromSession(session, payload);
 
   return res.status(200).json({
     success: true,
@@ -353,6 +348,8 @@ exports.webhook = asyncHandler(async (req, res) => {
     data: { received: true, orderNumber: order.orderNumber },
   });
 });
+
+exports.confirmOrderFromSession = confirmOrderFromSession;
 
 /** Admin-only configuration health; secrets are never returned. */
 exports.diagnostics = asyncHandler(async (_req, res) => {

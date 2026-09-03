@@ -1,6 +1,22 @@
 {
   "rewrites": [
     {
+      "source": "/shiprocket-checkout",
+      "destination": "https://subhamapi.hypernxt.space/shiprocket-checkout"
+    },
+    {
+      "source": "/shiprocket-checkout/:path*",
+      "destination": "https://subhamapi.hypernxt.space/shiprocket-checkout/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://subhamapi.hypernxt.space/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://subhamapi.hypernxt.space/uploads/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

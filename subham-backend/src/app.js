@@ -173,16 +173,11 @@ const SR_PREFIX = process.env.SHIPROCKET_CHECKOUT_ROUTE_PREFIX || '/shiprocket-c
 const SR_KEY = process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY;
 const SR_SECRET = process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.SHIPROCKET_CHECKOUT_SECRET || process.env.SHIPROCKET_API_SECRET;
 const SR_ENABLED = String(process.env.SHIPROCKET_CHECKOUT_ENABLED ?? 'true').toLowerCase() !== 'false';
-if (SR_ENABLED && SR_KEY && SR_SECRET) {
+if (SR_ENABLED) {
   app.use(SR_PREFIX, require('./routes/shiprocketCheckout.routes'));
   logger.info(`Shiprocket Checkout endpoints mounted at ${SR_PREFIX}`);
 } else {
-  logger.warn(
-    SR_ENABLED
-      ? `Shiprocket Checkout endpoints NOT mounted — set SHIPROCKET_CHECKOUT_API_KEY and ` +
-        `SHIPROCKET_CHECKOUT_API_SECRET in .env to enable ${SR_PREFIX}/*`
-      : `Shiprocket Checkout endpoints disabled via SHIPROCKET_CHECKOUT_ENABLED=false`,
-  );
+  logger.warn(`Shiprocket Checkout endpoints disabled via SHIPROCKET_CHECKOUT_ENABLED=false`);
 }
 
 /* ── API ── */

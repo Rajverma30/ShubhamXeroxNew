@@ -1,0 +1,15 @@
+# Nixpacks configuration for Railway Vite React storefront monorepo
+[providers]
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["cd subham-user && npm install"]
+
+[phases.build]
+cmds = ["cd subham-user && npm run build"]
+
+[start]
+cmd = "cd subham-user && node server.js"

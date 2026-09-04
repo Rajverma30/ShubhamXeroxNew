@@ -473,22 +473,41 @@ exports.adminListOrders = asyncHandler(async (req, res) => {
       ShiprocketCheckoutSession.countDocuments(filter),
     ]);
 
-    const items = sessions.map((s) => ({
-      _id: s._id,
-      orderNumber: s.orderId,
-      customer: { name: 'Shiprocket Guest', phone: 'Via Fastrr' },
-      items: s.items || [],
-      subtotal: s.subtotal,
-      shippingCharge: 0,
-      total: s.subtotal,
-      payment: {
-        provider: 'shiprocket-checkout',
-        status: s.status === 'paid' ? 'paid' : s.status === 'failed' ? 'failed' : 'created',
-      },
-      status: s.status === 'paid' ? 'confirmed' : 'awaiting-payment',
-      createdAt: s.createdAt,
-      isShiprocketSession: true,
-    }));
+    // Check if any of these sessions were converted to confirmed Order docs
+    const sessionOrderIds = sessions.map((s) => s.orderId);
+    const existingOrders = await Order.find({ orderNumber: { $in: sessionOrderIds } }).lean();
+    const orderMap = new Map(existingOrders.map((o) => [o.orderNumber, o]));
+
+    const items = sessions.map((s) => {
+      const realOrder = orderMap.get(s.orderId);
+      if (realOrder) {
+        return {
+          ...realOrder,
+          isShiprocketSession: false,
+        };
+      }
+
+      const rawCust = s.raw?.customer || s.raw?.shipping_address || s.raw?.customer_details || {};
+      const name = s.customer?.name || rawCust.name || (rawCust.first_name ? `${rawCust.first_name || ''} ${rawCust.last_name || ''}`.trim() : '') || 'Guest (Checkout Initiated)';
+      const phone = s.customer?.phone || rawCust.phone || rawCust.mobile || 'Via Fastrr';
+
+      return {
+        _id: s._id,
+        orderNumber: s.orderId,
+        customer: { name, phone },
+        items: s.items || [],
+        subtotal: s.subtotal,
+        shippingCharge: 0,
+        total: s.subtotal,
+        payment: {
+          provider: 'shiprocket-checkout',
+          status: s.status === 'paid' ? 'paid' : s.status === 'failed' ? 'failed' : 'created',
+        },
+        status: s.status === 'paid' ? 'confirmed' : 'awaiting-payment',
+        createdAt: s.createdAt,
+        isShiprocketSession: true,
+      };
+    });
 
     return ok(res, {
       items, total, page, pages: Math.ceil(total / limit), paidRevenue: 0,
@@ -541,34 +560,40 @@ exports.adminGetOrder = asyncHandler(async (req, res) => {
     }
 
     if (session) {
-      doc = {
-        _id: session._id,
-        orderNumber: session.orderId,
-        customer: {
-          name: 'Shiprocket Guest',
-          phone: session.raw?.customer?.phone || session.raw?.shipping_address?.phone || 'Via Fastrr',
-          email: session.raw?.customer?.email || '',
-        },
-        shippingAddress: {
-          address: session.raw?.shipping_address?.address1 || 'Shiprocket Checkout Attempt',
-          landmark: session.raw?.shipping_address?.address2 || '',
-          city: session.raw?.shipping_address?.city || '-',
-          state: session.raw?.shipping_address?.state || '-',
-          pincode: session.raw?.shipping_address?.pincode || session.raw?.shipping_address?.zipcode || '-',
-        },
-        items: session.items || [],
-        subtotal: session.subtotal,
-        shippingCharge: 0,
-        total: session.subtotal,
-        payment: {
-          provider: 'shiprocket-checkout',
-          status: session.status === 'paid' ? 'paid' : session.status === 'failed' ? 'failed' : 'created',
-          method: 'Fastrr / Shiprocket Checkout',
-        },
-        status: session.status === 'paid' ? 'confirmed' : 'awaiting-payment',
-        createdAt: session.createdAt,
-        isShiprocketSession: true,
-      };
+      const realOrder = await Order.findOne({ orderNumber: session.orderId }).populate('items.product', 'title slug images').lean();
+      if (realOrder) {
+        doc = realOrder;
+      } else {
+        const rawCust = session.raw?.customer || session.raw?.shipping_address || session.raw?.customer_details || {};
+        doc = {
+          _id: session._id,
+          orderNumber: session.orderId,
+          customer: {
+            name: session.customer?.name || rawCust.name || (rawCust.first_name ? `${rawCust.first_name || ''} ${rawCust.last_name || ''}`.trim() : '') || 'Guest (Checkout Initiated)',
+            phone: session.customer?.phone || rawCust.phone || rawCust.mobile || 'Via Fastrr',
+            email: session.customer?.email || rawCust.email || '',
+          },
+          shippingAddress: session.shippingAddress?.address ? session.shippingAddress : {
+            address: session.raw?.shipping_address?.address1 || session.raw?.shipping_address?.address || 'Checkout Initiated (Address not entered yet)',
+            landmark: session.raw?.shipping_address?.address2 || session.raw?.shipping_address?.landmark || '',
+            city: session.raw?.shipping_address?.city || '-',
+            state: session.raw?.shipping_address?.state || '-',
+            pincode: session.raw?.shipping_address?.pincode || session.raw?.shipping_address?.zipcode || '-',
+          },
+          items: session.items || [],
+          subtotal: session.subtotal,
+          shippingCharge: 0,
+          total: session.subtotal,
+          payment: {
+            provider: 'shiprocket-checkout',
+            status: session.status === 'paid' ? 'paid' : session.status === 'failed' ? 'failed' : 'created',
+            method: 'Fastrr / Shiprocket Checkout',
+          },
+          status: session.status === 'paid' ? 'confirmed' : 'awaiting-payment',
+          createdAt: session.createdAt,
+          isShiprocketSession: true,
+        };
+      }
     }
   }
 

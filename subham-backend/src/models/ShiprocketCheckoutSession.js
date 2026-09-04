@@ -31,6 +31,21 @@ const shiprocketCheckoutSessionSchema = new mongoose.Schema(
     sellerDomain: { type: String, required: true },
     status: { type: String, enum: ['initiated', 'paid', 'failed'], default: 'initiated', index: true },
     providerOrderId: { type: String, default: '' },
+    customer: {
+      name: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      email: { type: String, default: '' },
+    },
+    shippingAddress: {
+      address: { type: String, default: '' },
+      address2: { type: String, default: '' },
+      landmark: { type: String, default: '' },
+      city: { type: String, default: '' },
+      district: { type: String, default: '' },
+      state: { type: String, default: '' },
+      pincode: { type: String, default: '' },
+      country: { type: String, default: 'India' },
+    },
     raw: { type: mongoose.Schema.Types.Mixed },
     // MongoDB's TTL monitor removes abandoned sessions automatically.
     expiresAt: { type: Date, required: true, expires: 0 },

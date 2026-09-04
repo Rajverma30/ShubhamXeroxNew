@@ -177,9 +177,31 @@ exports.createSession = asyncHandler(async (req, res) => {
 });
 
 function collectObjects(payload) {
-  const data = payload?.data && typeof payload.data === 'object' ? payload.data : payload;
-  const order = data?.order && typeof data.order === 'object' ? data.order : data;
-  return [payload, data, order].filter((value) => value && typeof value === 'object');
+  if (!payload || typeof payload !== 'object') return [];
+  const list = [];
+  const add = (obj) => {
+    if (obj && typeof obj === 'object' && !list.includes(obj)) list.push(obj);
+  };
+
+  add(payload);
+  if (payload.data) add(payload.data);
+  if (payload.order) add(payload.order);
+  if (payload.data?.order) add(payload.data.order);
+  if (payload.customer) add(payload.customer);
+  if (payload.customer_details) add(payload.customer_details);
+  if (payload.shipping_address) add(payload.shipping_address);
+  if (payload.billing_address) add(payload.billing_address);
+  if (payload.address) add(payload.address);
+  if (payload.order?.customer) add(payload.order.customer);
+  if (payload.order?.customer_details) add(payload.order.customer_details);
+  if (payload.order?.shipping_address) add(payload.order.shipping_address);
+  if (payload.order?.billing_address) add(payload.order.billing_address);
+  if (payload.data?.customer) add(payload.data.customer);
+  if (payload.data?.customer_details) add(payload.data.customer_details);
+  if (payload.data?.shipping_address) add(payload.data.shipping_address);
+  if (payload.data?.billing_address) add(payload.data.billing_address);
+
+  return list;
 }
 
 function extractOrderId(payload) {
@@ -233,29 +255,85 @@ function webhookSignatureValid(raw, provided) {
 
 function webhookCustomer(payload) {
   const objects = collectObjects(payload);
-  const get = (...keys) => first(...objects.flatMap((object) => keys.map((key) => object[key])));
-  const addressObj = objects.map((object) => first(object.shipping_address, object.shippingAddress, object.address, object.billing_address, object.billingAddress)).find((value) => value && typeof value === 'object') || {};
-  const rawAddress = get('shipping_address', 'shippingAddress', 'address', 'billing_address');
-  const addressText = typeof rawAddress === 'string' ? rawAddress : first(addressObj.address, addressObj.address1, addressObj.address_1, addressObj.line1, addressObj.street);
-  let phone = String(get('customer_phone', 'billing_phone', 'phone', 'mobile', 'customerPhone', 'contact') || '').replace(/\D/g, '').slice(-10);
-  if (!phone || phone.length < 10) phone = '9999999999';
 
-  let pincode = String(first(addressObj.pincode, addressObj.zip, addressObj.zipcode, addressObj.postcode, get('pincode', 'zip', 'zipcode', 'postcode')) || '').replace(/\D/g, '').slice(-6);
-  if (!/^\d{6}$/.test(pincode)) pincode = '452001';
+  // Extract Name
+  let name = '';
+  for (const obj of objects) {
+    const candidate = first(obj.name, obj.full_name, obj.customer_name, obj.billing_customer_name, obj.customerName, obj.buyer_name, obj.fullName);
+    if (candidate && String(candidate).trim() && !/^(customer|shiprocket guest|guest)$/i.test(String(candidate).trim())) {
+      name = String(candidate).trim();
+      break;
+    }
+    const firstNm = first(obj.first_name, obj.firstName, obj.given_name);
+    const lastNm = first(obj.last_name, obj.lastName, obj.family_name);
+    if (firstNm || lastNm) {
+      const combined = `${firstNm || ''} ${lastNm || ''}`.trim();
+      if (combined && !/^(customer|shiprocket guest|guest)$/i.test(combined)) {
+        name = combined;
+        break;
+      }
+    }
+  }
+
+  // Extract Phone
+  let phone = '';
+  for (const obj of objects) {
+    const raw = first(obj.phone, obj.mobile, obj.contact, obj.phone_number, obj.customer_phone, obj.billing_phone, obj.customerPhone, obj.contact_number, obj.mobile_number);
+    if (raw) {
+      const digits = String(raw).replace(/\D/g, '').slice(-10);
+      if (digits.length === 10 && digits !== '9999999999' && digits !== '0000000000') {
+        phone = digits;
+        break;
+      }
+    }
+  }
+
+  // Extract Email
+  let email = '';
+  for (const obj of objects) {
+    const raw = first(obj.email, obj.customer_email, obj.buyer_email, obj.email_address);
+    if (raw && String(raw).includes('@')) {
+      email = String(raw).trim();
+      break;
+    }
+  }
+
+  // Extract Address
+  let addressObj = {};
+  for (const obj of objects) {
+    const candidate = first(obj.shipping_address, obj.shippingAddress, obj.address, obj.billing_address, obj.billingAddress);
+    if (candidate && typeof candidate === 'object') {
+      addressObj = candidate;
+      break;
+    }
+  }
+
+  const line1 = first(
+    addressObj.address1, addressObj.address_1, addressObj.address, addressObj.line1, addressObj.street, addressObj.street_address,
+    ...objects.map((o) => typeof o.address === 'string' && o.address !== 'Delivery Address' && o.address !== 'Shiprocket Checkout Attempt' ? o.address : null),
+    ...objects.map((o) => typeof o.shipping_address === 'string' && o.shipping_address !== 'Delivery Address' ? o.shipping_address : null)
+  );
+  const line2 = first(addressObj.address2, addressObj.address_2, addressObj.line2);
+  const landmark = first(addressObj.landmark, addressObj.landmark_name);
+  const city = first(addressObj.city, addressObj.city_name, ...objects.map((o) => o.city).filter((c) => c && typeof c === 'string'));
+  const district = first(addressObj.district, ...objects.map((o) => o.district).filter((d) => d && typeof d === 'string'));
+  const state = first(addressObj.state, addressObj.state_name, addressObj.province, ...objects.map((o) => o.state).filter((s) => s && typeof s === 'string'));
+  const pincodeRaw = first(addressObj.pincode, addressObj.zip, addressObj.zipcode, addressObj.postcode, addressObj.postal_code, ...objects.map((o) => o.pincode).filter(Boolean));
+  const pincode = String(pincodeRaw || '').replace(/\D/g, '').slice(-6);
 
   return {
-    name: String(get('customer_name', 'billing_customer_name', 'name', 'customerName', 'full_name') || 'Customer').trim(),
-    phone,
-    email: String(get('customer_email', 'email') || '').trim(),
+    name: name || 'Shiprocket Guest',
+    phone: phone || 'Via Fastrr',
+    email: email || '',
     address: {
-      address: String(addressText || 'Delivery Address').trim(),
-      address2: String(first(addressObj.address2, addressObj.address_2, addressObj.line2) || '').trim(),
-      landmark: String(addressObj.landmark || '').trim(),
-      city: String(first(addressObj.city, get('city', 'city_name')) || 'Indore').trim(),
-      district: String(first(addressObj.district, get('district')) || '').trim(),
-      state: String(first(addressObj.state, get('state', 'state_name')) || 'Madhya Pradesh').trim(),
-      pincode,
-      country: String(first(addressObj.country, get('country')) || 'India').trim(),
+      address: String(line1 || 'Shiprocket Checkout Attempt').trim(),
+      address2: String(line2 || '').trim(),
+      landmark: String(landmark || '').trim(),
+      city: String(city || '-').trim(),
+      district: String(district || '').trim(),
+      state: String(state || '-').trim(),
+      pincode: /^\d{6}$/.test(pincode) ? pincode : '-',
+      country: String(first(addressObj.country, ...objects.map((o) => o.country)) || 'India').trim(),
     },
   };
 }
@@ -274,14 +352,38 @@ async function decrementStock(order) {
 }
 
 async function confirmOrderFromSession(session, payload = {}) {
-  const existing = await Order.findOne({ orderNumber: session.orderId });
-  if (existing) return existing;
-
   const customer = webhookCustomer(payload);
   const objects = collectObjects(payload);
   const providerOrderId = String(first(...objects.map((object) => object.shiprocket_order_id || object.sr_order_id || object.order_id)) || '');
   const reportedTotal = num(first(...objects.map((object) => object.total || object.grand_total || object.amount)), session.subtotal);
   const total = Math.max(session.subtotal, reportedTotal);
+
+  let existing = await Order.findOne({ orderNumber: session.orderId });
+  if (existing) {
+    let updated = false;
+    if (customer.name && customer.name !== 'Shiprocket Guest' && customer.name !== 'Customer') {
+      existing.customer.name = customer.name;
+      updated = true;
+    }
+    if (customer.phone && customer.phone !== 'Via Fastrr' && customer.phone !== '9999999999') {
+      existing.customer.phone = customer.phone;
+      updated = true;
+    }
+    if (customer.email && customer.email !== existing.customer.email) {
+      existing.customer.email = customer.email;
+      updated = true;
+    }
+    if (customer.address && customer.address.address && customer.address.address !== 'Shiprocket Checkout Attempt' && customer.address.address !== 'Delivery Address') {
+      existing.shippingAddress = customer.address;
+      updated = true;
+    }
+    if (providerOrderId && !existing.payment?.razorpayPaymentId) {
+      existing.payment.razorpayPaymentId = providerOrderId;
+      updated = true;
+    }
+    if (updated) await existing.save();
+    return existing;
+  }
 
   const order = await Order.create({
     orderNumber: session.orderId,
@@ -307,6 +409,8 @@ async function confirmOrderFromSession(session, payload = {}) {
   await decrementStock(order);
   session.status = 'paid';
   session.providerOrderId = providerOrderId;
+  session.customer = { name: customer.name, phone: customer.phone, email: customer.email };
+  session.shippingAddress = customer.address;
   session.raw = payload;
   await session.save();
 
@@ -329,10 +433,19 @@ exports.webhook = asyncHandler(async (req, res) => {
   const session = await ShiprocketCheckoutSession.findOne({ orderId });
   if (!session) return ok(res, { received: true, ignored: 'unknown or expired session' });
 
+  const customerInfo = webhookCustomer(payload);
+  if (customerInfo.name !== 'Shiprocket Guest') {
+    session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
+  }
+  if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
+    session.shippingAddress = customerInfo.address;
+  }
+  session.raw = payload;
+  await session.save();
+
   const kind = webhookKind(payload);
   if (kind === 'failed') {
     session.status = 'failed';
-    session.raw = payload;
     await session.save();
     return ok(res, { received: true, status: 'failed' });
   }
@@ -350,6 +463,7 @@ exports.webhook = asyncHandler(async (req, res) => {
 });
 
 exports.confirmOrderFromSession = confirmOrderFromSession;
+exports.webhookCustomer = webhookCustomer;
 
 /** Admin-only configuration health; secrets are never returned. */
 exports.diagnostics = asyncHandler(async (_req, res) => {

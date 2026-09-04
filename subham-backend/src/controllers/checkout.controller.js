@@ -518,15 +518,79 @@ exports.adminListOrders = asyncHandler(async (req, res) => {
 });
 
 exports.adminGetOrder = asyncHandler(async (req, res) => {
-  const doc = await Order.findById(req.params.id).populate('items.product', 'title slug images').lean();
+  const { id } = req.params;
+  const isObjectId = mongoose.isValidObjectId(id);
+
+  let doc = null;
+
+  if (isObjectId) {
+    doc = await Order.findById(id).populate('items.product', 'title slug images').lean();
+  }
+  if (!doc) {
+    doc = await Order.findOne({ orderNumber: id }).populate('items.product', 'title slug images').lean();
+  }
+
+  if (!doc) {
+    const ShiprocketCheckoutSession = require('../models/ShiprocketCheckoutSession');
+    let session = null;
+    if (isObjectId) {
+      session = await ShiprocketCheckoutSession.findById(id).lean();
+    }
+    if (!session) {
+      session = await ShiprocketCheckoutSession.findOne({ orderId: id }).lean();
+    }
+
+    if (session) {
+      doc = {
+        _id: session._id,
+        orderNumber: session.orderId,
+        customer: {
+          name: 'Shiprocket Guest',
+          phone: session.raw?.customer?.phone || session.raw?.shipping_address?.phone || 'Via Fastrr',
+          email: session.raw?.customer?.email || '',
+        },
+        shippingAddress: {
+          address: session.raw?.shipping_address?.address1 || 'Shiprocket Checkout Attempt',
+          landmark: session.raw?.shipping_address?.address2 || '',
+          city: session.raw?.shipping_address?.city || '-',
+          state: session.raw?.shipping_address?.state || '-',
+          pincode: session.raw?.shipping_address?.pincode || session.raw?.shipping_address?.zipcode || '-',
+        },
+        items: session.items || [],
+        subtotal: session.subtotal,
+        shippingCharge: 0,
+        total: session.subtotal,
+        payment: {
+          provider: 'shiprocket-checkout',
+          status: session.status === 'paid' ? 'paid' : session.status === 'failed' ? 'failed' : 'created',
+          method: 'Fastrr / Shiprocket Checkout',
+        },
+        status: session.status === 'paid' ? 'confirmed' : 'awaiting-payment',
+        createdAt: session.createdAt,
+        isShiprocketSession: true,
+      };
+    }
+  }
+
   if (!doc) throw ApiError.notFound('Order not found');
   return ok(res, doc);
 });
 
 /** PATCH /api/admin/orders/:id — status and hand-typed tracking. */
 exports.adminUpdateOrder = asyncHandler(async (req, res) => {
-  const doc = await Order.findById(req.params.id);
-  if (!doc) throw ApiError.notFound('Order not found');
+  const { id } = req.params;
+  const isObjectId = mongoose.isValidObjectId(id);
+
+  let doc = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
+
+  if (!doc) {
+    const ShiprocketCheckoutSession = require('../models/ShiprocketCheckoutSession');
+    const session = isObjectId ? await ShiprocketCheckoutSession.findById(id) : await ShiprocketCheckoutSession.findOne({ orderId: id });
+    if (session) {
+      throw ApiError.badRequest('Shiprocket checkout attempts are read-only until payment confirmation converts them to orders.');
+    }
+    throw ApiError.notFound('Order not found');
+  }
 
   const { status, courier, awb, trackingUrl, adminNotes } = req.body;
 

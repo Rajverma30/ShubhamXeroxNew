@@ -214,10 +214,11 @@ export default function Orders() {
 function OrderDetail({ id, onClose, onSaved }) {
   const toast = useToast();
 
-  const { data: order, isLoading } = useQuery({
+  const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', id],
     queryFn: () => api.order(id),
     enabled: Boolean(id),
+    retry: 1,
   });
 
   const [form, setForm] = useState({ status: '', courier: '', awb: '', trackingUrl: '', adminNotes: '' });
@@ -264,18 +265,33 @@ function OrderDetail({ id, onClose, onSaved }) {
           <div className="flex w-full items-center gap-3">
             {err && <p className="flex-1 text-xs font-medium text-rose-600">{err}</p>}
             <button type="button" onClick={onClose} className="btn-outline ml-auto">Close</button>
-            <button type="button" onClick={submit} disabled={save.isPending} className="btn-primary gap-2">
-              {save.isPending && <Spinner size={14} />} Save changes
-            </button>
+            {!order.isShiprocketSession && (
+              <button type="button" onClick={submit} disabled={save.isPending} className="btn-primary gap-2">
+                {save.isPending && <Spinner size={14} />} Save changes
+              </button>
+            )}
           </div>
         )
       }
     >
-      {isLoading || !order ? (
+      {isLoading ? (
         <div className="flex justify-center py-10"><Spinner size={22} /></div>
+      ) : error ? (
+        <div className="p-6 text-center text-sm font-medium text-rose-600">
+          {error.message || 'Failed to load order details'}
+        </div>
+      ) : !order ? (
+        <div className="p-6 text-center text-sm text-ink-500">Order not found.</div>
       ) : (
         <div className="space-y-5">
-          {!paid && (
+          {order.isShiprocketSession && (
+            <p className="flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-800">
+              <FiAlertCircle size={15} className="mt-px shrink-0" />
+              This is an unconfirmed Fastrr / Shiprocket checkout attempt. Details are read-only until payment is completed.
+            </p>
+          )}
+
+          {!paid && !order.isShiprocketSession && (
             <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
               <FiAlertCircle size={15} className="mt-px shrink-0" />
               This order has not been paid for. Only “cancelled” can be set until Razorpay confirms payment.

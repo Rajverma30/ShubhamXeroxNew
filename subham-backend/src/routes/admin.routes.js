@@ -67,6 +67,8 @@ const orderCtrl = require('../controllers/checkout.controller');
 router.get('/orders', orderCtrl.adminListOrders);
 router.get('/orders/:id', orderCtrl.adminGetOrder);
 router.patch('/orders/:id', orderCtrl.adminUpdateOrder);
+router.post('/orders/:id/sync-payment', orderCtrl.adminSyncPayment);
+
 
 /* ── products (books / ebooks / stationery) ── */
 router.get('/products', productCtrl.adminList);

@@ -530,6 +530,38 @@ exports.adminListOrders = asyncHandler(async (req, res) => {
     Order.aggregate([{ $match: { 'payment.status': 'paid' } }, { $group: { _id: null, sum: { $sum: '$total' } } }]),
   ]);
 
+  // Auto-reconcile pending Razorpay orders with Razorpay API
+  if (razorpay.isConfigured()) {
+    const pendingOrders = items.filter(o => !o.isShiprocketSession && o.payment?.status !== 'paid' && o.payment?.razorpayOrderId);
+    await Promise.all(pendingOrders.map(async (order) => {
+      try {
+        const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
+        const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${order.payment.razorpayOrderId}/payments`, {
+          headers: { Authorization: auth },
+          timeout: 4000,
+        });
+        const captured = (data.items || []).find(p => p.status === 'captured');
+        if (captured) {
+          const updated = await markPaid(order, {
+            paymentId: captured.id,
+            method: captured.method || 'online',
+            amountPaisa: captured.amount,
+            raw: { source: 'auto-reconcile', payment: captured },
+          });
+          if (updated) {
+            order.payment = order.payment || {};
+            order.payment.status = 'paid';
+            order.payment.razorpayPaymentId = captured.id;
+            order.payment.method = captured.method || 'online';
+            order.status = 'confirmed';
+          }
+        }
+      } catch (err) {
+        // Silently skip if Razorpay API fails for a specific order
+      }
+    }));
+  }
+
   return ok(res, {
     items, total, page, pages: Math.ceil(total / limit),
     paidRevenue: revenue[0]?.sum || 0,
@@ -640,4 +672,43 @@ exports.adminUpdateOrder = asyncHandler(async (req, res) => {
   return ok(res, doc);
 });
 
+/** POST /api/admin/orders/:id/sync-payment — fetch status directly from Razorpay. */
+exports.adminSyncPayment = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isObjectId = mongoose.isValidObjectId(id);
+
+  let doc = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
+  if (!doc) throw ApiError.notFound('Order not found');
+
+  if (doc.payment?.status === 'paid') {
+    return ok(res, { order: doc, message: 'Order is already marked as paid' });
+  }
+
+  const razorpayOrderId = doc.payment?.razorpayOrderId;
+  if (!razorpayOrderId) {
+    throw ApiError.badRequest('No Razorpay order ID associated with this order');
+  }
+
+  const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
+  const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${razorpayOrderId}/payments`, {
+    headers: { Authorization: auth },
+    timeout: 10000,
+  });
+
+  const captured = (data.items || []).find(p => p.status === 'captured');
+  if (!captured) {
+    return ok(res, { order: doc, message: 'No captured payment found in Razorpay for this order' });
+  }
+
+  const updated = await markPaid(doc, {
+    paymentId: captured.id,
+    method: captured.method || 'online',
+    amountPaisa: captured.amount,
+    raw: { source: 'admin-manual-sync', payment: captured },
+  });
+
+  return ok(res, { order: updated, message: 'Payment verified and order updated successfully' });
+});
+
 exports.priceCart = priceCart;
+

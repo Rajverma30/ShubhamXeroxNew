@@ -478,7 +478,8 @@ exports.getOrder = asyncHandler(async (req, res) => {
     }
   }
 
-  return ok(res, order);
+  const resData = { ...order, keyId: razorpay.publicKey() };
+  return ok(res, resData);
 });
 
 /**
@@ -525,7 +526,8 @@ exports.getOrdersByPhone = asyncHandler(async (req, res) => {
     }));
   }
 
-  return ok(res, orders);
+  const itemsWithKey = orders.map(o => ({ ...o, keyId: razorpay.publicKey() }));
+  return ok(res, itemsWithKey);
 });
 
 /* ─────────────────────────── admin (orders) ─────────────────────────── */

@@ -194,4 +194,62 @@ export async function fetchOrder(orderNumber, phone) {
   return res.data?.data ?? res.data;
 }
 
+/** Complete payment on an existing unpaid order */
+export async function payExistingOrder(orderData, { storeName, logo } = {}) {
+  if (!orderData?.orderNumber) throw new Error('Invalid order details');
+
+  const phone = orderData.customer?.phone || '';
+  const token = await createDirectSession(phone);
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
+
+  await loadRazorpay();
+
+  const keyId = orderData.keyId || orderData.payment?.keyId;
+  const razorpayOrderId = orderData.payment?.razorpayOrderId;
+  const amountPaisa = orderData.payment?.amountPaisa || Math.round(Number(orderData.total) * 100);
+
+  if (!razorpayOrderId || !keyId) {
+    throw new Error('Razorpay order ID is missing for this order.');
+  }
+
+  const result = await new Promise((resolve, reject) => {
+    const rzp = new window.Razorpay({
+      key: keyId,
+      amount: amountPaisa,
+      currency: 'INR',
+      name: storeName || 'Subham Xerox',
+      description: `Payment for ${orderData.orderNumber}`,
+      image: logo || undefined,
+      order_id: razorpayOrderId,
+      prefill: {
+        name: orderData.customer?.name || '',
+        email: orderData.customer?.email || '',
+        contact: phone,
+      },
+      notes: { orderNumber: orderData.orderNumber },
+      theme: { color: '#7f1d1d' },
+      handler: (response) => resolve(response),
+      modal: {
+        ondismiss: () => reject(new Error('Payment cancelled.')),
+        escape: true,
+      },
+    });
+
+    rzp.on('payment.failed', (e) => {
+      reject(new Error(e?.error?.description || 'Payment failed. Please try again.'));
+    });
+
+    rzp.open();
+  });
+
+  const res = await api.raw.post('/checkout/verify', {
+    orderNumber: orderData.orderNumber,
+    razorpay_order_id: result.razorpay_order_id,
+    razorpay_payment_id: result.razorpay_payment_id,
+    razorpay_signature: result.razorpay_signature,
+  }, auth);
+
+  return res.data?.data ?? res.data;
+}
+
 export default placeOrder;

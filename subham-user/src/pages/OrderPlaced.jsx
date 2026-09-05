@@ -1,28 +1,17 @@
 /**
- * Order confirmation.
+ * Order details / receipt page.
  *
- * Reached only via CheckoutFlow, which navigates with `replace: true` after
- * the payment signature has been verified server-side:
- *
- *     /order-placed?order=SX-260815-K2M9P&phone=9876543210
- *
- * Two behaviours worth calling out:
- *
- * 1. BACK GOES HOME. Landing back on the cart or the payment screen after a
- *    successful order invites a double payment. A duplicate history entry is
- *    pushed on mount, so the first Back press fires popstate and we redirect
- *    to the homepage instead.
- *
- * 2. THE CART IS CLEARED HERE TOO. CheckoutFlow already clears it, but if the
- *    customer reopens this URL the cart must not still be sitting there.
+ * Handles both:
+ * 1. Paid orders -> Confirmed receipt view.
+ * 2. Unpaid / Awaiting payment orders -> Shows "Payment Pending" banner with "Complete Payment Now" button.
  */
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCheck, FiCopy, FiHome, FiMail, FiPackage, FiPhone } from 'react-icons/fi';
+import { FiAlertCircle, FiCheck, FiClock, FiCopy, FiCreditCard, FiHome, FiMail, FiPackage, FiPhone } from 'react-icons/fi';
 
 import { useStore } from '../context/StoreContext';
-import { fetchOrder } from '../lib/checkout';
+import { fetchOrder, payExistingOrder } from '../lib/checkout';
 import Seo from '../components/ui/Seo';
 import { Spinner } from '../components/ui/Common';
 import { money } from '../lib/format';
@@ -37,6 +26,8 @@ export default function OrderPlaced() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(Boolean(orderNumber));
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState('');
 
   /* Empty the cart. Safe to run twice. */
   useEffect(() => { clearCart?.(); }, [clearCart]);
@@ -67,40 +58,118 @@ export default function OrderPlaced() {
     } catch { /* clipboard unavailable */ }
   };
 
+  const handlePayNow = async () => {
+    if (!order) return;
+    setPaying(true);
+    setPayError('');
+    try {
+      await payExistingOrder(order, {
+        storeName: settings?.name || 'Subham Xerox',
+        logo: settings?.logo,
+      });
+      toast?.('Payment successful! Order confirmed.');
+      // Refresh order details
+      const updated = await fetchOrder(order.orderNumber, phone || order.customer?.phone);
+      setOrder(updated);
+    } catch (err) {
+      setPayError(err?.message || 'Payment was not completed. Please try again.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const isPaid = order?.payment?.status === 'paid';
+
   return (
     <>
-      <Seo title="Order confirmed" path="/order-placed" noIndex />
+      <Seo title={isPaid ? "Order confirmed" : "Complete Payment"} path="/order-placed" noIndex />
 
       <div className="container-x max-w-xl py-12 text-center sm:py-16">
-        <motion.div
-          initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-          className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-glow"
-        >
-          <FiCheck size={30} strokeWidth={3} />
-        </motion.div>
+        {isPaid ? (
+          <>
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-glow"
+            >
+              <FiCheck size={30} strokeWidth={3} />
+            </motion.div>
 
-        <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
-          Order placed successfully
-        </h1>
-        <p className="mt-2.5 text-pretty text-sm leading-relaxed text-ink-500">
-          Your payment has been received and your order is confirmed. We will
-          contact you on the number you verified when it ships.
-        </p>
+            <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
+              Order placed successfully
+            </h1>
+            <p className="mt-2.5 text-pretty text-sm leading-relaxed text-ink-500">
+              Your payment has been received and your order is confirmed. We will
+              contact you on the number you verified when it ships.
+            </p>
+          </>
+        ) : (
+          <>
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500 text-white shadow-soft"
+            >
+              <FiClock size={30} strokeWidth={2.5} />
+            </motion.div>
+
+            <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
+              Payment Pending
+            </h1>
+            <p className="mt-2.5 text-pretty text-sm leading-relaxed text-ink-500">
+              Payment for this order has not been completed yet. Complete your payment below to confirm your order.
+            </p>
+          </>
+        )}
 
         {orderNumber && (
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-            <p className="text-2xs font-bold uppercase tracking-wide text-emerald-700">Your order number</p>
+          <div className={`mt-6 rounded-2xl border px-5 py-4 ${isPaid ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+            <p className={`text-2xs font-bold uppercase tracking-wide ${isPaid ? 'text-emerald-700' : 'text-amber-800'}`}>
+              Your order number
+            </p>
             <button
               type="button" onClick={copy}
               className="mt-1 inline-flex items-center gap-2 font-display text-2xl font-bold text-ink-900"
             >
               {orderNumber}
-              <FiCopy size={15} className="text-emerald-600" />
+              <FiCopy size={15} className={isPaid ? "text-emerald-600" : "text-amber-600"} />
             </button>
-            <p className="mt-1.5 text-2xs text-emerald-700">
-              Save this. There is no account, so it is how we find your order.
+            <p className={`mt-1.5 text-2xs ${isPaid ? 'text-emerald-700' : 'text-amber-800'}`}>
+              Save this number to track your order status anytime.
             </p>
+          </div>
+        )}
+
+        {!isPaid && order && (
+          <div className="mt-5 rounded-2xl border border-amber-300 bg-amber-50/80 p-4 text-left">
+            <div className="flex items-start gap-3">
+              <FiAlertCircle size={20} className="mt-0.5 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-bold text-amber-900">Payment required to process this order</p>
+                <p className="mt-0.5 text-xs text-amber-700">
+                  Total amount due: <span className="font-bold text-amber-900">{money(order.total)}</span>
+                </p>
+              </div>
+            </div>
+
+            {payError && (
+              <p className="mt-3 rounded-lg bg-rose-100 p-2.5 text-xs font-semibold text-rose-700">
+                {payError}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handlePayNow}
+              disabled={paying}
+              className="btn-primary mt-4 w-full gap-2 py-3.5 text-base shadow-lift"
+            >
+              {paying ? (
+                <><Spinner size={18} /> Processing payment…</>
+              ) : (
+                <><FiCreditCard size={18} /> Pay {money(order.total)} Now via Razorpay</>
+              )}
+            </button>
           </div>
         )}
 
@@ -111,7 +180,10 @@ export default function OrderPlaced() {
         )}
 
         {order && (
-          <div className="mt-6 overflow-hidden rounded-2xl border border-ink-100 text-left">
+          <div className="mt-6 overflow-hidden rounded-2xl border border-ink-100 text-left bg-white shadow-soft">
+            <div className="border-b border-ink-100 bg-ink-50/50 px-4 py-3">
+              <p className="text-2xs font-bold uppercase tracking-wide text-ink-400">Order Items</p>
+            </div>
             <ul className="divide-y divide-ink-100">
               {(order.items || []).map((line, i) => (
                 <li key={i} className="flex items-center gap-3 p-3.5">
@@ -131,7 +203,7 @@ export default function OrderPlaced() {
               <Row label="Subtotal" value={money(order.subtotal)} />
               <Row label="Delivery" value={order.shippingCharge ? money(order.shippingCharge) : 'Free'} />
               <div className="flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">
-                <dt>Total paid</dt><dd>{money(order.total)}</dd>
+                <dt>{isPaid ? 'Total paid' : 'Total due'}</dt><dd>{money(order.total)}</dd>
               </div>
             </dl>
 

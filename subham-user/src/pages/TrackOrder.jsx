@@ -9,14 +9,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCheck, FiChevronRight, FiMapPin, FiPackage, FiPhoneCall, FiSearch, FiTruck } from 'react-icons/fi';
+import { FiCheck, FiChevronRight, FiCreditCard, FiMapPin, FiPackage, FiSearch, FiTruck } from 'react-icons/fi';
 import api from '../lib/api';
 import Seo from '../components/ui/Seo';
 import { Breadcrumbs, SectionHeader, Spinner, Tag } from '../components/ui/Common';
 import { dateLong, dateTime, money, ORDER_STATUS_LABEL } from '../lib/format';
+import { payExistingOrder } from '../lib/checkout';
+import { useStore } from '../context/StoreContext';
 
 export default function TrackOrder() {
   const [searchParams] = useSearchParams();
+  const { settings, toast } = useStore();
+
   const [reference, setReference] = useState(
     searchParams.get('phone') || searchParams.get('order') || searchParams.get('awb') || '',
   );
@@ -24,6 +28,7 @@ export default function TrackOrder() {
   const [phoneOrdersList, setPhoneOrdersList] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [payingOrderId, setPayingOrderId] = useState(null);
 
   const lookup = async (e) => {
     e?.preventDefault();
@@ -66,6 +71,27 @@ export default function TrackOrder() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handlePayOrder = async (ord) => {
+    setPayingOrderId(ord._id || ord.orderNumber);
+    try {
+      await payExistingOrder(ord, {
+        storeName: settings?.name || 'Subham Xerox',
+        logo: settings?.logo,
+      });
+      toast?.('Payment completed successfully!');
+      // Refresh list
+      const cleanDigits = reference.replace(/\D/g, '');
+      if (cleanDigits.length === 10) {
+        const updatedList = await api.getOrdersByPhone(cleanDigits);
+        setPhoneOrdersList(updatedList);
+      }
+    } catch (err) {
+      toast?.(err?.message || 'Payment cancelled or failed.');
+    } finally {
+      setPayingOrderId(null);
+    }
+  };
 
   const cancelled = ['cancelled', 'returned', 'rto', 'failed'].includes(singleOrderData?.status);
 
@@ -113,8 +139,11 @@ export default function TrackOrder() {
             {phoneOrdersList.map((ord) => {
               const isPaid = ord.payment?.status === 'paid';
               const phone = ord.customer?.phone || '';
+              const ordId = ord._id || ord.orderNumber;
+              const isPayingThis = payingOrderId === ordId;
+
               return (
-                <div key={ord._id || ord.orderNumber} className="overflow-hidden rounded-3xl border border-ink-100 bg-white p-5 shadow-soft transition-all hover:border-brand-200">
+                <div key={ordId} className="overflow-hidden rounded-3xl border border-ink-100 bg-white p-5 shadow-soft transition-all hover:border-brand-200">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 pb-3.5">
                     <div>
                       <p className="text-2xs font-bold uppercase tracking-wide text-ink-400">Order Number</p>
@@ -161,14 +190,27 @@ export default function TrackOrder() {
                       to={`/order-placed?order=${ord.orderNumber}&phone=${encodeURIComponent(phone)}`}
                       className="btn-outline btn-sm gap-1.5 text-brand-600 hover:text-brand-700"
                     >
-                      View Receipt & Details <FiChevronRight size={14} />
+                      View Details <FiChevronRight size={14} />
                     </Link>
-                    <Link
-                      to={`/track?order=${ord.orderNumber}`}
-                      className="btn-primary btn-sm gap-1.5"
-                    >
-                      <FiTruck size={13} /> Live Courier Track
-                    </Link>
+
+                    {!isPaid ? (
+                      <button
+                        type="button"
+                        onClick={() => handlePayOrder(ord)}
+                        disabled={isPayingThis}
+                        className="btn-primary btn-sm gap-1.5 bg-amber-600 hover:bg-amber-700"
+                      >
+                        {isPayingThis ? <Spinner size={14} /> : <FiCreditCard size={14} />}
+                        Pay {money(ord.total)} Now
+                      </button>
+                    ) : (
+                      <Link
+                        to={`/track?order=${ord.orderNumber}`}
+                        className="btn-primary btn-sm gap-1.5"
+                      >
+                        <FiTruck size={13} /> Live Courier Track
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

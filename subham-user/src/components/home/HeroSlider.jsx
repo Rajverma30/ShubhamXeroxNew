@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { A11y, Autoplay, EffectFade, Keyboard, Pagination } from 'swiper/modules';
 import { motion } from 'framer-motion';
-import { FiArrowRight, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiArrowRight, FiChevronLeft, FiChevronRight, FiTruck } from 'react-icons/fi';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
@@ -65,23 +65,29 @@ export default function HeroSlider({ banners = [] }) {
                           {banner.subtitle}
                         </p>
                       )}
-                      <div className="mt-7 flex flex-wrap gap-3">
-                        {banner.buttonText && (
-                          <Link to={banner.buttonUrl || '/shop'} onClick={() => onClick(banner)}
-                            className="btn group gap-2 bg-white px-6 py-3.5 text-ink-900 shadow-lift hover:-translate-y-0.5 hover:bg-white/92">
-                            {banner.buttonText}
-                            <FiArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                        <div className="mt-7 flex flex-wrap gap-3">
+                          {banner.buttonText && (
+                            <Link to={banner.buttonUrl || '/shop'} onClick={() => onClick(banner)}
+                              className="btn group gap-2 bg-white px-6 py-3.5 text-ink-900 shadow-lift hover:-translate-y-0.5 hover:bg-white/92">
+                              {banner.buttonText}
+                              <FiArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                            </Link>
+                          )}
+                          {banner.secondaryButtonText && (
+                            <Link to={banner.secondaryButtonUrl || '/shop'} onClick={() => onClick(banner)}
+                              className={`btn gap-2 px-6 py-3.5 backdrop-blur-md ${
+                                dark ? 'border border-white/25 bg-white/10 text-white hover:bg-white/20'
+                                     : 'border border-ink-300 bg-white/60 text-ink-900 hover:bg-white'}`}>
+                              {banner.secondaryButtonText}
+                            </Link>
+                          )}
+                          <Link to="/track"
+                            className={`btn gap-2 px-5 py-3.5 backdrop-blur-md ${
+                              dark ? 'border border-amber-400/40 bg-amber-500/20 text-amber-200 hover:bg-amber-500/30'
+                                   : 'border border-brand-300 bg-brand-50 text-brand-900 hover:bg-brand-100'}`}>
+                            <FiTruck size={16} /> Track / My Orders
                           </Link>
-                        )}
-                        {banner.secondaryButtonText && (
-                          <Link to={banner.secondaryButtonUrl || '/shop'} onClick={() => onClick(banner)}
-                            className={`btn gap-2 px-6 py-3.5 backdrop-blur-md ${
-                              dark ? 'border border-white/25 bg-white/10 text-white hover:bg-white/20'
-                                   : 'border border-ink-300 bg-white/60 text-ink-900 hover:bg-white'}`}>
-                            {banner.secondaryButtonText}
-                          </Link>
-                        )}
-                      </div>
+                        </div>
                     </motion.div>
                   </div>
                 </div>

@@ -86,6 +86,11 @@ export default function Header() {
                 {l.label}
               </NavLink>
             ))}
+            <NavLink to="/track"
+              className={({ isActive }) => `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                isActive ? 'bg-brand-600 text-white border-brand-600 shadow-soft' : 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100'}`}>
+              <FiTruck size={14} /> Track / My Orders
+            </NavLink>
           </nav>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
@@ -95,6 +100,11 @@ export default function Header() {
               <span className="w-36 text-left lg:w-48">Search the store…</span>
               <kbd className="rounded border border-ink-200 bg-ink-50 px-1.5 py-0.5 text-2xs text-ink-400">⌘K</kbd>
             </button>
+
+            <Link to="/track" aria-label="Track order" title="Track / My Orders"
+              className="btn-icon text-brand-700 hover:bg-brand-50 lg:hidden">
+              <FiTruck size={19} />
+            </Link>
 
             <button type="button" onClick={() => setSearchOpen(true)} aria-label="Search"
               className="btn-icon text-ink-700 hover:bg-ink-100 md:hidden">

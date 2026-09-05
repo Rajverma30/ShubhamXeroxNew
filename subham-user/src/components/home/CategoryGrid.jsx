@@ -16,7 +16,7 @@ export function CategoryGrid({ categories = [] }) {
             style={{ background: `linear-gradient(140deg, ${cat.color || '#312e81'} 0%, #1e1b4b 100%)` }}>
             {cat.image?.url && (
               <img src={imgUrl(cat.image, 'card')} alt="" loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover opacity-35 transition-all duration-700 ease-premium group-hover:scale-110 group-hover:opacity-45" />
+                className="absolute inset-0 h-full w-full object-cover opacity-60 transition-all duration-700 ease-premium group-hover:scale-110 group-hover:opacity-75" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/25 to-transparent" />
             <span className="absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white opacity-0 backdrop-blur-md transition-all duration-500 ease-snap group-hover:rotate-45 group-hover:opacity-100">

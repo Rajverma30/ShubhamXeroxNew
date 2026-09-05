@@ -52,6 +52,7 @@ router.post('/checkout/shiprocket-session', writeLimiter, shiprocketSessionCtrl.
 /* Razorpay signs the raw body; unsigned calls are rejected in the handler. */
 router.post('/webhooks/razorpay', checkoutCtrl.razorpayWebhook);
 
+router.get('/orders/lookup/by-phone', checkoutCtrl.getOrdersByPhone);
 router.get('/orders/:orderNumber', checkoutCtrl.getOrder);
 
 router.get('/home', homeCtrl.home);

@@ -454,7 +454,78 @@ exports.getOrder = asyncHandler(async (req, res) => {
   if (!order) throw ApiError.notFound('Order not found');
   const orderPhone = String(order.customer?.phone || '').replace(/\D/g, '').slice(-10);
   if (rawPhone && orderPhone && orderPhone !== rawPhone) throw ApiError.notFound('Order not found');
+
+  // Real-time auto-reconcile with Razorpay if order is still awaiting payment
+  if (order.payment?.status !== 'paid' && order.payment?.razorpayOrderId && razorpay.isConfigured()) {
+    try {
+      const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
+      const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${order.payment.razorpayOrderId}/payments`, {
+        headers: { Authorization: auth },
+        timeout: 4000,
+      });
+      const captured = (data.items || []).find(p => p.status === 'captured');
+      if (captured) {
+        const updated = await markPaid(order, {
+          paymentId: captured.id,
+          method: captured.method || 'online',
+          amountPaisa: captured.amount,
+          raw: { source: 'get-order-auto-reconcile', payment: captured },
+        });
+        if (updated) order = updated.toObject ? updated.toObject() : updated;
+      }
+    } catch (err) {
+      // Silently skip if Razorpay API fails
+    }
+  }
+
   return ok(res, order);
+});
+
+/**
+ * GET /api/orders/lookup/by-phone?phone=98XXXXXXXX
+ * Returns all orders matching the phone number, with real-time Razorpay reconciliation.
+ */
+exports.getOrdersByPhone = asyncHandler(async (req, res) => {
+  const phoneDigits = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
+  if (!phoneDigits || phoneDigits.length < 10) {
+    throw ApiError.badRequest('Enter a valid 10-digit mobile number');
+  }
+
+  const phoneRegex = new RegExp(phoneDigits + '$');
+  const orders = await Order.find({ 'customer.phone': phoneRegex }).sort({ createdAt: -1 }).lean();
+
+  if (razorpay.isConfigured()) {
+    const pendingOrders = orders.filter(o => o.payment?.status !== 'paid' && o.payment?.razorpayOrderId);
+    await Promise.all(pendingOrders.map(async (order) => {
+      try {
+        const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
+        const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${order.payment.razorpayOrderId}/payments`, {
+          headers: { Authorization: auth },
+          timeout: 4000,
+        });
+        const captured = (data.items || []).find(p => p.status === 'captured');
+        if (captured) {
+          const updated = await markPaid(order, {
+            paymentId: captured.id,
+            method: captured.method || 'online',
+            amountPaisa: captured.amount,
+            raw: { source: 'by-phone-auto-reconcile', payment: captured },
+          });
+          if (updated) {
+            order.payment = order.payment || {};
+            order.payment.status = 'paid';
+            order.payment.razorpayPaymentId = captured.id;
+            order.payment.method = captured.method || 'online';
+            order.status = 'confirmed';
+          }
+        }
+      } catch (err) {
+        // Silently skip
+      }
+    }));
+  }
+
+  return ok(res, orders);
 });
 
 /* ─────────────────────────── admin (orders) ─────────────────────────── */

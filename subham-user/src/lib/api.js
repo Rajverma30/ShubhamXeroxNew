@@ -70,6 +70,7 @@ export const api = {
   getCoupons: () => client.get('/coupons').then(unwrap),
   serviceability: (params) => client.get('/shipping/serviceability', { params }).then(unwrap),
   trackOrder: (params) => client.get('/track', { params }).then(unwrap),
+  getOrdersByPhone: (phone) => client.get('/orders/lookup/by-phone', { params: { phone } }).then(unwrap),
 
   subscribe: (email, source = 'footer') => client.post('/newsletter', { email, source }).then(unwrap),
   contact: (payload) => client.post('/contact', payload).then(unwrap),

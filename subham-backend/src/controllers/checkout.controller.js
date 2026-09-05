@@ -14,6 +14,7 @@
  * and nothing more — anything else it claims is ignored.
  */
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 const Product = require('../models/Product');
 const Order = require('../models/Order');

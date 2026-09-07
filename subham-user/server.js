@@ -40,6 +40,19 @@ app.use('/shiprocket-checkout', async (req, res) => {
   }
 });
 
+// Proxy /sitemap.xml and /robots.txt to backend service for SEO
+app.get(['/sitemap.xml', '/robots.txt'], async (req, res) => {
+  try {
+    const targetUrl = `${BACKEND_TARGET}${req.path}`;
+    const response = await axios.get(targetUrl, { responseType: 'text' });
+    res.setHeader('Content-Type', req.path.endsWith('.xml') ? 'application/xml' : 'text/plain');
+    return res.send(response.data);
+  } catch (err) {
+    console.error(`Error proxying ${req.path}:`, err.message);
+    return res.status(500).send('Error loading resource');
+  }
+});
+
 // Serve static built assets from dist
 app.use(express.static(path.join(__dirname, 'dist')));
 

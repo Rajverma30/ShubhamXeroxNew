@@ -36,7 +36,9 @@ router.use(syncLimiter, shiprocketCheckoutAuth);
 
 router.get('/ping', ctrl.ping);
 router.get('/products', ctrl.products);      // also COLLECTION PRODUCT FETCH via ?collection_id=
+router.get('/products/:productId', ctrl.singleProduct);
 router.get('/collections', ctrl.collections);
+router.get('/collections/:collectionId', ctrl.singleCollection);
 router.get('/collections/:collectionId/products', ctrl.collectionProducts);
 
 // Loyalty Points endpoints (Shiprocket Custom Integration)

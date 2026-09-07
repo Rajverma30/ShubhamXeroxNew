@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/fetch-sitemap.js",
     "build": "vite build",
     "start": "node server.js",
     "preview": "vite preview --port 4173"

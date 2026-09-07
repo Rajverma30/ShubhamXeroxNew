@@ -40,6 +40,13 @@ async function collectionFilter(ref) {
   if (!ref) return null;
   const raw = String(ref).trim();
 
+  // Template placeholders (e.g. "{collection_id}", ":collection_id", "collection_id") or wildcards (e.g. "all")
+  const isTemplateOrAll = /^(?:\{|\:)?(?:collection_id|collectionId|collection_handle|collectionHandle|collection|id|slug)\}?$/i.test(raw)
+    || /^(?:all|all-products|default|frontpage|home|undefined|null|0)$/i.test(raw);
+  if (isTemplateOrAll) {
+    return null; // Return null so no filter is applied (returns all active products)
+  }
+
   const bySlug = await SubCategory.findOne({ slug: raw }).select('_id slug').lean()
     || await Category.findOne({ slug: raw }).select('_id slug').lean();
   if (bySlug) {
@@ -81,10 +88,12 @@ exports.products = asyncHandler(async (req, res) => {
   if (ref) {
     const scoped = await collectionFilter(ref);
     if (scoped === undefined) {
-      logger.warn(`Shiprocket Checkout asked for unknown collection "${ref}"`);
-      return res.status(404).json(envelope('products', [], { page, limit, total: 0 }));
+      logger.info(`Shiprocket Checkout: asked for unknown collection "${ref}" — returning HTTP 200 with empty product list`);
+      return res.json(envelope('products', [], { page, limit, total: 0 }));
     }
-    Object.assign(filter, scoped);
+    if (scoped !== null) {
+      Object.assign(filter, scoped);
+    }
   }
 
   // Fetch a single product by id/handle when asked.
@@ -114,6 +123,45 @@ exports.products = asyncHandler(async (req, res) => {
 exports.collectionProducts = asyncHandler(async (req, res) => {
   req.query.collection_id = req.params.collectionId;
   return exports.products(req, res);
+});
+
+/** Direct single product endpoint. */
+exports.singleProduct = asyncHandler(async (req, res) => {
+  req.query.product_id = req.params.productId;
+  return exports.products(req, res);
+});
+
+/** Direct single collection endpoint. */
+exports.singleCollection = asyncHandler(async (req, res) => {
+  const ref = req.params.collectionId;
+  const isTemplateOrAll = /^(?:\{|\:)?(?:collection_id|collectionId|collection_handle|collectionHandle|collection|id|slug)\}?$/i.test(ref)
+    || /^(?:all|all-products|default|frontpage|home|undefined|null|0)$/i.test(ref);
+
+  if (isTemplateOrAll) {
+    return res.json({
+      data: {
+        collection: {
+          id: 0,
+          title: 'All Products',
+          handle: 'all',
+          body_html: 'All Products',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: 'active',
+        },
+      },
+    });
+  }
+
+  const [cat, sub] = await Promise.all([
+    Category.findOne({ $or: [{ slug: ref }, ...(mongoose.isValidObjectId(ref) ? [{ _id: ref }] : [])] }).lean(),
+    SubCategory.findOne({ $or: [{ slug: ref }, ...(mongoose.isValidObjectId(ref) ? [{ _id: ref }] : [])] }).lean(),
+  ]);
+  const doc = sub || cat;
+  if (!doc) {
+    return res.json({ data: { collection: null } });
+  }
+  return res.json({ data: { collection: toCollection(doc, { isSubCategory: Boolean(sub) }) } });
 });
 
 /**

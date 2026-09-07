@@ -17,6 +17,14 @@
       "destination": "https://subhamapi.hypernxt.space/uploads/:path*"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "https://subhamapi.hypernxt.space/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://subhamapi.hypernxt.space/robots.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

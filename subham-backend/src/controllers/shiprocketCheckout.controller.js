@@ -121,7 +121,17 @@ exports.products = asyncHandler(async (req, res) => {
 
 /** Reference-project-compatible Collection Product Fetch endpoint. */
 exports.collectionProducts = asyncHandler(async (req, res) => {
-  req.query.collection_id = req.params.collectionId;
+  const isTemplate = (val) => /^(?:\{|\:)?(?:collection_id|collectionId|collection_handle|collectionHandle|collection|id|slug)\}?$/i.test(String(val || '').trim());
+  const qRef = req.query.collection_id || req.query.collection_handle || req.query.collectionId || req.query.collection;
+  const pRef = req.params.collectionId;
+
+  if (qRef && !isTemplate(qRef)) {
+    req.query.collection_id = qRef;
+  } else if (pRef && !isTemplate(pRef)) {
+    req.query.collection_id = pRef;
+  } else {
+    delete req.query.collection_id;
+  }
   return exports.products(req, res);
 });
 

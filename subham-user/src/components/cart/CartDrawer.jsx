@@ -11,6 +11,7 @@ import { money, placeholderImage } from '../../lib/format';
 import { Drawer } from '../ui/Overlay';
 import { EmptyState, QuantityStepper } from '../ui/Common';
 import CheckoutFlow from '../checkout/CheckoutFlow';
+import StationeryUpsell from './StationeryUpsell';
 
 export default function CartDrawer() {
   const {
@@ -108,6 +109,9 @@ export default function CartDrawer() {
               ))}
             </AnimatePresence>
           </ul>
+          <div className="px-4 pb-2">
+            <StationeryUpsell />
+          </div>
         </>
       )}
       </Drawer>

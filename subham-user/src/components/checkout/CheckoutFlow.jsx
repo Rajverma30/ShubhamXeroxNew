@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useStore } from '../../context/StoreContext';
+import StationeryUpsell from '../cart/StationeryUpsell';
 import {
   sendOtp, verifyOtp, createDirectSession, getQuote, placeOrder, preloadCheckout, normalisePhone,
 } from '../../lib/checkout';
@@ -296,6 +297,8 @@ export default function CheckoutFlow({ onClose, items }) {
             </div>
             <Field label="State" value={form.state} onChange={set('state')} autoComplete="address-level1" required placeholder="State" />
             <Field label="Email (optional)" type="email" value={form.email} onChange={set('email')} autoComplete="email" placeholder="For instant invoice receipt" />
+
+            <StationeryUpsell compact />
 
             <div className="rounded-lg bg-ink-50 p-3 text-sm">
               <Row label="Subtotal" value={money(quote?.subtotal ?? 0)} />

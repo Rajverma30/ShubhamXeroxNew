@@ -49,21 +49,12 @@ async function decrementStockForOrder(order) {
       continue;
     }
 
-    if (product.allowBackorder) {
-      await Product.updateOne(
-        { _id: item.product },
-        { $inc: { stock: -item.quantity, soldCount: item.quantity } },
-      );
-      continue;
-    }
-
-    const result = await Product.updateOne(
-      { _id: item.product, stock: { $gte: item.quantity } },
-      { $inc: { stock: -item.quantity, soldCount: item.quantity } },
+    const currentStock = Number(product.stock ?? 10);
+    const newStock = Math.max(3, currentStock - item.quantity);
+    await Product.updateOne(
+      { _id: item.product },
+      { stock: newStock, $inc: { soldCount: item.quantity } }
     );
-    if (result.modifiedCount === 0) {
-      logger.error(`Stock decrement failed for ${order.orderNumber} — "${product.title}" insufficient stock`);
-    }
   }
 }
 

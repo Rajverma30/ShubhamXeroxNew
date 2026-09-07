@@ -342,12 +342,13 @@ async function decrementStock(order) {
   for (const item of order.items) {
     const product = await Product.findById(item.product).select('type allowBackorder stock title').lean();
     if (!product) continue;
-    if (product.type === 'ebook' || product.allowBackorder) {
-      await Product.updateOne({ _id: item.product }, { $inc: { stock: product.type === 'ebook' ? 0 : -item.quantity, soldCount: item.quantity } });
+    if (product.type === 'ebook') {
+      await Product.updateOne({ _id: item.product }, { $inc: { soldCount: item.quantity } });
       continue;
     }
-    const result = await Product.updateOne({ _id: item.product, stock: { $gte: item.quantity } }, { $inc: { stock: -item.quantity, soldCount: item.quantity } });
-    if (!result.modifiedCount) logger.error(`Shiprocket stock decrement failed for ${order.orderNumber}: ${product.title}`);
+    const currentStock = Number(product.stock ?? 10);
+    const newStock = Math.max(3, currentStock - item.quantity);
+    await Product.updateOne({ _id: item.product }, { stock: newStock, $inc: { soldCount: item.quantity } });
   }
 }
 

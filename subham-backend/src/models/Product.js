@@ -85,7 +85,7 @@ const productSchema = new mongoose.Schema(
     taxPercent: { type: Number, default: 0 },
 
     /* ── inventory ── */
-    stock: { type: Number, default: 0, min: 0 },
+    stock: { type: Number, default: 10, min: 3 },
     lowStockThreshold: { type: Number, default: 5 },
     allowBackorder: { type: Boolean, default: false },
 
@@ -194,6 +194,9 @@ productSchema.pre('save', function syncDerived(next) {
     this.finalPrice = Math.round(this.salePrice);
   } else {
     this.finalPrice = Math.round(this.price * (1 - (this.discountPercent || 0) / 100));
+  }
+  if (this.type !== 'ebook' && (this.stock === undefined || this.stock === null || this.stock < 3)) {
+    this.stock = 3;
   }
   this.hasFreeEbook = Boolean(this.ebook?.fileUrl && this.ebook?.isFree !== false);
   if (this.type === 'book' && this.hasFreeEbook) this.type = 'book+ebook';

@@ -3,6 +3,8 @@
  * The storefront proxies /sitemap.xml and /robots.txt to these routes so the
  * generated content always reflects the live catalogue.
  */
+const axios = require('axios');
+const sharp = require('sharp');
 const { Product, Category, SubCategory, Setting } = require('../models');
 const asyncHandler = require('../utils/asyncHandler');
 const { ok } = require('../utils/response');
@@ -105,12 +107,8 @@ exports.productOg = asyncHandler(async (req, res) => {
   const rawDesc = p.shortDescription || String(p.description || '').replace(/<[^>]+>/g, '').slice(0, 200);
   const description = esc(rawDesc || `Buy ${p.title} online at best price on Subham Xerox.`);
 
-  let rawImg = p.images?.[0]?.url || p.images?.[0]?.thumbUrl || '';
-  if (rawImg && !rawImg.startsWith('http')) {
-    const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
-    rawImg = `${backendUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
-  }
-  const imageUrl = esc(rawImg || `${base}/logo.png`);
+  const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
+  const ogImageUrl = esc(`${backendUrl}/api/og/image/${p.slug}.jpg`);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -121,15 +119,16 @@ exports.productOg = asyncHandler(async (req, res) => {
   <meta property="og:site_name" content="Subham Xerox">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:secure_url" content="${imageUrl}">
-  <meta property="og:image:width" content="600">
-  <meta property="og:image:height" content="800">
+  <meta property="og:image" content="${ogImageUrl}">
+  <meta property="og:image:secure_url" content="${ogImageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="800">
+  <meta property="og:image:height" content="1000">
   <meta property="og:url" content="${targetUrl}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:image" content="${ogImageUrl}">
 </head>
 <body style="font-family:sans-serif;text-align:center;padding:40px;background:#f9fafb;color:#111827;">
   <p>Loading <a href="${targetUrl}">${title}</a>...</p>
@@ -143,4 +142,36 @@ exports.productOg = asyncHandler(async (req, res) => {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.send(html);
+});
+
+/** GET /api/og/image/:slug.jpg — Dynamic JPEG image converter for Telegram/WhatsApp previews */
+exports.productOgImage = asyncHandler(async (req, res) => {
+  const rawSlug = String(req.params.slug || '').replace(/\.jpg$/i, '');
+  const p = await Product.findOne({ slug: rawSlug }).lean();
+  const base = FRONTEND();
+
+  let rawImg = p?.images?.[0]?.url || p?.images?.[0]?.thumbUrl || '';
+  if (!rawImg) {
+    return res.redirect(302, `${base}/logo.png`);
+  }
+
+  if (!rawImg.startsWith('http')) {
+    const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
+    rawImg = `${backendUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+  }
+
+  try {
+    const response = await axios.get(rawImg, { responseType: 'arraybuffer', timeout: 8000 });
+    const buffer = Buffer.from(response.data);
+    const jpegBuffer = await sharp(buffer)
+      .resize({ width: 800, height: 1000, fit: 'inside' })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+    return res.send(jpegBuffer);
+  } catch (err) {
+    return res.redirect(302, rawImg);
+  }
 });

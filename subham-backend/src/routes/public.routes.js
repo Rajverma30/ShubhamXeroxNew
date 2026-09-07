@@ -79,6 +79,8 @@ router.get('/products/:slug', productCtrl.getBySlug);
 router.get('/products/:slug/preview', productCtrl.preview);
 router.get('/products/:slug/ebook', productCtrl.downloadEbook);
 router.get('/og/product/:slug', seoCtrl.productOg);
+router.get('/og/image/:slug', seoCtrl.productOgImage);
+router.get('/og/image/:slug.jpg', seoCtrl.productOgImage);
 
 router.post(
   '/products/:slug/reviews',

@@ -202,9 +202,9 @@ async function syncTaxonomy(body) {
 
 /** GET /api/products — the workhorse list endpoint (filters, sort, paging). */
 exports.list = asyncHandler(async (req, res) => {
-  const { filter, sort, page, limit, skip, meta } = buildProductQuery(req.query);
+  const { filter, sort, page, limit, skip } = buildProductQuery(req.query);
 
-  const projection = meta.textSearch ? { score: { $meta: 'textScore' } } : {};
+  const projection = {};
   const [items, total] = await Promise.all([
     Product.find(filter, projection).select(CARD_FIELDS).sort(sort).skip(skip).limit(limit).lean(),
     Product.countDocuments(filter),

@@ -10,6 +10,32 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useStore } from '../../context/StoreContext';
 import { imgUrl } from '../../lib/format';
 
+// Brand colors for publishers when image is unavailable or stock photo
+const BRAND_COLORS = {
+  arihant: 'from-purple-600 to-indigo-700 text-yellow-300',
+  drishti: 'from-red-600 to-rose-700 text-white',
+  nirman: 'from-emerald-700 to-teal-800 text-amber-300',
+  parikshavani: 'from-blue-700 to-indigo-800 text-white',
+  disha: 'from-sky-600 to-blue-700 text-white',
+  mahaveer: 'from-amber-600 to-orange-700 text-white',
+  champion: 'from-zinc-800 to-black text-red-500',
+  parmar: 'from-slate-800 to-black text-amber-400',
+  devnagari: 'from-red-700 to-rose-800 text-white',
+  selection: 'from-cyan-700 to-blue-800 text-white',
+  lucent: 'from-blue-800 to-indigo-900 text-yellow-300',
+  rakesh: 'from-blue-600 to-indigo-700 text-white',
+  ghatna: 'from-amber-700 to-red-800 text-white',
+  default: 'from-slate-800 to-slate-900 text-white',
+};
+
+function getBrandStyle(name = '') {
+  const n = name.toLowerCase();
+  for (const key of Object.keys(BRAND_COLORS)) {
+    if (n.includes(key)) return BRAND_COLORS[key];
+  }
+  return BRAND_COLORS.default;
+}
+
 export default function TopPublishers({ items: propItems, title = 'Top Publishers & Categories' }) {
   const { categories } = useStore();
   const scrollRef = useRef(null);
@@ -81,7 +107,11 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
           className="flex gap-4 overflow-x-auto py-3 sm:gap-6 no-scrollbar scroll-smooth snap-x snap-mandatory"
         >
           {items.map((item, idx) => {
-            const imageUrl = item.image?.url ? imgUrl(item.image, 'thumb') : null;
+            const rawUrl = item.image?.url ? imgUrl(item.image, 'thumb') : null;
+            const isStock = rawUrl && rawUrl.includes('unsplash.com');
+            const imageUrl = isStock ? null : rawUrl;
+
+            const brandStyle = getBrandStyle(item.name);
             const initials = item.name
               ? item.name
                   .split(' ')
@@ -97,7 +127,7 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
                 to={item.to || `/shop?search=${encodeURIComponent(item.name)}`}
                 className="group/item flex w-24 shrink-0 flex-col items-center gap-2.5 text-center snap-start sm:w-28"
               >
-                {/* Circular Badge Ring (Light Theme) */}
+                {/* Circular Badge Ring */}
                 <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-ink-200 bg-white p-1 shadow-soft transition-all duration-300 group-hover/item:-translate-y-1 group-hover/item:border-brand-500 group-hover/item:shadow-lift sm:h-24 sm:w-24">
                   <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-ink-50">
                     {imageUrl ? (
@@ -108,9 +138,10 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
                         className="h-full w-full object-cover transition-transform duration-500 group-hover/item:scale-110"
                       />
                     ) : (
-                      <span className="font-display text-sm font-extrabold text-ink-700 sm:text-base">
-                        {initials}
-                      </span>
+                      <div className={`flex h-full w-full flex-col items-center justify-center bg-gradient-to-br p-2 font-display ${brandStyle}`}>
+                        <span className="text-sm font-black tracking-tighter sm:text-base">{initials}</span>
+                        <span className="max-w-[70px] truncate text-[9px] font-bold uppercase tracking-wider opacity-85">{item.name.split(' ')[0]}</span>
+                      </div>
                     )}
                   </div>
                 </div>

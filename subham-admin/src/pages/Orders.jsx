@@ -18,7 +18,7 @@ import {
 import api from '../lib/api';
 import { useDebounced, useListParams } from '../hooks';
 import { useToast } from '../context/ToastContext';
-import { dateTime, money } from '../lib/format';
+import { dateTime, money, placeholderImage, resolveAssetUrl } from '../lib/format';
 import {
   Badge, EmptyState, ErrorBlock, Field, Input, Modal, PageHeader, Pagination,
   SearchInput, Select, Spinner, TableSkeleton,
@@ -322,16 +322,30 @@ function OrderDetail({ id, onClose, onSaved }) {
           <div className="overflow-hidden rounded-lg border border-ink-100">
             <table className="w-full text-sm">
               <tbody className="divide-y divide-ink-100">
-                {(order.items || []).map((l, i) => (
-                  <tr key={i}>
-                    <td className="px-3 py-2.5">
-                      <p className="font-medium text-ink-800">{l.title}</p>
-                      {l.sku && <p className="text-2xs text-ink-400">{l.sku}</p>}
-                    </td>
-                    <td className="w-16 px-3 py-2.5 text-center text-ink-500">× {l.quantity}</td>
-                    <td className="w-24 px-3 py-2.5 text-right font-semibold text-ink-900">{money(l.lineTotal)}</td>
-                  </tr>
-                ))}
+                {(order.items || []).map((l, i) => {
+                  const imgUrl = resolveAssetUrl(l.image || l.thumbUrl || l.product?.images?.[0]?.thumbUrl || l.product?.images?.[0]?.url || '') || placeholderImage('Book');
+                  return (
+                    <tr key={i}>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={imgUrl}
+                            onError={(e) => { e.target.src = placeholderImage('Book'); }}
+                            alt=""
+                            loading="lazy"
+                            className="h-12 w-10 shrink-0 rounded border border-ink-200 bg-white object-contain p-0.5 shadow-2xs"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium leading-snug text-ink-800">{l.title}</p>
+                            {l.sku && <p className="mt-0.5 text-2xs text-ink-400">{l.sku}</p>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="w-16 px-3 py-2.5 text-center text-ink-500 font-medium">× {l.quantity}</td>
+                      <td className="w-24 px-3 py-2.5 text-right font-semibold text-ink-900">{money(l.lineTotal)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot className="bg-ink-50/70 text-sm">
                 <tr><td className="px-3 py-1.5 text-ink-500" colSpan={2}>Subtotal</td>

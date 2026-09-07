@@ -254,6 +254,11 @@ export default function CheckoutFlow({ onClose, items }) {
     );
   }
 
+  const handleStationeryRemoved = (product) => {
+    const targetId = String(product._id || product.id);
+    setCheckoutCart((prev) => prev.filter((l) => String(l.id || l._id) !== targetId));
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true" aria-label="Checkout">
       <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-2xl sm:p-5">
@@ -332,7 +337,7 @@ export default function CheckoutFlow({ onClose, items }) {
             <Field label="State" value={form.state} onChange={set('state')} autoComplete="address-level1" required placeholder="State" />
             <Field label="Email (optional)" type="email" value={form.email} onChange={set('email')} autoComplete="email" placeholder="For instant invoice receipt" />
 
-            <StationeryUpsell compact onItemAdded={handleStationeryAdded} />
+            <StationeryUpsell compact onItemAdded={handleStationeryAdded} onItemRemoved={handleStationeryRemoved} />
 
             <div className="rounded-lg bg-ink-50 p-3 text-sm">
               <Row label="Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />

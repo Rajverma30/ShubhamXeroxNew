@@ -25,6 +25,17 @@
       "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
     },
     {
+      "source": "/product/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(TelegramBot|WhatsApp|facebookexternalhit|Twitterbot|LinkedInBot|bot|crawler|spider).*"
+        }
+      ],
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

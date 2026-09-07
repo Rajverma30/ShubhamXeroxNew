@@ -83,23 +83,23 @@ export default function ProductDetail() {
   }, [product]);
 
   const share = async () => {
-    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
+    const prodUrl = `${window.location.origin}/product/${product.slug}`;
     try {
-      if (navigator.share) await navigator.share({ title: product.title, url: ogUrl });
-      else { await navigator.clipboard.writeText(ogUrl); toast('Link copied to clipboard'); }
+      if (navigator.share) await navigator.share({ title: product.title, url: prodUrl });
+      else { await navigator.clipboard.writeText(prodUrl); toast('Link copied to clipboard'); }
     } catch { /* user cancelled */ }
   };
 
   const shareWhatsApp = () => {
-    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
-    const text = `Check out "${product.title}" on Subham Xerox:\n${ogUrl}`;
+    const prodUrl = `${window.location.origin}/product/${product.slug}`;
+    const text = `Check out "${product.title}" on Subham Xerox:\n${prodUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareTelegram = () => {
-    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
+    const prodUrl = `${window.location.origin}/product/${product.slug}`;
     const text = `Check out "${product.title}" on Subham Xerox`;
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(ogUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(prodUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
   if (loading) return <DetailSkeleton />;

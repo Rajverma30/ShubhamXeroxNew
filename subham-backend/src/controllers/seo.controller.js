@@ -103,9 +103,14 @@ exports.productOg = asyncHandler(async (req, res) => {
     return res.redirect(302, targetUrl);
   }
 
-  const title = esc(`${p.title} - ₹${p.finalPrice || p.price} | Subham Xerox`);
-  const rawDesc = p.shortDescription || String(p.description || '').replace(/<[^>]+>/g, '').slice(0, 200);
-  const description = esc(rawDesc || `Buy ${p.title} online at best price on Subham Xerox.`);
+  const finalPrice = p.finalPrice || p.price || 0;
+  const mrp = p.price || finalPrice;
+  const discountText = p.discountPercent > 0 ? ` (${p.discountPercent}% OFF)` : (mrp > finalPrice ? ` (Save ₹${Math.round(mrp - finalPrice)})` : '');
+  const priceText = `₹${finalPrice}${discountText}`;
+
+  const title = esc(`${p.title} — ${priceText}`);
+  const rawDesc = p.shortDescription || String(p.description || '').replace(/<[^>]+>/g, '').slice(0, 180);
+  const description = esc(`${priceText} · ${rawDesc || `Buy ${p.title} online at best price on Subham Xerox.`}`);
 
   const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
   const ogImageUrl = esc(`${backendUrl}/api/og/image/${p.slug}.jpg`);
@@ -119,6 +124,10 @@ exports.productOg = asyncHandler(async (req, res) => {
   <meta property="og:site_name" content="Subham Xerox">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
+  <meta property="og:price:amount" content="${finalPrice}">
+  <meta property="og:price:currency" content="INR">
+  <meta property="product:price:amount" content="${finalPrice}">
+  <meta property="product:price:currency" content="INR">
   <meta property="og:image" content="${ogImageUrl}">
   <meta property="og:image:secure_url" content="${ogImageUrl}">
   <meta property="og:image:type" content="image/jpeg">

@@ -557,3 +557,30 @@ exports.adminBulk = asyncHandler(async (req, res) => {
   changed.forEach((doc) => shiprocketCatalogueSync.scheduleProductSync(doc));
   return ok(res, { message: `${objectIds.length} product(s) updated` });
 });
+
+/** GET /api/admin/products/suggestions — Auto-complete options for product form */
+exports.adminSuggestions = asyncHandler(async (_req, res) => {
+  const [authors, publishers, editions, bindings, titles, tags] = await Promise.all([
+    Product.distinct('author', { author: { $ne: null, $ne: '' } }),
+    Product.distinct('publisher', { publisher: { $ne: null, $ne: '' } }),
+    Product.distinct('edition', { edition: { $ne: null, $ne: '' } }),
+    Product.distinct('binding', { binding: { $ne: null, $ne: '' } }),
+    Product.find().select('title categoryName author publisher').sort({ createdAt: -1 }).limit(100).lean(),
+    Product.distinct('tags'),
+  ]);
+
+  const defaultEditions = ['2026 Edition', '2025 Edition', '2024 Edition', 'First Edition', 'Latest Edition'];
+  const defaultBindings = ['Paperback', 'Hardcover', 'Spiral Bound', 'Digital eBook', 'Softcover'];
+
+  const mergedEditions = Array.from(new Set([...defaultEditions, ...(editions || []).filter(Boolean)]));
+  const mergedBindings = Array.from(new Set([...defaultBindings, ...(bindings || []).filter(Boolean)]));
+
+  return ok(res, {
+    authors: (authors || []).filter((a) => a && a !== 'NA').sort(),
+    publishers: (publishers || []).filter((p) => p && p !== 'NA').sort(),
+    editions: mergedEditions,
+    bindings: mergedBindings,
+    titles: (titles || []).map((t) => t.title),
+    tags: (tags || []).filter(Boolean).sort(),
+  });
+});

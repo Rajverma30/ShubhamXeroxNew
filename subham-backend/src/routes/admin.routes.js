@@ -72,6 +72,7 @@ router.post('/orders/:id/sync-payment', orderCtrl.adminSyncPayment);
 
 /* ── products (books / ebooks / stationery) ── */
 router.get('/products', productCtrl.adminList);
+router.get('/products/suggestions', productCtrl.adminSuggestions);
 router.post('/products/bulk', productCtrl.adminBulk);
 router.post(
   '/products',

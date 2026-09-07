@@ -92,13 +92,15 @@ export default function ProductDetail() {
 
   const shareWhatsApp = () => {
     const prodUrl = `${window.location.origin}/product/${product.slug}`;
-    const text = `Check out "${product.title}" on Subham Xerox:\n${prodUrl}`;
+    const priceText = `₹${price}${discount > 0 ? ` (${discount}% OFF)` : ''}`;
+    const text = `Check out "${product.title}" (${priceText}) on Subham Xerox:\n${prodUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareTelegram = () => {
     const prodUrl = `${window.location.origin}/product/${product.slug}`;
-    const text = `Check out "${product.title}" on Subham Xerox`;
+    const priceText = `₹${price}${discount > 0 ? ` (${discount}% OFF)` : ''}`;
+    const text = `Check out "${product.title}" (${priceText}) on Subham Xerox`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(prodUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 

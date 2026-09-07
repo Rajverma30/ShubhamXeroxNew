@@ -68,6 +68,57 @@ export default function ProductForm() {
     enabled: Boolean(categoryId),
   });
 
+  const { data: suggestions } = useQuery({
+    queryKey: ['product-suggestions'],
+    queryFn: () => api.productSuggestions(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const generateSeo = () => {
+    const titleVal = watch('title')?.trim();
+    const authorVal = watch('author')?.trim();
+    const publisherVal = watch('publisher')?.trim();
+    const priceVal = watch('price');
+    const discountVal = watch('discountPercent');
+    const catId = watch('category');
+    const subCatId = watch('subCategory');
+
+    const catObj = (categories?.items || []).find((c) => c._id === catId);
+    const subCatObj = (subCategories?.items || []).find((s) => s._id === subCatId);
+
+    if (!titleVal) {
+      toast('Please enter a product Title first to generate SEO suggestions', 'error');
+      return;
+    }
+
+    const priceNum = Number(priceVal) || 0;
+    const discNum = Number(discountVal) || 0;
+    const finalPrice = Math.round(priceNum * (1 - discNum / 100));
+    const priceString = finalPrice > 0 ? ` ₹${finalPrice}` : '';
+
+    const metaTitle = `${titleVal.slice(0, 50)}${priceString} | Subham Xerox`.slice(0, 70);
+    const creatorText = authorVal ? `by ${authorVal}` : (publisherVal ? `published by ${publisherVal}` : '');
+    const categoryText = catObj?.name ? `in ${catObj.name}` : 'online';
+    const metaDescription = `Buy ${titleVal} ${creatorText} ${priceString} ${categoryText} at Subham Xerox. Fast delivery & best deals across India.`.slice(0, 160);
+
+    const keywordParts = [titleVal, authorVal, publisherVal, catObj?.name, subCatObj?.name, 'subham xerox', 'buy online', 'best price'].filter(Boolean);
+    const rawKeywords = keywordParts.join(' ').toLowerCase().replace(/[^a-z0-9\s,]/gi, ' ').split(/\s+/).filter((w) => w.length > 2);
+    const uniqueKeywords = Array.from(new Set([
+      titleVal.toLowerCase(),
+      authorVal?.toLowerCase(),
+      publisherVal?.toLowerCase(),
+      catObj?.name?.toLowerCase(),
+      'subham xerox',
+      ...rawKeywords.slice(0, 8),
+    ].filter(Boolean))).join(', ');
+
+    setValue('seo.metaTitle', metaTitle, { shouldDirty: true, shouldTouch: true });
+    setValue('seo.metaDescription', metaDescription, { shouldDirty: true, shouldTouch: true });
+    setValue('seo.metaKeywords', uniqueKeywords, { shouldDirty: true, shouldTouch: true });
+
+    toast('✨ Auto-generated SEO suggestions!');
+  };
+
   const { data: existing, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: () => api.product(id),
@@ -193,7 +244,12 @@ export default function ProductForm() {
           <SectionCard title="Basics">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Title" required error={errors.title} className="sm:col-span-2">
-                <Input {...register('title', { required: 'Title is required' })} error={errors.title} placeholder="e.g. SSC CGL Tier-I Master Practice Sets" />
+                <Input {...register('title', { required: 'Title is required' })} list="title-suggestions-list" error={errors.title} placeholder="e.g. SSC CGL Tier-I Master Practice Sets" />
+                <datalist id="title-suggestions-list">
+                  {(suggestions?.titles || []).map((t, idx) => (
+                    <option key={idx} value={t} />
+                  ))}
+                </datalist>
               </Field>
 
               <Field label="Product type" required>
@@ -295,16 +351,88 @@ export default function ProductForm() {
           {isBookish && (
             <SectionCard title="Book details">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Field label="Author"><Input {...register('author')} /></Field>
-                <Field label="Publisher"><Input {...register('publisher')} /></Field>
+                <Field label="Author">
+                  <Input {...register('author')} list="author-suggestions-list" placeholder="e.g. Drishti IAS / Arihant" />
+                  <datalist id="author-suggestions-list">
+                    {(suggestions?.authors || []).map((a, idx) => (
+                      <option key={idx} value={a} />
+                    ))}
+                  </datalist>
+                  {suggestions?.authors?.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <span className="text-2xs text-ink-400">Suggestions:</span>
+                      {suggestions.authors.slice(0, 5).map((a) => (
+                        <button key={a} type="button" onClick={() => setValue('author', a, { shouldDirty: true, shouldTouch: true })} className="rounded bg-ink-100 px-1.5 py-0.5 text-2xs font-medium text-ink-700 hover:bg-brand-100 hover:text-brand-800">
+                          + {a}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </Field>
+
+                <Field label="Publisher">
+                  <Input {...register('publisher')} list="publisher-suggestions-list" placeholder="e.g. Navbodh Prakashan" />
+                  <datalist id="publisher-suggestions-list">
+                    {(suggestions?.publishers || []).map((p, idx) => (
+                      <option key={idx} value={p} />
+                    ))}
+                  </datalist>
+                  {suggestions?.publishers?.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <span className="text-2xs text-ink-400">Suggestions:</span>
+                      {suggestions.publishers.slice(0, 5).map((p) => (
+                        <button key={p} type="button" onClick={() => setValue('publisher', p, { shouldDirty: true, shouldTouch: true })} className="rounded bg-ink-100 px-1.5 py-0.5 text-2xs font-medium text-ink-700 hover:bg-brand-100 hover:text-brand-800">
+                          + {p}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </Field>
+
                 <Field label="ISBN"><Input {...register('isbn')} placeholder="978-93-xxxxx-xx-x" /></Field>
-                <Field label="Edition"><Input {...register('edition')} placeholder="2026 Edition" /></Field>
+
+                <Field label="Edition">
+                  <Input {...register('edition')} list="edition-suggestions-list" placeholder="2026 Edition" />
+                  <datalist id="edition-suggestions-list">
+                    {(suggestions?.editions || []).map((e, idx) => (
+                      <option key={idx} value={e} />
+                    ))}
+                  </datalist>
+                  {suggestions?.editions?.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {suggestions.editions.slice(0, 4).map((e) => (
+                        <button key={e} type="button" onClick={() => setValue('edition', e, { shouldDirty: true, shouldTouch: true })} className="rounded bg-ink-100 px-1.5 py-0.5 text-2xs font-medium text-ink-700 hover:bg-brand-100 hover:text-brand-800">
+                          + {e}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </Field>
+
                 <Field label="Language" hint="A title can be bilingual — pick every language it contains">
                   <LanguagePicker value={watch('language')} onChange={(v) => setValue('language', v, { shouldDirty: true })} />
                 </Field>
+
                 <Field label="Pages"><Input type="number" min={1} {...register('pages')} /></Field>
                 <Field label="Publish year"><Input type="number" {...register('publishYear')} /></Field>
-                <Field label="Binding"><Input {...register('binding')} placeholder="Paperback / Hardcover" /></Field>
+
+                <Field label="Binding">
+                  <Input {...register('binding')} list="binding-suggestions-list" placeholder="Paperback / Hardcover" />
+                  <datalist id="binding-suggestions-list">
+                    {(suggestions?.bindings || []).map((b, idx) => (
+                      <option key={idx} value={b} />
+                    ))}
+                  </datalist>
+                  {suggestions?.bindings?.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {suggestions.bindings.slice(0, 4).map((b) => (
+                        <button key={b} type="button" onClick={() => setValue('binding', b, { shouldDirty: true, shouldTouch: true })} className="rounded bg-ink-100 px-1.5 py-0.5 text-2xs font-medium text-ink-700 hover:bg-brand-100 hover:text-brand-800">
+                          + {b}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </Field>
               </div>
             </SectionCard>
           )}
@@ -353,16 +481,27 @@ export default function ProductForm() {
             </div>
           </SectionCard>
 
-          <SectionCard title="SEO">
+          <SectionCard
+            title="SEO"
+            action={
+              <button
+                type="button"
+                onClick={generateSeo}
+                className="btn-outline btn-xs gap-1.5 border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
+              >
+                ✨ Auto-generate SEO
+              </button>
+            }
+          >
             <div className="grid gap-4">
-              <Field label="Meta title" hint="Falls back to the product title.">
-                <Input maxLength={160} {...register('seo.metaTitle')} />
+              <Field label="Meta title" hint="Falls back to the product title. Click 'Auto-generate SEO' above to generate.">
+                <Input maxLength={160} {...register('seo.metaTitle')} placeholder="e.g. Pariksha Bodh Social Science | Subham Xerox" />
               </Field>
               <Field label="Meta description" hint="Aim for 150–160 characters.">
-                <Textarea rows={2} maxLength={320} {...register('seo.metaDescription')} />
+                <Textarea rows={2} maxLength={320} {...register('seo.metaDescription')} placeholder="Buy Pariksha Bodh Social Science by Navbodh Prakashan at ₹200 online at Subham Xerox." />
               </Field>
-              <Field label="Meta keywords" hint="Comma separated.">
-                <Input {...register('seo.metaKeywords')} />
+              <Field label="Meta keywords" hint="Comma separated tags for search engines.">
+                <Input {...register('seo.metaKeywords')} placeholder="pariksha bodh, social science, mp board, subham xerox" />
               </Field>
             </div>
           </SectionCard>

@@ -52,8 +52,15 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
       const prodRes = await axios.get(`${BACKEND_TARGET}/api/products/${slug}`, { validateStatus: () => true });
       if (prodRes.data?.success && prodRes.data?.data?.product) {
         const p = prodRes.data.data.product;
-        const title = escapeHtml(p.seo?.metaTitle || p.title || 'Subham Xerox');
-        const desc = escapeHtml(p.seo?.metaDescription || p.shortDescription || (p.description || '').replace(/<[^>]*>?/gm, '').slice(0, 200));
+        const finalPrice = p.finalPrice || p.price || 0;
+        const mrp = p.price || finalPrice;
+        const discountText = p.discountPercent > 0 ? ` (${p.discountPercent}% OFF)` : (mrp > finalPrice ? ` (Save ₹${Math.round(mrp - finalPrice)})` : '');
+        const priceText = `₹${finalPrice}${discountText}`;
+
+        const rawTitle = p.seo?.metaTitle || p.title || 'Subham Xerox';
+        const title = escapeHtml(`${rawTitle} — ${priceText}`);
+        const rawDesc = p.shortDescription || (p.description || '').replace(/<[^>]*>?/gm, '').slice(0, 180);
+        const desc = escapeHtml(`${priceText} · ${rawDesc || `Buy ${rawTitle} online at Subham Xerox.`}`);
         const rawImg = p.images?.[0]?.url || p.images?.[0]?.thumbUrl || '';
         const imageUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BACKEND_TARGET}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : 'https://www.shubhamxerox.in/logo.png';
         const pageUrl = `https://www.shubhamxerox.in/product/${slug}`;
@@ -63,12 +70,16 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} — Subham Xerox</title>
+  <title>${title}</title>
   <meta name="description" content="${desc}">
-  <meta property="og:type" content="book">
+  <meta property="og:type" content="product">
   <meta property="og:site_name" content="Subham Xerox">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${desc}">
+  <meta property="og:price:amount" content="${finalPrice}">
+  <meta property="og:price:currency" content="INR">
+  <meta property="product:price:amount" content="${finalPrice}">
+  <meta property="product:price:currency" content="INR">
   <meta property="og:url" content="${pageUrl}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:image:secure_url" content="${imageUrl}">

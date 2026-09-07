@@ -109,6 +109,7 @@ export const api = {
 
   /* products */
   products: (params) => client.get('/admin/products', { params }).then(withMeta),
+  productSuggestions: () => client.get('/admin/products/suggestions').then(unwrap),
   product: (id) => client.get(`/admin/products/${id}`).then(unwrap),
   createProduct: (fd) => client.post('/admin/products', fd, multipart).then(unwrap),
   updateProduct: (id, fd) => client.put(`/admin/products/${id}`, fd, multipart).then(unwrap),

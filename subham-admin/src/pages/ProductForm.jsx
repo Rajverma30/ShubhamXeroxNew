@@ -483,16 +483,30 @@ export default function ProductForm() {
 
           <SectionCard
             title="SEO"
-            action={
+            actions={
               <button
                 type="button"
                 onClick={generateSeo}
-                className="btn-outline btn-xs gap-1.5 border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
+                className="btn-outline btn-xs gap-1.5 border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100"
               >
                 ✨ Auto-generate SEO
               </button>
             }
           >
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/80 p-3">
+              <div>
+                <p className="text-xs font-bold text-brand-900">✨ Smart SEO Auto-Generator</p>
+                <p className="text-2xs text-brand-700">Fill title/author/price above, then click here to auto-create search tags.</p>
+              </div>
+              <button
+                type="button"
+                onClick={generateSeo}
+                className="btn bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 active:scale-95 transition-all"
+              >
+                Auto-generate SEO
+              </button>
+            </div>
+
             <div className="grid gap-4">
               <Field label="Meta title" hint="Falls back to the product title. Click 'Auto-generate SEO' above to generate.">
                 <Input maxLength={160} {...register('seo.metaTitle')} placeholder="e.g. Pariksha Bodh Social Science | Subham Xerox" />

@@ -16,6 +16,8 @@ const FALLBACK_GROUPS = {
   ],
   Help: [
     { label: 'Track your order', url: '/track' },
+    { label: 'Store Location (Indore)', url: '/store-indore' },
+    { label: 'Exam Prep Guides', url: '/blogs' },
     { label: 'Shipping & delivery', url: '/policy/shipping' },
     { label: 'Returns & refunds', url: '/policy/returns' },
     { label: 'Contact us', url: '/contact' },

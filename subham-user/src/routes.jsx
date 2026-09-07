@@ -22,6 +22,8 @@ const About = lazy(() => import('./pages/Static').then((m) => ({ default: m.Abou
 const Contact = lazy(() => import('./pages/Static').then((m) => ({ default: m.Contact })));
 const Policy = lazy(() => import('./pages/Static').then((m) => ({ default: m.Policy })));
 const NotFound = lazy(() => import('./pages/Static').then((m) => ({ default: m.NotFound })));
+const StoreLocation = lazy(() => import('./pages/StoreLocation'));
+const Blogs = lazy(() => import('./pages/Blogs'));
 
 /** Pre-configured <Shop> variants for the themed listing routes. */
 const Ebooks = () => (
@@ -71,6 +73,8 @@ export const router = createBrowserRouter([
       { path: 'order-placed', element: <OrderPlaced /> },
       { path: 'track', element: <TrackOrder /> },
       { path: 'wishlist', element: <Wishlist /> },
+      { path: 'store-indore', element: <StoreLocation /> },
+      { path: 'blogs', element: <Blogs /> },
       { path: 'about', element: <About /> },
       { path: 'contact', element: <Contact /> },
       { path: 'policy/:slug', element: <Policy /> },

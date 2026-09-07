@@ -130,11 +130,14 @@ exports.productOg = asyncHandler(async (req, res) => {
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
-  <meta http-equiv="refresh" content="0;url=${targetUrl}">
 </head>
-<body>
-  <p>Redirecting to <a href="${targetUrl}">${title}</a>...</p>
-  <script>window.location.href = "${targetUrl}";</script>
+<body style="font-family:sans-serif;text-align:center;padding:40px;background:#f9fafb;color:#111827;">
+  <p>Loading <a href="${targetUrl}">${title}</a>...</p>
+  <script>
+    if (!/TelegramBot|WhatsApp|facebookexternalhit|Twitterbot|LinkedInBot|bot|crawler|spider/i.test(navigator.userAgent)) {
+      window.location.replace("${targetUrl}");
+    }
+  </script>
 </body>
 </html>`;
 

@@ -14,7 +14,7 @@ const SORTS = {
   rating: { 'rating.average': -1 },
   discount: { discountPercent: -1 },
   popular: { views: -1 },
-  relevance: { score: { $meta: 'textScore' } },
+  relevance: { soldCount: -1, views: -1, createdAt: -1 },
 };
 
 function buildProductQuery(q = {}) {

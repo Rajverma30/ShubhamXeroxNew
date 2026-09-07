@@ -1,7 +1,7 @@
 /**
- * Top Publishers & Categories component.
- * Features a dark navy gradient background container, circular badge icons with white borders,
- * uppercase labels underneath, and left/right navigation arrows.
+ * Top Publishers & Categories component (Light Theme).
+ * Features a clean light gradient background container, circular badge icons with crisp borders,
+ * uppercase dark labels underneath, and left/right navigation arrows.
  * Placed directly below the "Trending this week" section on the homepage.
  */
 import { useRef } from 'react';
@@ -48,20 +48,20 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
   };
 
   return (
-    <section className="my-8 overflow-hidden rounded-3xl bg-[#0b0e26] p-6 text-white shadow-2xl sm:p-8">
+    <section className="my-8 overflow-hidden rounded-3xl border border-ink-100/80 bg-gradient-to-b from-ink-50/90 via-white to-ink-50/50 p-6 text-ink-900 shadow-soft sm:p-8">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="font-display text-xl font-bold tracking-tight text-white sm:text-2xl lg:text-3xl text-center w-full">
+        <h2 className="w-full text-center font-display text-xl font-extrabold tracking-tight text-ink-900 sm:text-2xl lg:text-3xl">
           {title}
         </h2>
       </div>
 
-      <div className="relative group">
+      <div className="group relative">
         {/* Navigation Buttons */}
         <button
           type="button"
           onClick={() => scroll('left')}
           aria-label="Scroll left"
-          className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/25 hover:scale-110 active:scale-95 disabled:opacity-0"
+          className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-ink-200 bg-white/95 text-ink-700 shadow-md backdrop-blur-md transition-all hover:border-brand-300 hover:bg-white hover:text-brand-600 hover:scale-110 active:scale-95 disabled:opacity-0"
         >
           <FiChevronLeft size={22} />
         </button>
@@ -70,7 +70,7 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
           type="button"
           onClick={() => scroll('right')}
           aria-label="Scroll right"
-          className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/25 hover:scale-110 active:scale-95 disabled:opacity-0"
+          className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-ink-200 bg-white/95 text-ink-700 shadow-md backdrop-blur-md transition-all hover:border-brand-300 hover:bg-white hover:text-brand-600 hover:scale-110 active:scale-95 disabled:opacity-0"
         >
           <FiChevronRight size={22} />
         </button>
@@ -78,7 +78,7 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
         {/* Circular Items Carousel Container */}
         <div
           ref={scrollRef}
-          className="flex gap-4 sm:gap-6 overflow-x-auto py-3 no-scrollbar scroll-smooth snap-x snap-mandatory"
+          className="flex gap-4 overflow-x-auto py-3 sm:gap-6 no-scrollbar scroll-smooth snap-x snap-mandatory"
         >
           {items.map((item, idx) => {
             const imageUrl = item.image?.url ? imgUrl(item.image, 'thumb') : null;
@@ -95,11 +95,11 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
               <Link
                 key={item.id || idx}
                 to={item.to || `/shop?search=${encodeURIComponent(item.name)}`}
-                className="group/item flex w-24 sm:w-28 shrink-0 snap-start flex-col items-center gap-2 text-center"
+                className="group/item flex w-24 shrink-0 flex-col items-center gap-2.5 text-center snap-start sm:w-28"
               >
-                {/* Circular Badge Ring */}
-                <div className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-white/90 bg-slate-900 p-1 shadow-lg transition-all duration-300 group-hover/item:scale-105 group-hover/item:border-brand-400 group-hover/item:shadow-brand-500/30">
-                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-black/40">
+                {/* Circular Badge Ring (Light Theme) */}
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-ink-200 bg-white p-1 shadow-soft transition-all duration-300 group-hover/item:-translate-y-1 group-hover/item:border-brand-500 group-hover/item:shadow-lift sm:h-24 sm:w-24">
+                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-ink-50">
                     {imageUrl ? (
                       <img
                         src={imageUrl}
@@ -108,15 +108,15 @@ export default function TopPublishers({ items: propItems, title = 'Top Publisher
                         className="h-full w-full object-cover transition-transform duration-500 group-hover/item:scale-110"
                       />
                     ) : (
-                      <span className="font-display text-sm sm:text-base font-extrabold text-white">
+                      <span className="font-display text-sm font-extrabold text-ink-700 sm:text-base">
                         {initials}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Item Label (Uppercase, truncated like screenshot) */}
-                <span className="line-clamp-2 text-2xs sm:text-xs font-bold uppercase tracking-wide text-white/90 group-hover/item:text-white">
+                {/* Item Label (Uppercase dark font) */}
+                <span className="line-clamp-2 text-2xs font-bold uppercase tracking-wide text-ink-800 transition-colors group-hover/item:text-brand-600 sm:text-xs">
                   {item.name}
                 </span>
               </Link>

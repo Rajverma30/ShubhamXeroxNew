@@ -5,7 +5,7 @@ import { useFetch } from '../../hooks';
 import { useStore } from '../../context/StoreContext';
 import { priceOf, resolveAssetUrl } from '../../lib/format';
 
-export default function StationeryUpsell({ compact = false }) {
+export default function StationeryUpsell({ compact = false, onItemAdded }) {
   const { addToCart, cart, toast } = useStore();
   const [addedIds, setAddedIds] = useState(new Set());
 
@@ -16,7 +16,7 @@ export default function StationeryUpsell({ compact = false }) {
     if (!raw.length) return [];
 
     // Filter out items already in cart
-    const cartItemIds = new Set(cart.map((c) => String(c.id)));
+    const cartItemIds = new Set(cart.map((c) => String(c.id || c._id)));
     const available = raw.filter((p) => !cartItemIds.has(String(p._id)));
 
     // Categorize by user requested priority:
@@ -36,6 +36,7 @@ export default function StationeryUpsell({ compact = false }) {
   const handleAdd = (product) => {
     addToCart(product, 1, { open: false, silent: true });
     setAddedIds((prev) => new Set(prev).add(String(product._id)));
+    onItemAdded?.(product);
     toast?.(`Added ${product.title.slice(0, 22)}… to cart`);
   };
 

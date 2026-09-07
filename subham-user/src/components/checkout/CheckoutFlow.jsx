@@ -4,11 +4,12 @@
  * Single, self-contained overlay that collects customer info, delivery address,
  * calculates live shipping charges per pincode, and directly opens Razorpay.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useStore } from '../../context/StoreContext';
 import StationeryUpsell from '../cart/StationeryUpsell';
+import { priceOf, resolveAssetUrl } from '../../lib/format';
 import {
   sendOtp, verifyOtp, createDirectSession, getQuote, placeOrder, preloadCheckout, normalisePhone,
 } from '../../lib/checkout';
@@ -49,10 +50,43 @@ const writeAddress = (form) => {
 
 export default function CheckoutFlow({ onClose, items }) {
   const { cart: storeCart, clearCart, settings, toast } = useStore();
-
-  const cart = items?.length ? items : storeCart;
   const navigate = useNavigate();
   const useShiprocket = settings?.checkout?.mode === 'shiprocket';
+
+  const [checkoutCart, setCheckoutCart] = useState(() => (items?.length ? items : storeCart));
+
+  useEffect(() => {
+    if (!items?.length) {
+      setCheckoutCart(storeCart);
+    }
+  }, [storeCart, items]);
+
+  const handleStationeryAdded = (product) => {
+    const pPrice = priceOf(product);
+    const line = {
+      id: String(product._id),
+      slug: product.slug,
+      sku: product.sku,
+      title: product.title,
+      image: resolveAssetUrl(product.images?.[0]?.thumbUrl || product.images?.[0]?.url || ''),
+      price: pPrice,
+      quantity: 1,
+    };
+
+    setCheckoutCart((prev) => {
+      const idx = prev.findIndex((l) => String(l.id || l._id) === String(line.id));
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        return next;
+      }
+      return [...prev, line];
+    });
+  };
+
+  const liveSubtotal = useMemo(() => {
+    return checkoutCart.reduce((sum, l) => sum + (priceOf(l) || l.price || 0) * (l.quantity || 1), 0);
+  }, [checkoutCart]);
 
   const resumed = readSession();
   const savedAddr = readAddress() || {};
@@ -90,7 +124,7 @@ export default function CheckoutFlow({ onClose, items }) {
     let active = true;
     setShiprocketStarting(true);
     setShiprocketError('');
-    beginShiprocketCheckout(cart)
+    beginShiprocketCheckout(checkoutCart)
       .then(({ checkoutUrl }) => {
         if (!active) return;
         const width = 480;
@@ -116,7 +150,7 @@ export default function CheckoutFlow({ onClose, items }) {
         setShiprocketStarting(false);
       });
     return () => { active = false; };
-  }, [useShiprocket, shiprocketRetry]);
+  }, [useShiprocket, shiprocketRetry, checkoutCart]);
 
   useEffect(() => {
     if (!resendIn) return undefined;
@@ -126,17 +160,17 @@ export default function CheckoutFlow({ onClose, items }) {
 
   useEffect(() => { if (step === 'otp') otpRef.current?.focus(); }, [step]);
 
-  /* Re-quote on pincode complete */
+  /* Re-quote on pincode complete or checkoutCart update */
   useEffect(() => {
     if (step !== 'address' || !/^\d{6}$/.test(form.pincode)) { setQuote(null); return undefined; }
     let cancelled = false;
     setQuoting(true);
-    getQuote(cart, form.pincode)
+    getQuote(checkoutCart, form.pincode)
       .then((q) => { if (!cancelled) setQuote(q); })
       .catch(() => { if (!cancelled) setQuote(null); })
       .finally(() => { if (!cancelled) setQuoting(false); });
     return () => { cancelled = true; };
-  }, [form.pincode, step, cart]);
+  }, [form.pincode, step, checkoutCart]);
 
   const run = async (fn) => {
     setBusy(true); setError('');
@@ -169,7 +203,7 @@ export default function CheckoutFlow({ onClose, items }) {
       setToken(activeToken);
       writeSession(activeToken, cleanPhone);
 
-      const result = await placeOrder(cart, {
+      const result = await placeOrder(checkoutCart, {
         token: activeToken,
         customer: { name: form.name, email: form.email },
         address: {
@@ -298,17 +332,17 @@ export default function CheckoutFlow({ onClose, items }) {
             <Field label="State" value={form.state} onChange={set('state')} autoComplete="address-level1" required placeholder="State" />
             <Field label="Email (optional)" type="email" value={form.email} onChange={set('email')} autoComplete="email" placeholder="For instant invoice receipt" />
 
-            <StationeryUpsell compact />
+            <StationeryUpsell compact onItemAdded={handleStationeryAdded} />
 
             <div className="rounded-lg bg-ink-50 p-3 text-sm">
-              <Row label="Subtotal" value={money(quote?.subtotal ?? 0)} />
+              <Row label="Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />
               <Row
                 label="Delivery"
                 value={quoting ? 'Checking…' : (quote ? (quote.shippingCharge ? money(quote.shippingCharge) : 'Free') : '—')}
               />
               {quote?.shipping?.etd && <p className="mt-1 text-xs text-ink-500">Estimated delivery: {quote.shipping.etd}</p>}
               <div className="mt-2 flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">
-                <span>Total</span><span>{quote ? money(quote.total) : '—'}</span>
+                <span>Total</span><span>{money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}</span>
               </div>
             </div>
 
@@ -318,10 +352,10 @@ export default function CheckoutFlow({ onClose, items }) {
 
             <button
               type="submit"
-              disabled={busy || !addressValid || !quote || quote?.shipping?.serviceable === false}
+              disabled={busy || !addressValid || (quote && quote?.shipping?.serviceable === false)}
               className="btn-primary block w-full py-3.5"
             >
-              {step === 'paying' ? 'Opening Payment…' : `Pay ${quote ? money(quote.total) : ''}`}
+              {step === 'paying' ? 'Opening Payment…' : `Pay ${money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}`}
             </button>
 
             <div className="flex items-center justify-between text-xs text-ink-400">

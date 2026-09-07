@@ -25,9 +25,6 @@ module.exports = async function requireVerifiedPhone(req, _res, next) {
     if (session.expiresAt < new Date()) {
       return next(ApiError.unauthorized('Your verification expired. Please verify your number again.'));
     }
-    if (session.consumedAt && !session.orderNumber) {
-      return next(ApiError.unauthorized('This verification was already used. Please verify your number again.'));
-    }
 
     req.guestPhone = payload.phone;
     req.guestJti = payload.jti;

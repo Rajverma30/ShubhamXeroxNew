@@ -78,6 +78,7 @@ router.get('/stationery', (req, res, next) => { req.query.type = 'stationery'; r
 router.get('/products/:slug', productCtrl.getBySlug);
 router.get('/products/:slug/preview', productCtrl.preview);
 router.get('/products/:slug/ebook', productCtrl.downloadEbook);
+router.get('/og/product/:slug', seoCtrl.productOg);
 
 router.post(
   '/products/:slug/reviews',

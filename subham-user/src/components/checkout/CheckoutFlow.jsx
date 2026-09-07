@@ -163,12 +163,10 @@ export default function CheckoutFlow({ onClose, items }) {
 
     setStep('paying');
     try {
-      let activeToken = token;
-      if (!activeToken) {
-        activeToken = await createDirectSession(cleanPhone);
-        setToken(activeToken);
-        writeSession(activeToken, cleanPhone);
-      }
+      // Always ensure a fresh session token for every checkout attempt
+      const activeToken = await createDirectSession(cleanPhone);
+      setToken(activeToken);
+      writeSession(activeToken, cleanPhone);
 
       const result = await placeOrder(cart, {
         token: activeToken,
@@ -187,10 +185,8 @@ export default function CheckoutFlow({ onClose, items }) {
       navigate(`/order-placed?order=${result.orderNumber}&phone=${cleanPhone}`, { replace: true });
       onClose?.();
     } catch (e) {
-      if (/verify your mobile|verification expired/i.test(e.message || '')) {
-        clearSession();
-        setToken('');
-      }
+      clearSession();
+      setToken('');
       setStep('address');
       throw e;
     }

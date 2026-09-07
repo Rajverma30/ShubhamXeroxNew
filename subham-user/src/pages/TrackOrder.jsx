@@ -13,7 +13,7 @@ import { FiCheck, FiChevronRight, FiCreditCard, FiMapPin, FiPackage, FiSearch, F
 import api from '../lib/api';
 import Seo from '../components/ui/Seo';
 import { Breadcrumbs, SectionHeader, Spinner, Tag } from '../components/ui/Common';
-import { dateLong, dateTime, money, ORDER_STATUS_LABEL } from '../lib/format';
+import { dateLong, dateTime, money, ORDER_STATUS_LABEL, placeholderImage, resolveAssetUrl } from '../lib/format';
 import { payExistingOrder } from '../lib/checkout';
 import { useStore } from '../context/StoreContext';
 
@@ -170,19 +170,26 @@ export default function TrackOrder() {
                     </div>
                   </div>
 
-                  {/* Item preview */}
-                  <ul className="mt-3.5 divide-y divide-ink-50 rounded-2xl bg-ink-50/50 p-3">
-                    {(ord.items || []).slice(0, 3).map((item, idx) => (
-                      <li key={idx} className="flex items-center justify-between py-1.5 text-xs">
-                        <span className="truncate max-w-[240px] font-medium text-ink-900">{item.title}</span>
-                        <span className="text-ink-500">Qty {item.quantity} × {money(item.price)}</span>
-                      </li>
-                    ))}
-                    {(ord.items || []).length > 3 && (
-                      <li className="pt-1 text-2xs text-ink-400 font-medium">
-                        + {(ord.items || []).length - 3} more items
-                      </li>
-                    )}
+                  {/* Item preview with image thumbnails */}
+                  <ul className="mt-3.5 divide-y divide-ink-100 rounded-2xl bg-ink-50/70 p-3">
+                    {(ord.items || []).map((item, idx) => {
+                      const img = resolveAssetUrl(item.image) || placeholderImage(item.title);
+                      return (
+                        <li key={idx} className="flex items-center gap-3 py-2 text-xs">
+                          <img
+                            src={img}
+                            alt={item.title}
+                            loading="lazy"
+                            className="h-12 w-10 shrink-0 rounded-lg border border-ink-100 object-cover shadow-2xs"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="line-clamp-2 font-semibold text-ink-900">{item.title}</p>
+                            <p className="mt-0.5 text-2xs text-ink-500">Qty {item.quantity} × {money(item.price)}</p>
+                          </div>
+                          <span className="shrink-0 font-bold text-ink-900">{money(item.lineTotal || item.price * item.quantity)}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 pt-3.5">

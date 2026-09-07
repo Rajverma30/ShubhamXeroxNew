@@ -17,6 +17,14 @@
       "destination": "https://subhamapi.hypernxt.space/uploads/:path*"
     },
     {
+      "source": "/og/product/:slug",
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
+      "source": "/share/product/:slug",
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

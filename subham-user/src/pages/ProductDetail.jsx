@@ -10,6 +10,7 @@ import {
   FiBookOpen, FiCheck, FiDownload, FiHeart, FiMapPin, FiPackage, FiRefreshCw,
   FiShare2, FiShoppingBag, FiStar, FiTruck, FiZap,
 } from 'react-icons/fi';
+import { FaWhatsapp, FaTelegramPlane } from 'react-icons/fa';
 import api from '../lib/api';
 import { useFetch, useRecentlyViewed } from '../hooks';
 import { useStore } from '../context/StoreContext';
@@ -82,11 +83,23 @@ export default function ProductDetail() {
   }, [product]);
 
   const share = async () => {
-    const url = window.location.href;
+    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
     try {
-      if (navigator.share) await navigator.share({ title: product.title, url });
-      else { await navigator.clipboard.writeText(url); toast('Link copied to clipboard'); }
+      if (navigator.share) await navigator.share({ title: product.title, url: ogUrl });
+      else { await navigator.clipboard.writeText(ogUrl); toast('Link copied to clipboard'); }
     } catch { /* user cancelled */ }
+  };
+
+  const shareWhatsApp = () => {
+    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
+    const text = `Check out "${product.title}" on Subham Xerox:\n${ogUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const shareTelegram = () => {
+    const ogUrl = `${window.location.origin}/og/product/${product.slug}`;
+    const text = `Check out "${product.title}" on Subham Xerox`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(ogUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
   if (loading) return <DetailSkeleton />;
@@ -200,7 +213,15 @@ export default function ProductDetail() {
                 className={`btn-icon h-12 w-12 border ${wished ? 'border-rose-200 bg-rose-50 text-rose-500' : 'border-ink-200 text-ink-400 hover:text-rose-500'}`}>
                 <FiHeart size={18} className={wished ? 'fill-current' : ''} />
               </button>
-              <button type="button" onClick={share} aria-label="Share" className="btn-icon h-12 w-12 border border-ink-200 text-ink-400 hover:text-ink-900">
+              <button type="button" onClick={shareWhatsApp} aria-label="Share on WhatsApp" title="Share on WhatsApp"
+                className="btn-icon h-12 w-12 border border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all">
+                <FaWhatsapp size={19} />
+              </button>
+              <button type="button" onClick={shareTelegram} aria-label="Share on Telegram" title="Share on Telegram"
+                className="btn-icon h-12 w-12 border border-sky-300 bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white transition-all">
+                <FaTelegramPlane size={18} />
+              </button>
+              <button type="button" onClick={share} aria-label="Share link" title="Copy link" className="btn-icon h-12 w-12 border border-ink-200 text-ink-400 hover:text-ink-900">
                 <FiShare2 size={17} />
               </button>
             </div>

@@ -264,13 +264,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
   await order.save();
 
   if (req.guestJti) {
-    const consumed = await GuestCheckoutSession.findOneAndUpdate(
-      { jti: req.guestJti, phone, consumedAt: null },
-      { $set: { consumedAt: new Date(), orderNumber: order.orderNumber } },
-    );
-    if (!consumed) {
+    const session = await GuestCheckoutSession.findOne({ jti: req.guestJti, phone });
+    if (!session || session.expiresAt < new Date()) {
       throw ApiError.unauthorized('Your checkout session expired. Please verify your number again.');
     }
+    session.consumedAt = session.consumedAt || new Date();
+    session.orderNumber = order.orderNumber;
+    await session.save();
   }
 
   logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);

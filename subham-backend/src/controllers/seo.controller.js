@@ -90,3 +90,54 @@ exports.productSchema = asyncHandler(async (req, res) => {
       : {}),
   });
 });
+
+/** GET /api/og/product/:slug — Open Graph preview HTML for WhatsApp, Telegram, Facebook, etc. */
+exports.productOg = asyncHandler(async (req, res) => {
+  const p = await Product.findOne({ slug: req.params.slug }).lean();
+  const base = FRONTEND();
+  const targetUrl = `${base}/product/${req.params.slug}`;
+
+  if (!p) {
+    return res.redirect(302, targetUrl);
+  }
+
+  const title = esc(`${p.title} - ₹${p.finalPrice || p.price} | Subham Xerox`);
+  const rawDesc = p.shortDescription || String(p.description || '').replace(/<[^>]+>/g, '').slice(0, 200);
+  const description = esc(rawDesc || `Buy ${p.title} online at best price on Subham Xerox.`);
+
+  let rawImg = p.images?.[0]?.url || p.images?.[0]?.thumbUrl || '';
+  if (rawImg && !rawImg.startsWith('http')) {
+    const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
+    rawImg = `${backendUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+  }
+  const imageUrl = esc(rawImg || `${base}/logo.png`);
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${title}</title>
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Subham Xerox">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:secure_url" content="${imageUrl}">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="800">
+  <meta property="og:url" content="${targetUrl}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
+  <meta http-equiv="refresh" content="0;url=${targetUrl}">
+</head>
+<body>
+  <p>Redirecting to <a href="${targetUrl}">${title}</a>...</p>
+  <script>window.location.href = "${targetUrl}";</script>
+</body>
+</html>`;
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.send(html);
+});

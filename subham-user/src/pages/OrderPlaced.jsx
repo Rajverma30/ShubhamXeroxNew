@@ -14,7 +14,7 @@ import { useStore } from '../context/StoreContext';
 import { fetchOrder, payExistingOrder } from '../lib/checkout';
 import Seo from '../components/ui/Seo';
 import { Spinner } from '../components/ui/Common';
-import { money } from '../lib/format';
+import { money, placeholderImage, resolveAssetUrl } from '../lib/format';
 
 export default function OrderPlaced() {
   const [params] = useSearchParams();
@@ -187,9 +187,11 @@ export default function OrderPlaced() {
             <ul className="divide-y divide-ink-100">
               {(order.items || []).map((line, i) => (
                 <li key={i} className="flex items-center gap-3 p-3.5">
-                  {line.image && (
-                    <img src={line.image} alt="" className="h-14 w-11 shrink-0 rounded object-cover" />
-                  )}
+                  <img
+                    src={resolveAssetUrl(line.image) || placeholderImage(line.title)}
+                    alt={line.title}
+                    className="h-14 w-11 shrink-0 rounded border border-ink-100 object-cover"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 text-sm font-semibold text-ink-900">{line.title}</p>
                     <p className="mt-0.5 text-2xs text-ink-400">Qty {line.quantity} × {money(line.price)}</p>

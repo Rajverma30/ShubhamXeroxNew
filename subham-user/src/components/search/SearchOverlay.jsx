@@ -55,7 +55,7 @@ export default function SearchOverlay() {
   }, [searchOpen]);
 
   useEffect(() => {
-    if (debounced.trim().length < 2) { setResults(null); return undefined; }
+    if (debounced.trim().length < 1) { setResults(null); return undefined; }
     const controller = new AbortController();
     setLoading(true);
     api.suggest(debounced.trim(), controller.signal)
@@ -85,7 +85,7 @@ export default function SearchOverlay() {
     e?.preventDefault();
     const term = query.trim();
     if (cursor >= 0 && flatItems[cursor]) { go(flatItems[cursor].to, flatItems[cursor].label); return; }
-    if (term.length < 2) return;
+    if (!term.length) return;
     go(`/shop?search=${encodeURIComponent(term)}`, term);
   }, [query, cursor, flatItems, go]);
 

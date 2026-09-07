@@ -13,6 +13,7 @@ import Seo from '../components/ui/Seo';
 import HeroSlider from '../components/home/HeroSlider';
 import BannerStrip from '../components/home/BannerStrip';
 import { CategoryGrid, SubCategoryPills } from '../components/home/CategoryGrid';
+import TopPublishers from '../components/home/TopPublishers';
 import NewsletterBlock from '../components/home/NewsletterBlock';
 import ProductRail from '../components/product/ProductRail';
 import ProductCard from '../components/product/ProductCard';
@@ -124,24 +125,42 @@ npm run dev`}
             return <section key={section.key} className="container-x section"><NewsletterBlock title={section.title} subtitle={section.subtitle} /></section>;
           default: {
             if (!section.products?.length) return null;
-            if (section.layout === 'grid') {
-              return (
-                <section key={section.key} className="container-x section">
-                  <SectionHeader title={section.title} subtitle={section.subtitle} viewAllUrl={section.viewAllUrl} />
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                    {section.products.map((p, idx) => <ProductCard key={p._id} product={p} eager={i < 2 && idx < 4} />)}
-                  </div>
-                </section>
-              );
-            }
-            return (
+            const isTrendingSection = section.type === 'trending-books' || (section.title && section.title.toLowerCase().includes('trending'));
+            
+            const productElement = section.layout === 'grid' ? (
+              <section key={section.key} className="container-x section">
+                <SectionHeader title={section.title} subtitle={section.subtitle} viewAllUrl={section.viewAllUrl} />
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                  {section.products.map((p, idx) => <ProductCard key={p._id} product={p} eager={i < 2 && idx < 4} />)}
+                </div>
+              </section>
+            ) : (
               <div key={section.key} className="container-x section">
                 <ProductRail title={section.title} subtitle={section.subtitle} viewAllUrl={section.viewAllUrl} products={section.products} />
               </div>
             );
+
+            if (isTrendingSection) {
+              return (
+                <div key={section.key}>
+                  {productElement}
+                  <div className="container-x">
+                    <TopPublishers />
+                  </div>
+                </div>
+              );
+            }
+
+            return productElement;
           }
         }
       })}
+
+      {sections.length > 0 && !sections.some((s) => s.type === 'trending-books' || (s.title && String(s.title).toLowerCase().includes('trending'))) && (
+        <div className="container-x">
+          <TopPublishers />
+        </div>
+      )}
 
       {sections.length > 0 && <section className="container-x py-8"><TrustStrip items={TRUST} /></section>}
 

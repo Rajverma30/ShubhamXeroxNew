@@ -336,14 +336,24 @@ exports.downloadEbook = asyncHandler(async (req, res) => {
 /** GET /api/search/suggest?q= — instant suggestions with rich metadata. */
 exports.suggest = asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
-  if (q.length < 2) return ok(res, { products: [], categories: [], subCategories: [], authors: [] });
+  if (q.length < 1) return ok(res, { products: [], categories: [], subCategories: [], authors: [] });
 
   const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   const [products, categories, subCategories, authorAgg] = await Promise.all([
     Product.find({
       isActive: true,
       isHidden: false,
-      $or: [{ title: rx }, { author: rx }, { isbn: rx }, { tags: rx }],
+      $or: [
+        { title: rx },
+        { author: rx },
+        { publisher: rx },
+        { categoryName: rx },
+        { subCategoryName: rx },
+        { language: rx },
+        { tags: rx },
+        { isbn: rx },
+        { description: rx },
+      ],
     })
       .select('title slug author price salePrice finalPrice discountPercent images categoryName subCategoryName type')
       .sort({ soldCount: -1, views: -1 })

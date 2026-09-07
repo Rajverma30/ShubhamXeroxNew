@@ -21,8 +21,22 @@ function buildProductQuery(q = {}) {
   const filter = { isActive: true, isHidden: false };
   const meta = {};
 
-  if (q.search) {
-    filter.$text = { $search: q.search };
+  if (q.search && String(q.search).trim()) {
+    const rawSearch = String(q.search).trim();
+    const escaped = rawSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp(escaped, 'i');
+    filter.$or = [
+      { title: rx },
+      { author: rx },
+      { publisher: rx },
+      { categoryName: rx },
+      { subCategoryName: rx },
+      { language: rx },
+      { tags: rx },
+      { isbn: rx },
+      { sku: rx },
+      { description: rx },
+    ];
     meta.textSearch = true;
   }
   if (q.type) filter.type = { $in: String(q.type).split(',') };

@@ -163,6 +163,7 @@ app.use(require('./controllers/legacy.controller').redirectMiddleware);
 /* ── SEO files (also proxied by the storefront) ── */
 app.get('/sitemap.xml', seoCtrl.sitemap);
 app.get('/robots.txt', seoCtrl.robots);
+app.get('/googlec4a4735a45ba64b1.html', (_req, res) => res.type('text/plain').send('google-site-verification: googlec4a4735a45ba64b1.html'));
 
 /* ── Shiprocket Checkout catalogue endpoints ──
    Mounted outside /api so the paths match the URLs registered with Shiprocket

@@ -9,7 +9,13 @@ const { Product, Category, SubCategory, Setting } = require('../models');
 const asyncHandler = require('../utils/asyncHandler');
 const { ok } = require('../utils/response');
 
-const FRONTEND = () => (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const FRONTEND = () => {
+  let url = (process.env.FRONTEND_URL || 'https://shubhamxerox.in').replace(/\/$/, '');
+  if (url.includes('web.app') || url.includes('localhost')) {
+    url = 'https://shubhamxerox.in';
+  }
+  return url;
+};
 
 const esc = (s = '') => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

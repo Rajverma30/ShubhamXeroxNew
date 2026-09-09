@@ -25,6 +25,29 @@
       "destination": "https://subhamapi.hypernxt.space/robots.txt"
     },
     {
+      "source": "/og/product/:slug",
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
+      "source": "/share/product/:slug",
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
+      "source": "/product/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|googlebot|bingbot|TelegramBot|WhatsApp|facebookexternalhit|Twitterbot|LinkedInBot|bot|crawler|spider).*"
+        }
+      ],
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
+      "source": "/p/:slug",
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

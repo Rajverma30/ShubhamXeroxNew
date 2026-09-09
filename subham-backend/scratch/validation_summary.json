@@ -1,0 +1,585 @@
+{
+  "hosts": [
+    {
+      "variant": "http://shubhamxerox.in/",
+      "status": 301,
+      "location": "https://shubhamxerox.in/",
+      "chain": [
+        "http://shubhamxerox.in/"
+      ]
+    },
+    {
+      "variant": "https://shubhamxerox.in/",
+      "status": 200,
+      "location": "None",
+      "chain": [
+        "https://shubhamxerox.in/"
+      ]
+    },
+    {
+      "variant": "http://www.shubhamxerox.in/",
+      "status": 301,
+      "location": "https://www.shubhamxerox.in/",
+      "chain": [
+        "http://www.shubhamxerox.in/"
+      ]
+    },
+    {
+      "variant": "https://www.shubhamxerox.in/",
+      "status": 200,
+      "location": "None",
+      "chain": [
+        "https://www.shubhamxerox.in/"
+      ]
+    }
+  ],
+  "legacy": {
+    "total": 338,
+    "valid301": 338,
+    "missing": 0,
+    "wrongDest": 0,
+    "sample": [
+      {
+        "oldUrlPath": "/product/100",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-1-part-b-unit-2-3-krishi-evam-jal-sansadhan-prakritik-sansadhan-evam-udyog-bharat"
+      },
+      {
+        "oldUrlPath": "/product/101",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-4-part-a-unit-3-4-manaviya-vyavhar-evam-manovigyan-lok-prashasan-mein-naitik-mool"
+      },
+      {
+        "oldUrlPath": "/product/102",
+        "status": 301,
+        "dest": "/product/karma-ias-ap-political-science-test-1-10"
+      },
+      {
+        "oldUrlPath": "/product/104",
+        "status": 301,
+        "dest": "/product/shree-kabir-publication-mppsc-mukhya-pariksha-hetu-naronha-series-paper-3-2-7-10-marker-hindi-medium-paperback"
+      },
+      {
+        "oldUrlPath": "/product/105",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-paper-3-part-a-unit-3-summary-notes-hindi-medium-madhya-pradesh-economy-gsdp-gsva-agriculture-ms"
+      },
+      {
+        "oldUrlPath": "/product/106",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-economics-paper-3-part-a-unit-1-latest-2026-edition-hindi-medium-quick-revision-notes-shubham-xe"
+      },
+      {
+        "oldUrlPath": "/product/107",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-paper-2-part-b-unit-4-notes-in-hindi-latest-exam-notes-paperback-shubham-xerox"
+      },
+      {
+        "oldUrlPath": "/product/108",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-1-part-b-unit-5-madhya-pradesh-ka-bhugol-hindi-medium-champion-square-civil-servi"
+      },
+      {
+        "oldUrlPath": "/product/109",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-3-part-b-unit-2-computer-science-hindi-medium-champion-square-nitya-publication"
+      },
+      {
+        "oldUrlPath": "/product/110",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-1-part-a-unit-1-bharat-ka-itihas-prachinkal-evam-madhyakal-hindi-medium-champion"
+      },
+      {
+        "oldUrlPath": "/product/111",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-1-part-b-unit-4-hindi-medium-notes-champion-square-nitya-publication-latest-editi"
+      },
+      {
+        "oldUrlPath": "/product/112",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-political-science-paper-2-part-a-unit-2-cag-hindi-medium-notes-latest-edition-shubham-xerox"
+      },
+      {
+        "oldUrlPath": "/product/113",
+        "status": 301,
+        "dest": "/product/saranch-ics-mppsc-mains-polity-paper-1-part-b-unit-1-saaransh-notes-hindi-medium-latest-exam-oriented-study-material"
+      },
+      {
+        "oldUrlPath": "/product/114",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-paper-2-part-b-unit-1-sociology-notes-hindi-medium-latest-exam-notes-concept-based-study-materia"
+      },
+      {
+        "oldUrlPath": "/product/115",
+        "status": 301,
+        "dest": "/product/saransh-ics-mppsc-mains-paper-2-part-b-unit-2-hindi-medium-latest-exam-oriented-notes-shubham-xerox"
+      },
+      {
+        "oldUrlPath": "/product/116",
+        "status": 301,
+        "dest": "/product/mains-practice-answer-sheets-notebook-register-mppsc-practice-copy-answer-sheets-a4-220-page-2-marker"
+      },
+      {
+        "oldUrlPath": "/product/117",
+        "status": 301,
+        "dest": "/product/mains-practice-answer-sheets-notebook-register-mppsc-practice-copy-answer-sheets-a4-220-page-7-marker"
+      },
+      {
+        "oldUrlPath": "/product/118",
+        "status": 301,
+        "dest": "/product/mains-practice-answer-sheets-notebook-register-mppsc-practice-copy-answer-sheets-a4-220-page-10-marker"
+      },
+      {
+        "oldUrlPath": "/product/119",
+        "status": 301,
+        "dest": "/product/mains-practice-answer-sheets-notebook-register-mppsc-practice-copy-answer-sheets-a4-220-page-mix-2-7-10-marker"
+      },
+      {
+        "oldUrlPath": "/product/120",
+        "status": 301,
+        "dest": "/product/champion-square-mppsc-mains-exam-paper-1-part-a-unit-4-madhya-pradesh-kala-sanskriti-sahitya-evam-paryatan-hindi-medium"
+      }
+    ]
+  },
+  "botVsUser": [
+    {
+      "slug": "black-book-unit-6-special-facts-collection-of-economy-of-india-and-madhya-pradesh-mcq-with-explanation-for-mppsc-vyapam",
+      "title": "“BLACK BOOK” (UNIT-6) Special Facts Collection of Economy of India and Madhya Pradesh | MCQ with Explanation For MPPSC, VYAPAM, Banking & SSC Exams",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "state-psc-ssc-other-competitive-exams-by-shuham-gupta-sir",
+      "title": "Medieval Indian History | मध्यकालीन भारतीय इतिहास | State PSC | SSC | Other Competitive Exams | Hindi Medium | Paperback | Complete Study Guide BY SHUBHAM GUPTA SIR",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "latest-edition-2026-upsc-mppsc-other-state-psc-by-shubham-gupta-hindi-medium-print-out",
+      "title": "आधुनिक भारतीय इतिहास | Latest Edition 2026 | UPSC, MPPSC & Other State PSC | By Shubham Gupta {Hindi MEDIUM} PRINT OUT",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "yuvaan-institute-mppsc-mains-shorts-notes-2025",
+      "title": "YUVAAN INSTITUTE MPPSC MAINS SHORTS NOTES 2025",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "vs-education-mppsc-assistant-registrar-vishwavidyalaya-shiksha-evam-prashasan-section-b-hindi-medium-by-vikram-singh",
+      "title": "VS Education MPPSC Assistant Registrar – Vishwavidyalaya Shiksha Evam Prashasan (Section-B) | Hindi Medium | By Vikram Singh",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "vs-education-mppsc-assistant-registrar-vishwavidyalaya-shiksha-evam-prashasan-section-b-english-medium-by-vikram-singh",
+      "title": "VS Education MPPSC Assistant Registrar – Vishwavidyalaya Shiksha Evam Prashasan (Section-B) | ENGLISH Medium | By Vikram Singh",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "vision-ias-pt-365-2025-environment-for-upsc-cse-2025-26-english-medium-photocopy-b-w-with-clear-print-paperback-vision-i",
+      "title": "Vision IAS PT 365 2025 | Environment, | For UPSC CSE 2025-26 | English Medium | Photocopy B&W With Clear Print (Paperback, Vision IAS)",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "vision-ias-prelims-test-series-2026-with-solution-1-20-hindi-medium",
+      "title": "Vision IAS Prelims Test Series 2026 With Solution (1-20) | Hindi Medium",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "vision-ias-prelims-test-series-2026-with-solution-1-20-english-medium",
+      "title": "Vision IAS Prelims Test Series 2026 With Solution (1-20) | English Medium",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "utkarsh-samanya-adhyayan-book-by-kumar-sir-ncert-based-general-studies-kumar-sir-gk-gs-book-for-upsc-ssc-banking-railway",
+      "title": "Utkarsh Samanya Adhyayan Book by Kumar Sir | NCERT-Based General Studies | Kumar Sir GK GS Book for UPSC, SSC, Banking, Railway, State PSC, NDA, CDS, Defence, Teaching, Police Exams | Updated Edition",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "utkarsh-classes-mppsc-mains-complete-study-pack-english-medium",
+      "title": "UTKARSH CLASSES MPPSC mains Complete study pack English Medium",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "upsc-blank-practice-answer-sheet-for-mains-a4-220-pages-pack-of-3",
+      "title": "UPSC Blank Practice Answer Sheet For Mains (A4,220 Pages) (Pack Of 3)",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "unit-10-chart-tribes-of-madhya-pradesh-hindi-medium",
+      "title": "UNIT-10 chart (Tribes of Madhya Pradesh – Hindi Medium)",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "tathyabaan-current-affairs-2026-mp-budget-2026-27-15-prelims-practice-book-hindi-medium",
+      "title": "Tathyabaan Current Affairs 2026 | वार्षिक अंक | MP Budget 2026-27 | आर्थिक सर्वेक्षण | 15 माह की समसामयिकी | Prelims Practice Book (Hindi Medium)",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "shree-kabir-publication-7-marker-prasnottari-book-mppsc-prelims-mains-interview-hindi-medium-complete",
+      "title": "Shree Kabir Publication – 7 Marker Prasnottari Book |  Hindi Medium | Complete",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "shree-kabir-publication-10-marker-prashnottari-1st-edition-hindi-medium",
+      "title": "Shree Kabir Publication – 10 Marker Prashnottari (1st Edition) Hindi Medium",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "shree-kabir-publication-mpsi-nagarik-shastra-ncert-based-preliminary-exam-hindi-medium",
+      "title": "Shree Kabir Publication MPSI Nagarik Shastra | NCERT Based | Preliminary Exam (Hindi Medium)",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "shree-kabir-publication-mppsc-2-marker-prashnottari-1st-edition-hindi-medium",
+      "title": "Shree Kabir Publication MPPSC 2 Marker Prashnottari (1st Edition) Hindi Medium",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "shree-kabir-publication-mp-police-aarakshak-constable-exam-book-mppolice-asi-mpsi-mppsc-static-gk-8888-objective-hindi-b",
+      "title": "Shree Kabir Publication MP Police Aarakshak (Constable) Exam book MPPOLICE, ASI, MPSI, MPPSC, STATIC GK 8888+ Objective hindi book",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    },
+    {
+      "slug": "selection-tak-mpgk-4th-edition-madhya-pradesh-selection-tak-2026-mp-gk-2026-all-mppsc-exams-and-other-all-mp-exams-2026",
+      "title": "Selection Tak MPGK – 4th Edition - Madhya Pradesh Selection Tak 2026 ( MP GK 2026) All Mppsc Exams and Other All Mp Exams 2026",
+      "botStatus": 404,
+      "userStatus": 404,
+      "botHasH1": false,
+      "botHasSchema": false,
+      "botHasTitle": false,
+      "botHasPrice": false
+    }
+  ],
+  "prodSeo": [
+    {
+      "slug": "black-book-unit-6-special-facts-collection-of-economy-of-india-and-madhya-pradesh-mcq-with-explanation-for-mppsc-vyapam",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "state-psc-ssc-other-competitive-exams-by-shuham-gupta-sir",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "latest-edition-2026-upsc-mppsc-other-state-psc-by-shubham-gupta-hindi-medium-print-out",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "yuvaan-institute-mppsc-mains-shorts-notes-2025",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "vs-education-mppsc-assistant-registrar-vishwavidyalaya-shiksha-evam-prashasan-section-b-hindi-medium-by-vikram-singh",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "vs-education-mppsc-assistant-registrar-vishwavidyalaya-shiksha-evam-prashasan-section-b-english-medium-by-vikram-singh",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "vision-ias-pt-365-2025-environment-for-upsc-cse-2025-26-english-medium-photocopy-b-w-with-clear-print-paperback-vision-i",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "vision-ias-prelims-test-series-2026-with-solution-1-20-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "vision-ias-prelims-test-series-2026-with-solution-1-20-english-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "utkarsh-samanya-adhyayan-book-by-kumar-sir-ncert-based-general-studies-kumar-sir-gk-gs-book-for-upsc-ssc-banking-railway",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "utkarsh-classes-mppsc-mains-complete-study-pack-english-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "upsc-blank-practice-answer-sheet-for-mains-a4-220-pages-pack-of-3",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "unit-10-chart-tribes-of-madhya-pradesh-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "tathyabaan-current-affairs-2026-mp-budget-2026-27-15-prelims-practice-book-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "shree-kabir-publication-7-marker-prasnottari-book-mppsc-prelims-mains-interview-hindi-medium-complete",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "shree-kabir-publication-10-marker-prashnottari-1st-edition-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "shree-kabir-publication-mpsi-nagarik-shastra-ncert-based-preliminary-exam-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "shree-kabir-publication-mppsc-2-marker-prashnottari-1st-edition-hindi-medium",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "shree-kabir-publication-mp-police-aarakshak-constable-exam-book-mppolice-asi-mpsi-mppsc-static-gk-8888-objective-hindi-b",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    },
+    {
+      "slug": "selection-tak-mpgk-4th-edition-madhya-pradesh-selection-tak-2026-mp-gk-2026-all-mppsc-exams-and-other-all-mp-exams-2026",
+      "status": 404,
+      "hasCanonical": false,
+      "hasOgTitle": false,
+      "hasSchema": false,
+      "h1Count": 0
+    }
+  ],
+  "four0four": [
+    {
+      "slug": "non-existent-product-abc-123",
+      "status": 404,
+      "hasNoindex": false
+    },
+    {
+      "slug": "qwertyuiop-invalid-book-999",
+      "status": 404,
+      "hasNoindex": false
+    },
+    {
+      "slug": "random-fake-slug-mppsc-xyz",
+      "status": 404,
+      "hasNoindex": false
+    },
+    {
+      "slug": "fake-test-book-0000",
+      "status": 404,
+      "hasNoindex": false
+    },
+    {
+      "slug": "not-a-real-product-404-check",
+      "status": 404,
+      "hasNoindex": false
+    }
+  ],
+  "categories": [
+    {
+      "catSlug": "mppsc-books",
+      "status": 200,
+      "name": "MPPSC Books & Study Material",
+      "hasSeoTitle": true,
+      "hasSeoDesc": true
+    },
+    {
+      "catSlug": "mppsc-mains-books",
+      "status": 200,
+      "name": "MPPSC Mains Books & Notes",
+      "hasSeoTitle": true,
+      "hasSeoDesc": true
+    },
+    {
+      "catSlug": "mpesb-books",
+      "status": 200,
+      "name": "MPESB & Vyapam Exam Books",
+      "hasSeoTitle": true,
+      "hasSeoDesc": true
+    },
+    {
+      "catSlug": "current-affairs-books",
+      "status": 200,
+      "name": "Current Affairs & Speedy Books",
+      "hasSeoTitle": true,
+      "hasSeoDesc": true
+    },
+    {
+      "catSlug": "ghatna-chakra-books",
+      "status": 200,
+      "name": "Ghatna Chakra Series",
+      "hasSeoTitle": true,
+      "hasSeoDesc": true
+    }
+  ],
+  "sitemap": {
+    "totalUrls": 628,
+    "sampleTested": 50,
+    "status200": 50,
+    "status301": 0,
+    "status404": 0,
+    "duplicates": 0,
+    "nonCanonicalDomain": 0
+  },
+  "robots": {
+    "status": 200,
+    "body": "User-agent: *\nAllow: /\nDisallow: /cart\nDisallow: /checkout\nDisallow: /order-success\nDisallow: /admin\n\nSitemap: https://shubhamxerox.in/sitemap.xml\n"
+  }
+}

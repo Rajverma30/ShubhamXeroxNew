@@ -53,11 +53,53 @@ exports.listPublic = asyncHandler(async (req, res) => {
 
 /** GET /api/categories/:slug */
 exports.getBySlug = asyncHandler(async (req, res) => {
-  const category = await Category.findOne({ slug: req.params.slug, isActive: true }).lean();
-  if (!category) throw ApiError.notFound('Category not found');
-  category.subCategories = await SubCategory.find({ category: category._id, isActive: true })
-    .sort({ order: 1, name: 1 })
-    .lean();
+  const rawSlug = String(req.params.slug || '').toLowerCase().trim();
+  let category = await Category.findOne({ slug: rawSlug, isActive: true }).lean();
+
+  if (!category) {
+    const virtuals = {
+      'mppsc-books': {
+        name: 'MPPSC Books & Study Material',
+        slug: 'mppsc-books',
+        shortDescription: 'Buy MPPSC Mains, Prelims, Solved Papers, and Notes online at best price in Hindi and English medium.',
+        seo: { metaTitle: 'MPPSC Books & Study Material Online | Shubham Xerox', metaDescription: 'Buy MPPSC Mains books, Prelims guides, solved papers, and Hindi/English notes online from Shubham Xerox Indore.' },
+      },
+      'mppsc-mains-books': {
+        name: 'MPPSC Mains Books & Notes',
+        slug: 'mppsc-mains-books',
+        shortDescription: 'Comprehensive MPPSC Mains Paper 1 to Paper 6 preparation books, unit-wise notes, and answer writing guides.',
+        seo: { metaTitle: 'MPPSC Mains Books & Study Material | Shubham Xerox', metaDescription: 'Best MPPSC Mains books, summary notes, paper-wise guides in Hindi & English medium.' },
+      },
+      'mpesb-books': {
+        name: 'MPESB & Vyapam Exam Books',
+        slug: 'mpesb-books',
+        shortDescription: 'Books and solved papers for MPESB, Vyapam, MP Patwari, MP Police Constable, MP SI, and Samvidha Shikshak.',
+        seo: { metaTitle: 'MPESB & Vyapam Books Online | Shubham Xerox', metaDescription: 'Buy MPESB preparation books, Patwari guides, MP Police solved papers online from Shubham Xerox.' },
+      },
+      'current-affairs-books': {
+        name: 'Current Affairs & Speedy Books',
+        slug: 'current-affairs-books',
+        shortDescription: 'Monthly and yearly MP Current Affairs, Speedy Current Affairs in Hindi, Ghatna Chakra Current Affairs.',
+        seo: { metaTitle: 'Speedy Current Affairs & MP Current Books | Shubham Xerox', metaDescription: 'Buy Speedy Current Affairs, MP Current Affairs, yearly guides online at Shubham Xerox.' },
+      },
+      'ghatna-chakra-books': {
+        name: 'Ghatna Chakra Series',
+        slug: 'ghatna-chakra-books',
+        shortDescription: 'Complete Ghatna Chakra Purvavlokan series for History, Polity, Geography, Science, and Environment.',
+        seo: { metaTitle: 'Ghatna Chakra Books & Purvavlokan Series | Shubham Xerox', metaDescription: 'Buy Ghatna Chakra Purvavlokan books online at best price from Shubham Xerox.' },
+      },
+    };
+
+    if (virtuals[rawSlug]) {
+      category = virtuals[rawSlug];
+    } else {
+      throw ApiError.notFound('Category not found');
+    }
+  } else {
+    category.subCategories = await SubCategory.find({ category: category._id, isActive: true })
+      .sort({ order: 1, name: 1 })
+      .lean();
+  }
   return ok(res, category);
 });
 

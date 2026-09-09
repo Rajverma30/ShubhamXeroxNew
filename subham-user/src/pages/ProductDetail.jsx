@@ -104,11 +104,22 @@ export default function ProductDetail() {
     window.open(`https://t.me/share/url?url=${encodeURIComponent(prodUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  useEffect(() => {
+    if (!loading && (error || !product) && slug) {
+      api.resolveLegacy(slug).then((res) => {
+        if (res?.found && res?.url) {
+          window.location.replace(res.url);
+        }
+      }).catch(() => {});
+    }
+  }, [loading, error, product, slug]);
+
   if (loading) return <DetailSkeleton />;
 
   if (error || !product) {
     return (
       <div className="container-x py-24">
+        <Seo title="Product Not Found" description="The requested product could not be found." noIndex={true} />
         <EmptyState icon={FiPackage} title="We couldn't find that product"
           description={error?.message || 'It may have been removed or the link is out of date.'}
           action={

@@ -121,7 +121,9 @@ router.post(
   contentCtrl.createContact,
 );
 
-/* ── SEO ── */
+/* ── SEO & Legacy ── */
+const legacyCtrl = require('../controllers/legacy.controller');
+router.get('/legacy/resolve', legacyCtrl.resolve);
 router.get('/seo/product/:slug', seoCtrl.productSchema);
 
 module.exports = router;

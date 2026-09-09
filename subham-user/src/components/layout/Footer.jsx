@@ -7,23 +7,25 @@ import { useStore } from '../../context/StoreContext';
 import { Logo, Spinner } from '../ui/Common';
 
 const FALLBACK_GROUPS = {
-  Shop: [
-    { label: 'All products', url: '/shop' },
-    { label: 'Exam books', url: '/category/exam-books' },
-    { label: 'School books', url: '/category/school-books' },
-    { label: 'Stationery', url: '/category/stationery' },
-    { label: 'Free ebooks', url: '/ebooks' },
+  'Exam Categories': [
+    { label: 'MPPSC Books & Mains Notes', url: '/category/mppsc-books' },
+    { label: 'MPPSC Mains Books', url: '/category/mppsc-mains-books' },
+    { label: 'MPESB & Vyapam Books', url: '/category/mpesb-books' },
+    { label: 'Speedy Current Affairs', url: '/category/current-affairs-books' },
+    { label: 'Ghatna Chakra Series', url: '/category/ghatna-chakra-books' },
+    { label: 'Stationery & Office', url: '/category/stationery' },
+    { label: 'Free Ebooks & PDFs', url: '/ebooks' },
   ],
-  Help: [
+  'Help & Location': [
     { label: 'Track your order', url: '/track' },
-    { label: 'Store Location (Indore)', url: '/store-indore' },
+    { label: 'Store Location (Bhawarkua Indore)', url: '/store-indore' },
     { label: 'Exam Prep Guides', url: '/blogs' },
     { label: 'Shipping & delivery', url: '/policy/shipping' },
     { label: 'Returns & refunds', url: '/policy/returns' },
     { label: 'Contact us', url: '/contact' },
   ],
   Company: [
-    { label: 'About us', url: '/about' },
+    { label: 'About Shubham Xerox', url: '/about' },
     { label: 'Privacy policy', url: '/policy/privacy' },
     { label: 'Terms of service', url: '/policy/terms' },
   ],

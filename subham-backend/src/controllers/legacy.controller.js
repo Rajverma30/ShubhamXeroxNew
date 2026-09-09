@@ -55,14 +55,14 @@ function extractCandidates(rawUrl = '') {
   const weakIds = [];
 
   // ?id=271 / ?product_id=271 / ?pid=271 — unambiguous.
-  const q = /[?&](?:id|pid|product_id|productid|item|p)=(\d+)/i.exec(search);
+  const q = /[?&](?:id|pid|product_id|productid|item|p)=(-?\d+)/i.exec(search);
   if (q) ids.push(q[1]);
 
   const segments = pathname.split('/').filter(Boolean);
   for (const seg of segments) {
     const bare = seg.replace(/\.(html?|php|aspx?)$/i, '');
-    if (/^\d{1,6}$/.test(bare)) { ids.push(bare); continue; }      // /product/271
-    const lead = /^(\d{1,6})-/.exec(bare);
+    if (/^-?\d{1,6}$/.test(bare)) { ids.push(bare); continue; }      // /product/271 or /product/-100
+    const lead = /^(-?\d{1,6})-/.exec(bare);
     if (lead) { ids.push(lead[1]); continue; }                      // /271-black-book.html
     const trail = /-(\d{1,6})$/.exec(bare);
     if (trail) weakIds.push(trail[1]);                              // /some-title-270  (also "class-10")
@@ -82,8 +82,18 @@ async function resolveLegacy(rawUrl) {
 
   const bySku = async (list) => {
     if (!list.length) return null;
-    const skus = list.flatMap((id) => [`LEG-${id}`, `LEG-n${id}`]);
-    return Product.findOne({ sku: { $in: skus } }).select('slug title sku').lean();
+    for (const id of list) {
+      const isNeg = String(id).startsWith('-');
+      const cleanId = String(id).replace(/^-/, '');
+      const primarySku = isNeg ? `LEG-n${cleanId}` : `LEG-${cleanId}`;
+      const secondarySku = isNeg ? `LEG-${cleanId}` : `LEG-n${cleanId}`;
+
+      let hit = await Product.findOne({ sku: primarySku }).select('slug title sku').lean();
+      if (hit) return hit;
+      hit = await Product.findOne({ sku: secondarySku }).select('slug title sku').lean();
+      if (hit) return hit;
+    }
+    return null;
   };
 
   /* 1. exact slug carried over from the old title — the safest signal, so it
@@ -119,8 +129,8 @@ async function resolveLegacy(rawUrl) {
       { score: { $meta: 'textScore' } },
     ).select('slug title').sort({ score: { $meta: 'textScore' } }).limit(2).lean();
 
-    if (found.length === 1) return { product: found[0], how: 'text search' };
-    if (found.length === 2 && found[0].score > found[1].score * 1.6) {
+    if (found.length === 1 && found[0].score > 3.0) return { product: found[0], how: 'text search' };
+    if (found.length === 2 && found[0].score > 3.0 && found[0].score > found[1].score * 1.6) {
       return { product: found[0], how: 'text search' };
     }
   }

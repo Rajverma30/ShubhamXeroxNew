@@ -59,6 +59,7 @@ export const api = {
   getProducts: (params) => client.get('/products', { params }).then(withMeta),
   getFacets: (params) => client.get('/products/facets', { params }).then(unwrap),
   getProduct: (slug) => client.get(`/products/${slug}`).then(unwrap),
+  resolveLegacy: (path) => client.get('/legacy/resolve', { params: { path } }).then(unwrap),
   getPreview: (slug) => client.get(`/products/${slug}/preview`).then(unwrap),
   ebookUrl: (slug) => `${BASE}/products/${slug}/ebook`,
   postReview: (slug, payload) =>

@@ -17,6 +17,14 @@
       "destination": "https://subhamapi.hypernxt.space/uploads/:path*"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "https://subhamapi.hypernxt.space/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://subhamapi.hypernxt.space/robots.txt"
+    },
+    {
       "source": "/og/product/:slug",
       "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
     },
@@ -30,9 +38,13 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(TelegramBot|WhatsApp|facebookexternalhit|Twitterbot|LinkedInBot|bot|crawler|spider).*"
+          "value": ".*(Googlebot|googlebot|bingbot|TelegramBot|WhatsApp|facebookexternalhit|Twitterbot|LinkedInBot|bot|crawler|spider).*"
         }
       ],
+      "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
+    },
+    {
+      "source": "/p/:slug",
       "destination": "https://subhamapi.hypernxt.space/api/og/product/:slug"
     },
     {

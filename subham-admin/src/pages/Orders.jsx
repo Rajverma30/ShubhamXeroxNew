@@ -120,8 +120,8 @@ export default function Orders() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Order number or phone…"
-          className="min-w-[220px] flex-1"
+          placeholder="Search by name, phone, order #, email, city…"
+          className="min-w-[240px] flex-1"
         />
         <Select
           value={params.status || ''}

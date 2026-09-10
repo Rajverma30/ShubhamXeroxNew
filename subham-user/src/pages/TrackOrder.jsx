@@ -34,7 +34,7 @@ export default function TrackOrder() {
     e?.preventDefault();
     const ref = reference.trim();
     if (!ref) {
-      setError('Enter your Mobile number, Order number, or AWB');
+      setError('Enter your Mobile number, Name, Order number, or AWB');
       return;
     }
     setError('');
@@ -81,9 +81,9 @@ export default function TrackOrder() {
       });
       toast?.('Payment completed successfully!');
       // Refresh list
-      const cleanDigits = reference.replace(/\D/g, '');
-      if (cleanDigits.length === 10) {
-        const updatedList = await api.getOrdersByPhone(cleanDigits);
+      const normPhone = normalisePhone(reference) || reference.trim();
+      if (normPhone) {
+        const updatedList = await api.getOrdersByPhone(normPhone);
         setPhoneOrdersList(updatedList);
       }
     } catch (err) {
@@ -104,17 +104,17 @@ export default function TrackOrder() {
         <SectionHeader
           eyebrow="Order status"
           title="Track your orders"
-          subtitle="Enter your 10-digit mobile number to view all your orders, or enter an Order number / AWB."
+          subtitle="Enter your 10-digit mobile number, Name, Order number, or AWB."
         />
 
         <form onSubmit={lookup} className="rounded-3xl border border-ink-100 bg-white p-5 shadow-soft">
-          <label htmlFor="tr-ref" className="label">Mobile Number, Order Number, or AWB *</label>
+          <label htmlFor="tr-ref" className="label">Mobile Number, Name, Order Number, or AWB *</label>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               id="tr-ref"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              placeholder="Enter Mobile Number (e.g. 9876543210) or Order # (SX-...)"
+              placeholder="Enter Mobile Number, Name (e.g. Ranu Rajput), or Order #"
               className="field"
             />
             <button type="submit" disabled={loading} className="btn-primary shrink-0 gap-2 sm:px-8">
@@ -301,7 +301,7 @@ export default function TrackOrder() {
           <div className="mt-6 rounded-3xl border border-dashed border-ink-200 bg-ink-50/50 p-6 text-center">
             <FiPackage size={22} className="mx-auto mb-3 text-ink-300" />
             <p className="text-sm text-ink-500">
-              Enter your mobile number to list all your orders, or enter your Order Number / AWB for live tracking.
+              Enter your mobile number or name to list all your orders, or enter your Order Number / AWB for live tracking.
             </p>
           </div>
         )}

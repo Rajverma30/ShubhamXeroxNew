@@ -478,13 +478,30 @@ exports.getOrder = asyncHandler(async (req, res) => {
  * Returns all orders matching the phone number, with real-time Razorpay reconciliation.
  */
 exports.getOrdersByPhone = asyncHandler(async (req, res) => {
-  const phoneDigits = String(req.query.phone || '').replace(/\D/g, '').slice(-10);
-  if (!phoneDigits || phoneDigits.length < 10) {
-    throw ApiError.badRequest('Enter a valid 10-digit mobile number');
+  const queryVal = String(req.query.phone || req.query.q || '').trim();
+  if (!queryVal || queryVal.length < 2) {
+    throw ApiError.badRequest('Enter a valid mobile number or customer name');
   }
 
-  const phoneRegex = new RegExp(phoneDigits + '$');
-  const orders = await Order.find({ 'customer.phone': phoneRegex }).sort({ createdAt: -1 }).lean();
+  const phoneDigits = queryVal.replace(/\D/g, '');
+  let filter = {};
+
+  if (phoneDigits.length >= 10) {
+    const norm = normalisePhone(queryVal) || phoneDigits.slice(-10);
+    filter = { 'customer.phone': new RegExp(norm + '$') };
+  } else {
+    const searchRegex = new RegExp(queryVal, 'i');
+    filter = {
+      $or: [
+        { 'customer.name': searchRegex },
+        { 'customer.email': searchRegex },
+        { 'shippingAddress.name': searchRegex },
+        { orderNumber: searchRegex },
+      ],
+    };
+  }
+
+  const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
 
   if (razorpay.isConfigured()) {
     const pendingOrders = orders.filter(o => o.payment?.status !== 'paid' && o.payment?.razorpayOrderId);
@@ -524,45 +541,37 @@ exports.getOrdersByPhone = asyncHandler(async (req, res) => {
 /* ─────────────────────────── admin (orders) ─────────────────────────── */
 
 exports.adminListOrders = asyncHandler(async (req, res) => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Number(req.query.limit) || 20);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
-  if (req.query.source === 'shiprocket' || req.query.status === 'shiprocket-attempt') {
-    const ShiprocketCheckoutSession = require('../models/ShiprocketCheckoutSession');
-    const filter = {};
+  if (req.query.source === 'shiprocket') {
+    const shiprocketFilter = {};
     if (req.query.q) {
-      filter.orderId = new RegExp(String(req.query.q).trim(), 'i');
+      const searchRegex = new RegExp(String(req.query.q).trim(), 'i');
+      shiprocketFilter.$or = [
+        { phone: new RegExp(String(req.query.q).replace(/\D/g, ''), 'i') },
+        { 'customer.name': searchRegex },
+        { 'customer.email': searchRegex },
+        { 'shippingAddress.name': searchRegex },
+      ];
     }
-    const [sessions, total] = await Promise.all([
-      ShiprocketCheckoutSession.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
-      ShiprocketCheckoutSession.countDocuments(filter),
+    const [rawSessions, total] = await Promise.all([
+      GuestCheckoutSession.find(shiprocketFilter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      GuestCheckoutSession.countDocuments(shiprocketFilter),
     ]);
 
-    // Check if any of these sessions were converted to confirmed Order docs
-    const sessionOrderIds = sessions.map((s) => s.orderId);
-    const existingOrders = await Order.find({ orderNumber: { $in: sessionOrderIds } }).lean();
-    const orderMap = new Map(existingOrders.map((o) => [o.orderNumber, o]));
-
-    const items = sessions.map((s) => {
-      const realOrder = orderMap.get(s.orderId);
-      if (realOrder) {
-        return {
-          ...realOrder,
-          isShiprocketSession: false,
-        };
-      }
-
-      const rawCust = s.raw?.customer || s.raw?.shipping_address || s.raw?.customer_details || {};
-      const name = s.customer?.name || rawCust.name || (rawCust.first_name ? `${rawCust.first_name || ''} ${rawCust.last_name || ''}`.trim() : '') || 'Guest (Checkout Initiated)';
-      const phone = s.customer?.phone || rawCust.phone || rawCust.mobile || 'Via Fastrr';
+    const items = rawSessions.map(s => {
+      const isPaid = s.status === 'paid';
+      const itemsList = (s.cartSnapshot || []).map(i => ({
+        title: i.title || 'Product',
+        quantity: i.quantity || 1,
+        price: i.price || 0,
+        lineTotal: (i.price || 0) * (i.quantity || 1),
+      }));
+      const subtotal = itemsList.reduce((acc, i) => acc + i.lineTotal, 0);
 
       return {
         _id: s._id,
-        orderNumber: s.orderId,
-        customer: { name, phone },
-        items: s.items || [],
-        subtotal: s.subtotal,
-        shippingCharge: 0,
         total: s.subtotal,
         payment: {
           provider: 'shiprocket-checkout',
@@ -583,10 +592,26 @@ exports.adminListOrders = asyncHandler(async (req, res) => {
   if (req.query.status) filter.status = req.query.status;
   if (req.query.paymentStatus) filter['payment.status'] = req.query.paymentStatus;
   if (req.query.q) {
-    filter.$or = [
-      { orderNumber: new RegExp(String(req.query.q).trim(), 'i') },
-      { 'customer.phone': new RegExp(String(req.query.q).replace(/\D/g, ''), 'i') },
+    const rawQ = String(req.query.q).trim();
+    const digits = rawQ.replace(/\D/g, '');
+    const searchRegex = new RegExp(rawQ, 'i');
+
+    const orConditions = [
+      { orderNumber: searchRegex },
+      { 'customer.name': searchRegex },
+      { 'customer.email': searchRegex },
+      { 'shippingAddress.name': searchRegex },
+      { 'shippingAddress.address': searchRegex },
+      { 'shippingAddress.city': searchRegex },
+      { 'shippingAddress.state': searchRegex },
+      { 'shippingAddress.pincode': searchRegex },
     ];
+
+    if (digits.length >= 3) {
+      orConditions.push({ 'customer.phone': new RegExp(digits, 'i') });
+    }
+
+    filter.$or = orConditions;
   }
 
   const [items, total, revenue] = await Promise.all([

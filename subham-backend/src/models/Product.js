@@ -29,6 +29,7 @@ const productSchema = new mongoose.Schema(
     /* ── identity ── */
     title: { type: String, required: [true, 'Title is required'], trim: true, index: true },
     slug: { type: String, required: true, unique: true, index: true },
+    oldSlugs: [{ type: String, trim: true, index: true }],
     sku: { type: String, unique: true, sparse: true, trim: true },
     type: { type: String, enum: PRODUCT_TYPES, default: 'book', index: true },
 

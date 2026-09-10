@@ -65,7 +65,7 @@ function extractCandidates(rawUrl = '') {
     const lead = /^(-?\d{1,6})-/.exec(bare);
     if (lead) { ids.push(lead[1]); continue; }                      // /271-black-book.html
     const trail = /-(\d{1,6})$/.exec(bare);
-    if (trail) weakIds.push(trail[1]);                              // /some-title-270  (also "class-10")
+    if (trail && !/-(?:19|20)\d{2}-\d{1,2}$/.test(bare)) { weakIds.push(trail[1]); }                              // /some-title-270 (skip year ranges like 2026-27)
   }
 
   const last = segments[segments.length - 1] || '';
@@ -99,7 +99,7 @@ async function resolveLegacy(rawUrl) {
   /* 1. exact slug carried over from the old title — the safest signal, so it
         runs before id matching. */
   if (slugGuess && slugGuess.length > 2) {
-    const hit = await Product.findOne({ slug: slugGuess }).select('slug title').lean();
+    const hit = await Product.findOne({ $or: [{ slug: slugGuess }, { oldSlugs: slugGuess }] }).select('slug title').lean();
     if (hit) return { product: hit, how: 'exact slug' };
   }
 

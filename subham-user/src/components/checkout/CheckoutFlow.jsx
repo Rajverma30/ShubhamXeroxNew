@@ -11,7 +11,7 @@ import { useStore } from '../../context/StoreContext';
 import StationeryUpsell from '../cart/StationeryUpsell';
 import { priceOf, resolveAssetUrl } from '../../lib/format';
 import {
-  sendOtp, verifyOtp, createDirectSession, getQuote, placeOrder, preloadCheckout, normalisePhone,
+  sendOtp, verifyOtp, createDirectSession, getQuote, placeOrder, preloadCheckout, normalisePhone, cleanPhoneInput,
 } from '../../lib/checkout';
 import { beginShiprocketCheckout } from '../../lib/shiprocketSession';
 
@@ -95,7 +95,7 @@ export default function CheckoutFlow({ onClose, items }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const [phone, setPhone] = useState(resumed?.phone || savedAddr?.phone || '');
+  const [phone, setPhone] = useState(() => cleanPhoneInput(resumed?.phone || savedAddr?.phone || ''));
   const [code, setCode] = useState('');
   const [token, setToken] = useState(resumed?.token || '');
   const [resendIn, setResendIn] = useState(0);
@@ -315,7 +315,7 @@ export default function CheckoutFlow({ onClose, items }) {
                 <span className="text-sm font-semibold text-ink-500">+91</span>
                 <input
                   type="tel" inputMode="numeric" autoComplete="tel" required
-                  value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  value={phone} onChange={(e) => setPhone(cleanPhoneInput(e.target.value))}
                   placeholder="10-digit mobile number"
                   className="w-full min-w-0 bg-transparent text-base outline-none placeholder:text-ink-400"
                 />

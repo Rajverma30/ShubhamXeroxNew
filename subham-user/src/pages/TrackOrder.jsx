@@ -14,7 +14,7 @@ import api from '../lib/api';
 import Seo from '../components/ui/Seo';
 import { Breadcrumbs, SectionHeader, Spinner, Tag } from '../components/ui/Common';
 import { dateLong, dateTime, money, ORDER_STATUS_LABEL, placeholderImage, resolveAssetUrl } from '../lib/format';
-import { payExistingOrder } from '../lib/checkout';
+import { payExistingOrder, normalisePhone } from '../lib/checkout';
 import { useStore } from '../context/StoreContext';
 
 export default function TrackOrder() {
@@ -43,12 +43,12 @@ export default function TrackOrder() {
     setPhoneOrdersList(null);
 
     try {
-      const cleanDigits = ref.replace(/\D/g, '');
-      // If 10-digit mobile number -> fetch all orders by phone
-      if (cleanDigits.length === 10 && /^[6-9]\d{9}$/.test(cleanDigits)) {
-        const list = await api.getOrdersByPhone(cleanDigits);
+      const normPhone = normalisePhone(ref);
+      // If mobile number -> fetch all orders by phone
+      if (normPhone) {
+        const list = await api.getOrdersByPhone(normPhone);
         if (!list || !list.length) {
-          setError(`No orders found for mobile number ${cleanDigits}.`);
+          setError(`No orders found for mobile number ${normPhone}.`);
         } else {
           setPhoneOrdersList(list);
         }

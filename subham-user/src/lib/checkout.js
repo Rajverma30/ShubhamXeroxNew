@@ -28,8 +28,45 @@ const RAZORPAY_SDK = 'https://checkout.razorpay.com/v1/checkout.js';
 
 export function normalisePhone(input) {
   const digits = String(input || '').replace(/\D/g, '');
-  const ten = digits.length > 10 ? digits.slice(-10) : digits;
+  if (!digits) return null;
+  let ten = digits;
+  if (digits.length > 10) {
+    if (digits.length === 12 && digits.startsWith('91')) {
+      ten = digits.slice(2);
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      ten = digits.slice(1);
+    } else {
+      ten = digits.slice(-10);
+    }
+  }
   return /^[6-9]\d{9}$/.test(ten) ? ten : null;
+}
+
+export function cleanPhoneInput(input) {
+  const raw = String(input || '').trim();
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (digits.length > 10) {
+    // If autofill/paste included country code +91 or 91 (12 digits total)
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return digits.slice(2);
+    }
+    // If autofill/paste included leading 0 (11 digits total)
+    if (digits.length === 11 && digits.startsWith('0')) {
+      return digits.slice(1);
+    }
+    // If normalisePhone extracts a valid 10-digit mobile number, use that
+    const norm = normalisePhone(digits);
+    if (norm) return norm;
+
+    if (raw.includes('+91') || digits.startsWith('91') || digits.startsWith('0')) {
+      return digits.slice(-10);
+    }
+    return digits.slice(0, 10);
+  }
+
+  return digits;
 }
 
 /** POST /auth/otp/send */

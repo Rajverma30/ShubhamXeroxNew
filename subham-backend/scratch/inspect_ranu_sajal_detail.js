@@ -6,7 +6,7 @@ async function inspectDetails() {
   await mongoose.connect(process.env.MONGO_URI);
   const Order = require('../src/models/Order');
 
-  console.log('=== RANU RAJPUT ORDERS ===');
+  console.log('=== Your Name ORDERS ===');
   const ranuOrders = await Order.find({ 'customer.name': /ranu/i }).sort({ createdAt: -1 }).lean();
   ranuOrders.forEach(o => {
     console.log(JSON.stringify(o, null, 2));

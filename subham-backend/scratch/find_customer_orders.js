@@ -10,7 +10,7 @@ async function searchOrders() {
     const Order = require('../src/models/Order');
     const GuestCheckoutSession = require('../src/models/GuestCheckoutSession');
 
-    console.log('\n1. Searching Orders by Name / Address (Ranu Rajput, Sajal Chouksey)...');
+    console.log('\n1. Searching Orders by Name / Address (Your Name, Sajal Chouksey)...');
     const nameQuery = {
       $or: [
         { 'customer.name': /ranu|rajput|sajal|chouksey/i },

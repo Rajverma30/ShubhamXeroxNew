@@ -114,7 +114,7 @@ export default function TrackOrder() {
               id="tr-ref"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              placeholder="Enter Mobile Number, Name (e.g. Ranu Rajput), or Order #"
+              placeholder="Enter Mobile Number, Name (e.g. Your Name), or Order #"
               className="field"
             />
             <button type="submit" disabled={loading} className="btn-primary shrink-0 gap-2 sm:px-8">
@@ -261,8 +261,7 @@ export default function TrackOrder() {
                     const done = i <= singleOrderData.stage;
                     return (
                       <li key={stage} className="relative flex w-full flex-col items-center gap-2 text-center">
-                        <span className={`z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 text-2xs font-bold transition-colors duration-500 ${
-                          done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-ink-200 bg-white text-ink-300'}`}>
+                        <span className={`z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 text-2xs font-bold transition-colors duration-500 ${done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-ink-200 bg-white text-ink-300'}`}>
                           {done ? <FiCheck size={13} strokeWidth={3} /> : i + 1}
                         </span>
                         <span className={`hidden text-2xs font-semibold leading-tight sm:block ${done ? 'text-ink-900' : 'text-ink-300'}`}>

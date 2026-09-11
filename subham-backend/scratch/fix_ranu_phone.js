@@ -6,12 +6,12 @@ async function fixRanuPhone() {
   await mongoose.connect(process.env.MONGO_URI);
   const Order = require('../src/models/Order');
 
-  // Fix Ranu Rajput's confirmed order #SX-260909-SD5CG
+  // Fix Your Name's confirmed order #SX-260909-SD5CG
   const res1 = await Order.updateOne(
     { orderNumber: 'SX-260909-SD5CG' },
     { $set: { 'customer.phone': '7697418191', 'shippingAddress.phone': '7697418191' } }
   );
-  console.log('Ranu Rajput phone update result:', res1);
+  console.log('Your Name phone update result:', res1);
 
   // Fix Atul Shukla's confirmed order #SX-260904-FFCJV
   const res2 = await Order.updateOne(

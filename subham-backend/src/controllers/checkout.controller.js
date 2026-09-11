@@ -28,6 +28,22 @@ const { sellingPrice } = require('../utils/pricing');
 const razorpay = require('../services/razorpay.service');
 const shiprocket = require('../services/shiprocket.service');
 
+function normalisePhone(input) {
+  const digits = String(input || '').replace(/\D/g, '');
+  if (!digits) return null;
+  let ten = digits;
+  if (digits.length > 10) {
+    if (digits.length === 12 && digits.startsWith('91')) {
+      ten = digits.slice(2);
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      ten = digits.slice(1);
+    } else {
+      ten = digits.slice(-10);
+    }
+  }
+  return /^[6-9]\d{9}$/.test(ten) ? ten : null;
+}
+
 const PLACEHOLDER_PINCODES = new Set(['YOUR_REAL_PINCODE', '000000', '123456']);
 
 function validStorePincode() {

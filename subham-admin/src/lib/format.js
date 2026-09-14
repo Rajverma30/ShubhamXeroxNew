@@ -136,24 +136,31 @@ export function handleImgError(e) {
   if (!img) return;
   const currentSrc = img.src || '';
 
-  // 1. Try stripping /products/ subfolder if present on subhamapi host
+  // 1. Try stripping -card or -thumb suffixes if present
+  if (currentSrc.includes('-card.webp') || currentSrc.includes('-thumb.webp')) {
+    img.src = currentSrc.replace(/-(card|thumb)\.webp$/i, '.webp');
+    return;
+  }
+
+  // 2. Try stripping /products/ subfolder if present on subhamapi host
   if (currentSrc.includes('subhamapi.hypernxt.space/uploads/products/')) {
     img.src = currentSrc.replace('/uploads/products/', '/uploads/');
     return;
   }
 
-  // 2. Try fetching from backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
+  // 3. Try fetching from backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
   if (!img.dataset.triedBackend && API_ORIGIN && !currentSrc.includes(API_ORIGIN)) {
     img.dataset.triedBackend = 'true';
     const parts = currentSrc.split('/uploads/');
-    const filename = parts.length > 1 ? parts[1].replace(/^products\//, '') : currentSrc.split('/').pop();
+    let filename = parts.length > 1 ? parts[1].replace(/^products\//, '') : currentSrc.split('/').pop();
+    filename = filename.replace(/-(card|thumb)\.webp$/i, '.webp');
     if (filename) {
       img.src = `${API_ORIGIN}/uploads/${filename}`;
       return;
     }
   }
 
-  // 3. Final fallback: branded SVG placeholder
+  // 4. Final fallback: branded SVG placeholder
   if (!img.dataset.triedPlaceholder) {
     img.dataset.triedPlaceholder = 'true';
     img.src = placeholderImage();

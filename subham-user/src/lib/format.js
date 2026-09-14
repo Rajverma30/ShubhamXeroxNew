@@ -61,9 +61,23 @@ const UPLOADS_ORIGIN = (() => {
  * through — keeps the catalogue working wherever the backend lives.
  */
 export function resolveAssetUrl(url) {
-  if (!url || typeof url !== 'string') return url;
+  if (!url || typeof url !== 'string') return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
   if (url.includes('subhamapi.hypernxt.space')) return url;
+
+  // Extract filename if it contains /uploads/
+  if (url.includes('/uploads/')) {
+    const parts = url.split('/uploads/');
+    const filename = parts[1];
+    if (filename) {
+      return `https://subhamapi.hypernxt.space/uploads/${filename}`;
+    }
+  }
+
+  if (url.startsWith('/uploads/')) {
+    return `https://subhamapi.hypernxt.space${url}`;
+  }
+
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (!API_ORIGIN) return url;
   try {
@@ -73,14 +87,14 @@ export function resolveAssetUrl(url) {
 }
 
 export const imgUrl = (image, size = 'card') => {
-  if (!image) return placeholderImage();
+  if (!image) return '';
   if (typeof image === 'string') return resolveAssetUrl(image);
   if (size === 'thumb') return resolveAssetUrl(image.thumbUrl || image.cardUrl || image.url);
   if (size === 'full') return resolveAssetUrl(image.url || image.cardUrl);
   return resolveAssetUrl(image.cardUrl || image.url || image.thumbUrl);
 };
 
-/** Multi-tiered image load error handler: subhamapi/products/ -> subhamapi/ -> backend API /uploads/ -> placeholder */
+/** Multi-tiered image load error handler: subhamapi -> local backend API /uploads/ -> hide image */
 export function handleImgError(e) {
   const img = e.currentTarget || e.target;
   if (!img) return;
@@ -98,7 +112,7 @@ export function handleImgError(e) {
     return;
   }
 
-  // 3. Try fetching from backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
+  // 3. Try fetching from local backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
   if (!img.dataset.triedBackend && API_ORIGIN && !currentSrc.includes(API_ORIGIN)) {
     img.dataset.triedBackend = 'true';
     const parts = currentSrc.split('/uploads/');
@@ -110,10 +124,11 @@ export function handleImgError(e) {
     }
   }
 
-  // 4. Final fallback: branded SVG placeholder
-  if (!img.dataset.triedPlaceholder) {
-    img.dataset.triedPlaceholder = 'true';
-    img.src = placeholderImage();
+  // 4. Final fallback: hide image element completely (show nothing)
+  img.style.display = 'none';
+  if (img.parentElement && img.parentElement.classList.contains('relative')) {
+    const skeleton = img.parentElement.querySelector('.skeleton');
+    if (skeleton) skeleton.style.display = 'none';
   }
 }
 

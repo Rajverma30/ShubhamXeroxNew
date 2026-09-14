@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  FiAlertCircle, FiCheckCircle, FiCreditCard, FiMapPin, FiPackage, FiPhone, FiTruck, FiUser,
+  FiAlertCircle, FiCheckCircle, FiCreditCard, FiExternalLink, FiMapPin, FiMessageSquare, FiPackage, FiPhone, FiSend, FiTruck, FiUser,
 } from 'react-icons/fi';
 
 import api from '../lib/api';
@@ -245,6 +245,24 @@ function OrderDetail({ id, onClose, onSaved }) {
   const paid = order?.payment?.status === 'paid';
   const needsTracking = ['shipped', 'delivered'].includes(form.status);
 
+  const [sendingWa, setSendingWa] = useState(false);
+
+  const handleSendWhatsApp = async (type) => {
+    if (!order) return;
+    setSendingWa(true);
+    try {
+      const res = await api.sendOrderWhatsApp(order._id || id, { type });
+      toast(res?.message || 'WhatsApp message processed');
+      if (res?.waLink) {
+        window.open(res.waLink, '_blank');
+      }
+    } catch (e) {
+      toast(e.message || 'Failed to send WhatsApp message');
+    } finally {
+      setSendingWa(false);
+    }
+  };
+
   const submit = () => {
     setErr('');
     if (needsTracking && !form.awb.trim()) {
@@ -317,6 +335,56 @@ function OrderDetail({ id, onClose, onSaved }) {
               </p>
             </Info>
           </div>
+
+          {/* WhatsApp Automation Controls */}
+          {order.customer?.phone && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                  <FiMessageSquare size={15} className="text-emerald-600" />
+                  WhatsApp Automation (Sender: 9826462963)
+                </div>
+                {order.whatsappNotifications && (
+                  <span className="text-2xs font-medium text-emerald-800">
+                    {paid
+                      ? order.whatsappNotifications.orderConfirmedSent ? '✅ Confirmation Sent' : '⏳ Confirmation Pending'
+                      : order.whatsappNotifications.awaitingPaymentSent ? '✅ Payment Link Sent' : '⏳ Link Pending'}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {!paid ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSendWhatsApp('payment-pending')}
+                    disabled={sendingWa}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  >
+                    {sendingWa ? <Spinner size={12} /> : <FiSend size={12} />} Send Payment Link on WhatsApp
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSendWhatsApp('order-confirmation')}
+                    disabled={sendingWa}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  >
+                    {sendingWa ? <Spinner size={12} /> : <FiSend size={12} />} Send Confirmation Greeting
+                  </button>
+                )}
+
+                <a
+                  href={`https://wa.me/91${String(order.customer.phone).replace(/\D/g, '').slice(-10)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
+                >
+                  <FiExternalLink size={12} /> Chat on WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
 
           {/* items */}
           <div className="overflow-hidden rounded-lg border border-ink-100">

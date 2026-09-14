@@ -124,6 +124,7 @@ export const api = {
   orders: (params) => client.get('/admin/orders', { params }).then(unwrap),
   order: (id) => client.get(`/admin/orders/${id}`).then(unwrap),
   updateOrder: (id, payload) => client.patch(`/admin/orders/${id}`, payload).then(unwrap),
+  sendOrderWhatsApp: (id, payload) => client.post(`/admin/orders/${id}/whatsapp`, payload).then(unwrap),
 
   /* banners */
   banners: (params) => client.get('/admin/banners', { params }).then(withMeta),

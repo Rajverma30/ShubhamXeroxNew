@@ -27,6 +27,7 @@ const logger = require('../utils/logger');
 const { sellingPrice } = require('../utils/pricing');
 const razorpay = require('../services/razorpay.service');
 const shiprocket = require('../services/shiprocket.service');
+const whatsapp = require('../services/whatsapp.service');
 
 function normalisePhone(input) {
   const digits = String(input || '').replace(/\D/g, '');
@@ -282,6 +283,20 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);
 
+  // Send WhatsApp awaiting-payment notification with direct payment link
+  whatsapp.sendPaymentPendingWhatsApp(order).then((waRes) => {
+    Order.updateOne(
+      { _id: order._id },
+      {
+        $set: {
+          'whatsappNotifications.awaitingPaymentSent': waRes?.sent ?? false,
+          'whatsappNotifications.awaitingPaymentSentAt': new Date(),
+          ...(waRes?.error ? { 'whatsappNotifications.lastError': waRes.error } : {}),
+        },
+      }
+    ).catch((e) => logger.warn(`Failed updating WA status on ${order.orderNumber}: ${e.message}`));
+  }).catch((e) => logger.warn(`Failed sending WA payment pending for ${order.orderNumber}: ${e.message}`));
+
   return created(res, {
     orderNumber: order.orderNumber,
     razorpayOrderId: rzp.id,
@@ -337,6 +352,21 @@ async function markPaid(orderRef, { paymentId, signature, method, amountPaisa, r
   if (stockLock) await decrementStockForOrder(stockLock);
 
   logger.info(`Order ${transitioned.orderNumber} PAID ₹${transitioned.total} via ${method || 'razorpay'}`);
+
+  // Send WhatsApp order confirmation greeting
+  whatsapp.sendOrderConfirmationWhatsApp(transitioned).then((waRes) => {
+    Order.updateOne(
+      { _id: transitioned._id },
+      {
+        $set: {
+          'whatsappNotifications.orderConfirmedSent': waRes?.sent ?? false,
+          'whatsappNotifications.orderConfirmedSentAt': new Date(),
+          ...(waRes?.error ? { 'whatsappNotifications.lastError': waRes.error } : {}),
+        },
+      }
+    ).catch((e) => logger.warn(`Failed updating WA confirmation status on ${transitioned.orderNumber}: ${e.message}`));
+  }).catch((e) => logger.warn(`Failed sending WA order confirmation greeting for ${transitioned.orderNumber}: ${e.message}`));
+
   return transitioned;
 }
 
@@ -814,6 +844,41 @@ exports.adminSyncPayment = asyncHandler(async (req, res) => {
   });
 
   return ok(res, { order: updated, message: 'Payment verified and order updated successfully' });
+});
+
+/** POST /api/admin/orders/:id/whatsapp — trigger or resend WhatsApp notification for an order */
+exports.adminSendWhatsApp = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isObjectId = mongoose.isValidObjectId(id);
+
+  const order = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
+  if (!order) throw ApiError.notFound('Order not found');
+
+  const type = req.body.type || (order.payment.status === 'paid' ? 'order-confirmation' : 'payment-pending');
+  let result;
+
+  if (type === 'order-confirmation') {
+    result = await whatsapp.sendOrderConfirmationWhatsApp(order);
+    if (!order.whatsappNotifications) order.whatsappNotifications = {};
+    order.whatsappNotifications.orderConfirmedSent = result.sent;
+    order.whatsappNotifications.orderConfirmedSentAt = new Date();
+  } else {
+    result = await whatsapp.sendPaymentPendingWhatsApp(order);
+    if (!order.whatsappNotifications) order.whatsappNotifications = {};
+    order.whatsappNotifications.awaitingPaymentSent = result.sent;
+    order.whatsappNotifications.awaitingPaymentSentAt = new Date();
+  }
+
+  if (result.error) order.whatsappNotifications.lastError = result.error;
+  await order.save();
+
+  return ok(res, {
+    message: `WhatsApp message processed`,
+    sent: result.sent,
+    channel: result.channel,
+    waLink: result.waLink,
+    text: result.message,
+  });
 });
 
 exports.priceCart = priceCart;

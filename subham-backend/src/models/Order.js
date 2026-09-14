@@ -92,6 +92,14 @@ const orderSchema = new mongoose.Schema(
     stockAdjusted: { type: Boolean, default: false },
 
     adminNotes: { type: String, default: '' },
+    /** WhatsApp notification log */
+    whatsappNotifications: {
+      orderConfirmedSent: { type: Boolean, default: false },
+      orderConfirmedSentAt: Date,
+      awaitingPaymentSent: { type: Boolean, default: false },
+      awaitingPaymentSentAt: Date,
+      lastError: String,
+    },
     /** Untouched provider payloads, for reconciling a disputed payment. */
     raw: { type: mongoose.Schema.Types.Mixed },
   },

@@ -283,13 +283,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);
 
-  // Send WhatsApp awaiting-payment notification after 15 seconds delay ONLY if order is still unpaid
+  // Send WhatsApp awaiting-payment notification after 20 seconds delay ONLY if order is still unpaid
   setTimeout(async () => {
     try {
       const latestOrder = await Order.findById(order._id);
       if (!latestOrder) return;
 
-      // If customer completed payment within 15 seconds, skip sending pending notification
+      // If customer completed payment within 20 seconds, skip sending pending notification
       if (latestOrder.payment?.status === 'paid') {
         logger.info(`Skipping WA awaiting-payment for ${latestOrder.orderNumber}: Order is already PAID`);
         return;
@@ -309,7 +309,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     } catch (e) {
       logger.warn(`Failed sending delayed WA payment pending for ${order.orderNumber}: ${e.message}`);
     }
-  }, 15000);
+  }, 20000);
 
   return created(res, {
     orderNumber: order.orderNumber,
@@ -380,6 +380,31 @@ async function markPaid(orderRef, { paymentId, signature, method, amountPaisa, r
       }
     ).catch((e) => logger.warn(`Failed updating WA confirmation status on ${transitioned.orderNumber}: ${e.message}`));
   }).catch((e) => logger.warn(`Failed sending WA order confirmation greeting for ${transitioned.orderNumber}: ${e.message}`));
+
+  // Auto-push to Shiprocket if enabled in settings
+  try {
+    const Setting = require('../models/Setting');
+    const settings = await Setting.getSingleton();
+    if (settings?.shiprocketAutoPush && !transitioned.shiprocket?.orderId) {
+      const shiprocket = require('../services/shiprocket.service');
+      const srRes = await shiprocket.createAdhocOrder(transitioned);
+      transitioned.shiprocket = {
+        orderId: String(srRes.order_id || srRes.data?.order_id || ''),
+        shipmentId: String(srRes.shipment_id || srRes.data?.shipment_id || ''),
+        awb: String(srRes.awb_code || srRes.data?.awb_code || ''),
+        status: srRes.status || 'CREATED',
+        pushedAt: new Date(),
+      };
+      if (srRes.awb_code) {
+        transitioned.tracking.awb = srRes.awb_code;
+        transitioned.tracking.courier = srRes.courier_name || 'Shiprocket';
+      }
+      await transitioned.save();
+      logger.info(`Auto-pushed order ${transitioned.orderNumber} to Shiprocket successfully.`);
+    }
+  } catch (srErr) {
+    logger.warn(`Failed auto-pushing order ${transitioned.orderNumber} to Shiprocket: ${srErr.message}`);
+  }
 
   return transitioned;
 }
@@ -893,6 +918,41 @@ exports.adminSendWhatsApp = asyncHandler(async (req, res) => {
     waLink: result.waLink,
     text: result.message,
   });
+});
+
+/** POST /api/admin/orders/:id/push-shiprocket — Push order to Shiprocket for delivery */
+exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isObjectId = mongoose.isValidObjectId(id);
+
+  const order = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
+  if (!order) throw ApiError.notFound('Order not found');
+
+  const shiprocket = require('../services/shiprocket.service');
+  try {
+    const result = await shiprocket.createAdhocOrder(order);
+    
+    order.shiprocket = {
+      orderId: String(result.order_id || result.data?.order_id || ''),
+      shipmentId: String(result.shipment_id || result.data?.shipment_id || ''),
+      awb: String(result.awb_code || result.data?.awb_code || ''),
+      status: result.status || 'CREATED',
+      pushedAt: new Date(),
+      error: null,
+    };
+    if (result.awb_code) {
+      order.tracking.awb = result.awb_code;
+      order.tracking.courier = result.courier_name || 'Shiprocket';
+    }
+    await order.save();
+
+    return ok(res, { order, result, message: 'Order successfully pushed to Shiprocket!' });
+  } catch (err) {
+    order.shiprocket = order.shiprocket || {};
+    order.shiprocket.error = err.message;
+    await order.save();
+    throw err;
+  }
 });
 
 exports.priceCart = priceCart;

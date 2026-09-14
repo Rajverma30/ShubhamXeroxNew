@@ -69,6 +69,7 @@ router.get('/orders/:id', orderCtrl.adminGetOrder);
 router.patch('/orders/:id', orderCtrl.adminUpdateOrder);
 router.post('/orders/:id/sync-payment', orderCtrl.adminSyncPayment);
 router.post('/orders/:id/whatsapp', orderCtrl.adminSendWhatsApp);
+router.post('/orders/:id/push-shiprocket', orderCtrl.adminPushToShiprocket);
 
 
 /* ── products (books / ebooks / stationery) ── */

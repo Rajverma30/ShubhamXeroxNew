@@ -88,6 +88,16 @@ const orderSchema = new mongoose.Schema(
       deliveredAt: Date,
     },
 
+    /* ── Shiprocket adhoc delivery integration ── */
+    shiprocket: {
+      orderId: String,
+      shipmentId: String,
+      awb: String,
+      status: String,
+      pushedAt: Date,
+      error: String,
+    },
+
     /** Set once, when payment first succeeds, so stock is never double-counted. */
     stockAdjusted: { type: Boolean, default: false },
 

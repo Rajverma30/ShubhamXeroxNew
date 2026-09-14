@@ -75,6 +75,8 @@ const settingSchema = new mongoose.Schema(
       mode: { type: String, enum: ['razorpay', 'shiprocket', 'auto', 'whatsapp', 'off'], default: 'razorpay' },
     },
 
+    shiprocketAutoPush: { type: Boolean, default: false },
+
     /* search merchandising */
     popularSearches: [{ type: String }],
 

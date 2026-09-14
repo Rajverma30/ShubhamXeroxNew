@@ -165,6 +165,66 @@ function mapStatus(shiprocketStatus = '') {
   return 'processing';
 }
 
+/**
+ * Create a custom/adhoc B2C Order in Shiprocket for delivery fulfillment.
+ * Endpoint: POST /orders/create/adhoc
+ */
+async function createAdhocOrder(order) {
+  if (!credentialsPresent()) {
+    throw ApiError.internal('Shiprocket credentials are not configured (SHIPROCKET_EMAIL / SHIPROCKET_PASSWORD).');
+  }
+
+  if (!order || !order.shippingAddress) {
+    throw ApiError.badRequest('Invalid order or missing shipping address.');
+  }
+
+  const nameParts = String(order.customer?.name || 'Customer').trim().split(/\s+/);
+  const firstName = nameParts[0] || 'Customer';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  const orderDateFormatted = order.createdAt
+    ? new Date(order.createdAt).toISOString().replace('T', ' ').substring(0, 19)
+    : new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  const orderItems = (order.items || []).map((item) => ({
+    name: item.title || 'Product',
+    sku: item.sku || `SKU-${item.product || 'item'}`,
+    units: item.quantity || 1,
+    selling_price: item.price || 0,
+    discount: 0,
+    tax: 0,
+    hsn: '',
+  }));
+
+  const payload = {
+    order_id: order.orderNumber,
+    order_date: orderDateFormatted,
+    pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION || 'Primary',
+    billing_customer_name: firstName,
+    billing_last_name: lastName,
+    billing_address: order.shippingAddress.address || '',
+    billing_address_2: order.shippingAddress.landmark || order.shippingAddress.address2 || '',
+    billing_city: order.shippingAddress.city || '',
+    billing_pincode: order.shippingAddress.pincode || '',
+    billing_state: order.shippingAddress.state || '',
+    billing_country: 'India',
+    billing_email: order.customer?.email || 'customer@shubhamxerox.in',
+    billing_phone: String(order.customer?.phone || '').replace(/\D/g, '').slice(-10),
+    shipping_is_billing: true,
+    order_items: orderItems,
+    payment_method: order.payment?.status === 'paid' ? 'Prepaid' : 'COD',
+    sub_total: order.total || 0,
+    length: 10,
+    breadth: 10,
+    height: 5,
+    weight: 0.5,
+  };
+
+  logger.info(`Pushing Order ${order.orderNumber} to Shiprocket adhoc API...`);
+  const data = await request('post', '/orders/create/adhoc', payload);
+  return data;
+}
+
 module.exports = {
   login,
   credentialsPresent,
@@ -174,4 +234,5 @@ module.exports = {
   trackByOrderId,
   listChannels,
   mapStatus,
+  createAdhocOrder,
 };

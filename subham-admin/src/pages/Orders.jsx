@@ -64,6 +64,19 @@ export default function Orders() {
     ? { page: data.page, pages: data.pages, total: data.total, limit: query.limit }
     : null;
 
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.settings(),
+  });
+
+  const toggleAutoPush = useMutation({
+    mutationFn: (newVal) => api.updateSettings({ shiprocketAutoPush: newVal }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      toast('Shiprocket Auto-Push setting updated!');
+    },
+  });
+
   return (
     <>
       <PageHeader
@@ -112,6 +125,22 @@ export default function Orders() {
             }`}
           >
             Shiprocket Attempts
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => toggleAutoPush.mutate(!settingsData?.shiprocketAutoPush)}
+            disabled={toggleAutoPush.isPending}
+            className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border ${
+              settingsData?.shiprocketAutoPush
+                ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
+                : 'bg-white text-ink-700 border-ink-200 hover:bg-ink-50'
+            }`}
+          >
+            <FiTruck size={14} />
+            Auto-Push to Shiprocket: <span className="font-bold uppercase">{settingsData?.shiprocketAutoPush ? 'ON' : 'OFF'}</span>
           </button>
         </div>
       </div>
@@ -246,6 +275,21 @@ function OrderDetail({ id, onClose, onSaved }) {
   const needsTracking = ['shipped', 'delivered'].includes(form.status);
 
   const [sendingWa, setSendingWa] = useState(false);
+  const [pushingShiprocket, setPushingShiprocket] = useState(false);
+
+  const handlePushShiprocket = async () => {
+    if (!order) return;
+    setPushingShiprocket(true);
+    try {
+      const res = await api.pushToShiprocket(order._id || id);
+      toast(res?.message || 'Order pushed to Shiprocket successfully!');
+      onSaved();
+    } catch (e) {
+      toast(e.message || 'Failed to push order to Shiprocket');
+    } finally {
+      setPushingShiprocket(false);
+    }
+  };
 
   const handleSendWhatsApp = async (type) => {
     if (!order) return;
@@ -335,6 +379,49 @@ function OrderDetail({ id, onClose, onSaved }) {
               </p>
             </Info>
           </div>
+
+          {/* Shiprocket Delivery Integration Controls */}
+          {!order.isShiprocketSession && (
+            <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-sky-950">
+                  <FiTruck size={15} className="text-sky-600" />
+                  Shiprocket Delivery Integration
+                </div>
+                <span className="text-2xs font-medium text-sky-800">
+                  {order.shiprocket?.orderId
+                    ? `✅ Order #${order.shiprocket.orderId}`
+                    : order.shiprocket?.error
+                    ? '⚠️ Push Failed'
+                    : '⏳ Delivery Not Created'}
+                </span>
+              </div>
+
+              {order.shiprocket?.error && (
+                <p className="text-2xs font-medium text-rose-700 bg-rose-50 p-2 rounded border border-rose-200">
+                  Error: {order.shiprocket.error}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handlePushShiprocket}
+                  disabled={pushingShiprocket}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-2xs"
+                >
+                  {pushingShiprocket ? <Spinner size={12} /> : <FiSend size={12} />}
+                  {order.shiprocket?.orderId ? 'Re-push Order to Shiprocket' : 'Push to Shiprocket (Create Delivery)'}
+                </button>
+
+                {order.shiprocket?.orderId && (
+                  <span className="text-2xs font-mono text-sky-900 bg-white px-2.5 py-1.5 rounded border border-sky-200 font-semibold">
+                    Shipment ID: {order.shiprocket.shipmentId || 'N/A'} {order.shiprocket.awb ? `| AWB: ${order.shiprocket.awb}` : ''}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* WhatsApp Automation Controls */}
           {order.customer?.phone && (

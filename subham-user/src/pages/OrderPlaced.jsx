@@ -78,19 +78,31 @@ export default function OrderPlaced() {
     }
   };
 
-  const isPaid = order?.payment?.status === 'paid';
+  const isPaid = Boolean(order) && (
+    order.payment?.status === 'paid' ||
+    ['paid', 'processing', 'dispatched', 'delivered', 'completed'].includes(order.status)
+  );
+
+  if (loading) {
+    return (
+      <div className="container-x max-w-xl py-24 text-center">
+        <Spinner size={32} className="mx-auto text-brand-600" />
+        <p className="mt-4 text-sm font-medium text-ink-500">Loading order details…</p>
+      </div>
+    );
+  }
 
   return (
     <>
-      <Seo title={isPaid ? "Order confirmed" : "Complete Payment"} path="/order-placed" noIndex />
+      <Seo title={isPaid ? "Order Confirmed" : "Complete Payment"} path="/order-placed" noIndex />
 
-      <div className="container-x max-w-xl py-12 text-center sm:py-16">
+      <div className="container-x max-w-xl py-10 text-center sm:py-14">
         {isPaid ? (
           <>
             <motion.div
               initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-glow"
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-glow"
             >
               <FiCheck size={30} strokeWidth={3} />
             </motion.div>
@@ -98,9 +110,8 @@ export default function OrderPlaced() {
             <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
               Order placed successfully
             </h1>
-            <p className="mt-2.5 text-pretty text-sm leading-relaxed text-ink-500">
-              Your payment has been received and your order is confirmed. We will
-              contact you on the number you verified when it ships.
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-ink-500">
+              Your payment has been received and your order is confirmed. We will contact you on the number you verified when it ships.
             </p>
           </>
         ) : (
@@ -108,7 +119,7 @@ export default function OrderPlaced() {
             <motion.div
               initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500 text-white shadow-soft"
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500 text-white shadow-soft"
             >
               <FiClock size={30} strokeWidth={2.5} />
             </motion.div>
@@ -116,8 +127,8 @@ export default function OrderPlaced() {
             <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
               Payment Pending
             </h1>
-            <p className="mt-2.5 text-pretty text-sm leading-relaxed text-ink-500">
-              Payment for this order has not been completed yet. Complete your payment below to confirm your order.
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-ink-500">
+              Aapka order receive ho gaya hai lekin payment abhi baki hai. Order confirm karne ke liye neeche diye gaye button se payment complete karein.
             </p>
           </>
         )}
@@ -173,12 +184,6 @@ export default function OrderPlaced() {
           </div>
         )}
 
-        {loading && (
-          <p className="mt-6 flex items-center justify-center gap-2 text-sm text-ink-400">
-            <Spinner size={15} /> Loading your order…
-          </p>
-        )}
-
         {order && (
           <div className="mt-6 overflow-hidden rounded-2xl border border-ink-100 text-left bg-white shadow-soft">
             <div className="border-b border-ink-100 bg-ink-50/50 px-4 py-3">
@@ -231,9 +236,7 @@ export default function OrderPlaced() {
           <Link to="/shop" className="btn-outline flex-1">Continue shopping</Link>
         </div>
 
-        <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
-          <Card icon={FiPackage} title="Dispatched within 24 hours"
-            body="On business days. We will share tracking details as soon as your parcel ships." />
+        <div className="mt-6 text-left">
           <Card icon={settings?.phone ? FiPhone : FiMail} title="Need help with this order?"
             body={settings?.phone
               ? `Call us on ${settings.phone} with your order number.`

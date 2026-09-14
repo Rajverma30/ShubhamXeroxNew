@@ -283,13 +283,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);
 
-  // Send WhatsApp awaiting-payment notification after 20 seconds delay ONLY if order is still unpaid
+  // Send WhatsApp awaiting-payment notification after 15 seconds delay ONLY if order is still unpaid
   setTimeout(async () => {
     try {
       const latestOrder = await Order.findById(order._id);
       if (!latestOrder) return;
 
-      // If customer completed payment within 20 seconds, skip sending pending notification
+      // If customer completed payment within 15 seconds, skip sending pending notification
       if (latestOrder.payment?.status === 'paid') {
         logger.info(`Skipping WA awaiting-payment for ${latestOrder.orderNumber}: Order is already PAID`);
         return;
@@ -309,7 +309,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     } catch (e) {
       logger.warn(`Failed sending delayed WA payment pending for ${order.orderNumber}: ${e.message}`);
     }
-  }, 20000);
+  }, 15000);
 
   return created(res, {
     orderNumber: order.orderNumber,

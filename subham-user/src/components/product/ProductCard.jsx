@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FiDownload, FiEye, FiHeart, FiShoppingBag } from 'react-icons/fi';
 import { useStore } from '../../context/StoreContext';
 import { useHoverImageRotation } from '../../hooks';
-import { discountOf, galleryUrls, placeholderImage, priceOf, truncate } from '../../lib/format';
+import { discountOf, galleryUrls, handleImgError, priceOf, truncate } from '../../lib/format';
 import { DiscountBadge, PriceTag, Rating, Tag } from '../ui/Common';
 import QuickView from './QuickView';
 
@@ -30,7 +30,8 @@ function ProductCardBase({ product, eager = false, compact = false, className = 
   const isEbookOnly = product.type === 'ebook';
   const outOfStock = !isEbookOnly && !product.allowBackorder && (product.stock ?? 0) <= 0;
   const lowStock = !outOfStock && !isEbookOnly && product.stock > 0 && product.stock <= 5;
-  const current = frames[index] || frames[0] || placeholderImage(product.title);
+  const fallbackUrl = (product.images && product.images[1] && product.images[1].url) ? product.images[1].url : '';
+  const current = frames[index] || frames[0] || fallbackUrl;
 
   return (
     <>
@@ -46,10 +47,11 @@ function ProductCardBase({ product, eager = false, compact = false, className = 
               {!imgReady && <div className="skeleton absolute inset-0" aria-hidden />}
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.img key={current} src={current}
+                  data-fallback-url={fallbackUrl || undefined}
                   alt={`${product.title}${index > 0 ? ` — view ${index + 1}` : ''}`}
                   loading={eager ? 'eager' : 'lazy'} decoding="async"
                   onLoad={() => setImgReady(true)}
-                  onError={(e) => { e.currentTarget.src = placeholderImage(product.title); setImgReady(true); }}
+                  onError={(e) => { handleImgError(e); setImgReady(true); }}
                   initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: hovering ? 1.045 : 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                   className="absolute inset-0 h-full w-full object-cover" />

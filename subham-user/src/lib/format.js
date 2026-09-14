@@ -94,7 +94,7 @@ export const imgUrl = (image, size = 'card') => {
   return resolveAssetUrl(image.cardUrl || image.url || image.thumbUrl);
 };
 
-/** Multi-tiered image load error handler: subhamapi -> google direct fallback -> local backend API /uploads/ -> hide image */
+/** Multi-tiered image load error handler: subhamapi -> local backend API /uploads/ -> hide image */
 export function handleImgError(e) {
   const img = e.currentTarget || e.target;
   if (!img) return;
@@ -112,14 +112,7 @@ export function handleImgError(e) {
     return;
   }
 
-  // 3. Try direct Google cover fallback URL if provided on dataset
-  if (!img.dataset.triedGoogleFallback && img.dataset.fallbackUrl) {
-    img.dataset.triedGoogleFallback = 'true';
-    img.src = img.dataset.fallbackUrl;
-    return;
-  }
-
-  // 4. Try fetching from local backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
+  // 3. Try fetching from local backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
   if (!img.dataset.triedBackend && API_ORIGIN && !currentSrc.includes(API_ORIGIN)) {
     img.dataset.triedBackend = 'true';
     const parts = currentSrc.split('/uploads/');
@@ -131,7 +124,7 @@ export function handleImgError(e) {
     }
   }
 
-  // 5. Final fallback: hide image element completely (show nothing)
+  // 4. Final fallback: hide image element completely (show nothing)
   img.style.display = 'none';
   if (img.parentElement && img.parentElement.classList.contains('relative')) {
     const skeleton = img.parentElement.querySelector('.skeleton');

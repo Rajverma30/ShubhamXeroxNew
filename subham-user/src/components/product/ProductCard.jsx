@@ -30,8 +30,7 @@ function ProductCardBase({ product, eager = false, compact = false, className = 
   const isEbookOnly = product.type === 'ebook';
   const outOfStock = !isEbookOnly && !product.allowBackorder && (product.stock ?? 0) <= 0;
   const lowStock = !outOfStock && !isEbookOnly && product.stock > 0 && product.stock <= 5;
-  const fallbackUrl = (product.images && product.images[1] && product.images[1].url) ? product.images[1].url : '';
-  const current = frames[index] || frames[0] || fallbackUrl;
+  const current = frames[index] || frames[0] || '';
 
   return (
     <>
@@ -47,7 +46,6 @@ function ProductCardBase({ product, eager = false, compact = false, className = 
               {!imgReady && <div className="skeleton absolute inset-0" aria-hidden />}
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.img key={current} src={current}
-                  data-fallback-url={fallbackUrl || undefined}
                   alt={`${product.title}${index > 0 ? ` — view ${index + 1}` : ''}`}
                   loading={eager ? 'eager' : 'lazy'} decoding="async"
                   onLoad={() => setImgReady(true)}

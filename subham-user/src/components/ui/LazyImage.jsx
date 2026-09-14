@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { placeholderImage, handleImgError } from '../../lib/format';
 
 export default function LazyImage({
-  src, fallbackUrl, alt = '', className = '', wrapperClassName = '', eager = false,
+  src, alt = '', className = '', wrapperClassName = '', eager = false,
   aspect = 'aspect-[3/4]', objectFit = 'object-cover', fallbackText, onError: customOnError, ...rest
 }) {
   const [loaded, setLoaded] = useState(!src);
 
-  if (!src && !fallbackUrl) {
+  if (!src) {
     return <div className={`relative overflow-hidden bg-ink-100/30 ${aspect} ${wrapperClassName}`} />;
   }
 
@@ -22,8 +22,7 @@ export default function LazyImage({
     <div className={`relative overflow-hidden bg-ink-100 ${aspect} ${wrapperClassName}`}>
       {!loaded && <div className="skeleton absolute inset-0" aria-hidden />}
       <img
-        src={src || fallbackUrl}
-        data-fallback-url={fallbackUrl || undefined}
+        src={src}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'} decoding="async"
         fetchPriority={eager ? 'high' : 'auto'}

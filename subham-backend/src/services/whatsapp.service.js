@@ -49,12 +49,12 @@ function buildPaymentPendingMessage(order) {
 
   return (
     `Namaste ${name}! 🙏\n\n` +
-    `Aapka Subham Xerox par order #${orderNum} (₹${total}) *awaiting payment* hai.\n\n` +
-    `Kya aapko payment karne me koi issue aaya? 🧐\n\n` +
-    `👉 Aap neeche diye gaye link par click karke apna payment complete kar sakte hain:\n` +
+    `Aapka Subham Xerox Order #${orderNum} (₹${total}) abhi payment ka wait kar raha hai.\n\n` +
+    `Agar payment ke dauran koi issue aaya hai, toh aap neeche diye gaye link se aasani se payment complete kar sakte hain 👇\n\n` +
+    `🔗 *Complete Payment:* \n` +
     `${payUrl}\n\n` +
-    `Agar aapko koi dikkat aa rahi he toh hume is number par WhatsApp karein: ${sender}\n\n` +
-    `Dhanyawad,\n` +
+    `Agar payment ko lekar koi problem ya query ho, toh hume WhatsApp par ${sender} par message karein. 💬\n\n` +
+    `Dhanyawad! ❤️\n` +
     `Subham Xerox Team`
   );
 }
@@ -72,16 +72,16 @@ function buildOrderConfirmationMessage(order) {
 
   return (
     `Namaste ${name}! 🙏\n\n` +
-    `Subham Xerox par order karne ke liye dhanyawad!\n` +
-    `Aapka payment (₹${total}) successfully receive ho gaya he aur order confirm ho chuka hai. ✅\n\n` +
-    `📦 *Order Details:*\n` +
-    `• Order #: ${orderNum}\n` +
-    `• Items: ${itemCount} item(s)\n` +
-    `• Total Paid: ₹${total}\n\n` +
-    `🔗 *View / Track Order:* \n` +
+    `Subham Xerox par aapka order successfully confirm ho gaya hai! 🎉\n\n` +
+    `Aapka payment (₹${total}) hume mil chuka hai. Hum aapke order par kaam shuru kar rahe hain. 📦\n\n` +
+    `📋 *Order Summary:*\n` +
+    `• Order Number: #${orderNum}\n` +
+    `• Total Items: ${itemCount} item(s)\n` +
+    `• Amount Paid: ₹${total}\n\n` +
+    `🔗 *View Order Details:* \n` +
     `${orderUrl}\n\n` +
-    `Kisi bhi jankari ya update ke liye hume WhatsApp karein: ${sender}\n\n` +
-    `Dhanyawad,\n` +
+    `Kisi bhi help ya query ke liye hume is WhatsApp number par contact karein: ${sender} 💬\n\n` +
+    `Dhanyawad! ❤️\n` +
     `Subham Xerox Team`
   );
 }

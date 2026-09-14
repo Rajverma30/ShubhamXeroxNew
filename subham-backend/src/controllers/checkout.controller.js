@@ -283,19 +283,33 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);
 
-  // Send WhatsApp awaiting-payment notification with direct payment link
-  whatsapp.sendPaymentPendingWhatsApp(order).then((waRes) => {
-    Order.updateOne(
-      { _id: order._id },
-      {
-        $set: {
-          'whatsappNotifications.awaitingPaymentSent': waRes?.sent ?? false,
-          'whatsappNotifications.awaitingPaymentSentAt': new Date(),
-          ...(waRes?.error ? { 'whatsappNotifications.lastError': waRes.error } : {}),
-        },
+  // Send WhatsApp awaiting-payment notification after 20 seconds delay ONLY if order is still unpaid
+  setTimeout(async () => {
+    try {
+      const latestOrder = await Order.findById(order._id);
+      if (!latestOrder) return;
+
+      // If customer completed payment within 20 seconds, skip sending pending notification
+      if (latestOrder.payment?.status === 'paid') {
+        logger.info(`Skipping WA awaiting-payment for ${latestOrder.orderNumber}: Order is already PAID`);
+        return;
       }
-    ).catch((e) => logger.warn(`Failed updating WA status on ${order.orderNumber}: ${e.message}`));
-  }).catch((e) => logger.warn(`Failed sending WA payment pending for ${order.orderNumber}: ${e.message}`));
+
+      const waRes = await whatsapp.sendPaymentPendingWhatsApp(latestOrder);
+      await Order.updateOne(
+        { _id: latestOrder._id },
+        {
+          $set: {
+            'whatsappNotifications.awaitingPaymentSent': waRes?.sent ?? false,
+            'whatsappNotifications.awaitingPaymentSentAt': new Date(),
+            ...(waRes?.error ? { 'whatsappNotifications.lastError': waRes.error } : {}),
+          },
+        }
+      );
+    } catch (e) {
+      logger.warn(`Failed sending delayed WA payment pending for ${order.orderNumber}: ${e.message}`);
+    }
+  }, 20000);
 
   return created(res, {
     orderNumber: order.orderNumber,

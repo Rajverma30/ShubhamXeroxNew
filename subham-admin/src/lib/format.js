@@ -111,12 +111,11 @@ const UPLOADS_ORIGIN = (() => {
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  if (url.includes('subhamapi.hypernxt.space')) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (!API_ORIGIN) return url;
   try {
     const u = new URL(url, API_ORIGIN);
-    if (u.origin !== API_ORIGIN && u.pathname.includes('/uploads/')) {
-      return `${UPLOADS_ORIGIN || API_ORIGIN}${u.pathname}${u.search}`;
-    }
     return u.toString();
   } catch {
     return url;
@@ -130,3 +129,33 @@ export const imgUrl = (image, size = 'thumb') => {
   if (size === 'full') return resolveAssetUrl(image.url || image.cardUrl);
   return resolveAssetUrl(image.cardUrl || image.url || image.thumbUrl);
 };
+
+/** Multi-tiered image load error handler: subhamapi/products/ -> subhamapi/ -> backend API /uploads/ -> placeholder */
+export function handleImgError(e) {
+  const img = e.currentTarget || e.target;
+  if (!img) return;
+  const currentSrc = img.src || '';
+
+  // 1. Try stripping /products/ subfolder if present on subhamapi host
+  if (currentSrc.includes('subhamapi.hypernxt.space/uploads/products/')) {
+    img.src = currentSrc.replace('/uploads/products/', '/uploads/');
+    return;
+  }
+
+  // 2. Try fetching from backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
+  if (!img.dataset.triedBackend && API_ORIGIN && !currentSrc.includes(API_ORIGIN)) {
+    img.dataset.triedBackend = 'true';
+    const parts = currentSrc.split('/uploads/');
+    const filename = parts.length > 1 ? parts[1].replace(/^products\//, '') : currentSrc.split('/').pop();
+    if (filename) {
+      img.src = `${API_ORIGIN}/uploads/${filename}`;
+      return;
+    }
+  }
+
+  // 3. Final fallback: branded SVG placeholder
+  if (!img.dataset.triedPlaceholder) {
+    img.dataset.triedPlaceholder = 'true';
+    img.src = placeholderImage();
+  }
+}

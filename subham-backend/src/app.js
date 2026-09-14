@@ -141,6 +141,14 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 /* ── static uploads (long cache, immutable filenames) ── */
+const fs = require('fs');
+
+const uploadSearchDirs = [
+  path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads', 'products'),
+  path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads'),
+  path.join(__dirname, '..', '..', 'uploads'),
+];
+
 app.use(
   '/uploads',
   express.static(path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads'), {
@@ -149,6 +157,20 @@ app.use(
     immutable: true,
   }),
 );
+
+// Fallback for upload assets: look in products/ subfolder, root uploads, or legacy uploads
+app.use('/uploads', (req, res, next) => {
+  const filename = path.basename(req.path);
+  if (!filename || filename === '/' || filename === '.') return next();
+
+  for (const dir of uploadSearchDirs) {
+    const filePath = path.join(dir, filename);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return res.sendFile(filePath, { maxAge: '30d', immutable: true });
+    }
+  }
+  next();
+});
 
 /* ── health ── */
 app.get('/health', (_req, res) =>

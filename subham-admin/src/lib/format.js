@@ -111,12 +111,10 @@ const UPLOADS_ORIGIN = (() => {
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (!API_ORIGIN) return url;
   try {
     const u = new URL(url, API_ORIGIN);
-    if (u.origin !== API_ORIGIN && u.pathname.includes('/uploads/')) {
-      return `${UPLOADS_ORIGIN || API_ORIGIN}${u.pathname}${u.search}`;
-    }
     return u.toString();
   } catch {
     return url;

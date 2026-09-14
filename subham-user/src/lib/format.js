@@ -94,37 +94,10 @@ export const imgUrl = (image, size = 'card') => {
   return resolveAssetUrl(image.cardUrl || image.url || image.thumbUrl);
 };
 
-/** Multi-tiered image load error handler: subhamapi -> local backend API /uploads/ -> hide image */
+/** Image load error handler: hide image immediately with zero fallbacks */
 export function handleImgError(e) {
   const img = e.currentTarget || e.target;
   if (!img) return;
-  const currentSrc = img.src || '';
-
-  // 1. Try stripping -card or -thumb suffixes if present
-  if (currentSrc.includes('-card.webp') || currentSrc.includes('-thumb.webp')) {
-    img.src = currentSrc.replace(/-(card|thumb)\.webp$/i, '.webp');
-    return;
-  }
-
-  // 2. Try stripping /products/ subfolder if present on subhamapi host
-  if (currentSrc.includes('subhamapi.hypernxt.space/uploads/products/')) {
-    img.src = currentSrc.replace('/uploads/products/', '/uploads/');
-    return;
-  }
-
-  // 3. Try fetching from local backend API_ORIGIN /uploads/ filename if subhamapi server is down/404
-  if (!img.dataset.triedBackend && API_ORIGIN && !currentSrc.includes(API_ORIGIN)) {
-    img.dataset.triedBackend = 'true';
-    const parts = currentSrc.split('/uploads/');
-    let filename = parts.length > 1 ? parts[1].replace(/^products\//, '') : currentSrc.split('/').pop();
-    filename = filename.replace(/-(card|thumb)\.webp$/i, '.webp');
-    if (filename) {
-      img.src = `${API_ORIGIN}/uploads/${filename}`;
-      return;
-    }
-  }
-
-  // 4. Final fallback: hide image element completely (show nothing)
   img.style.display = 'none';
   if (img.parentElement && img.parentElement.classList.contains('relative')) {
     const skeleton = img.parentElement.querySelector('.skeleton');

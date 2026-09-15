@@ -96,14 +96,14 @@ const API_ORIGIN = (() => {
 // a local API. Leave empty when every upload exists on the local backend.
 const UPLOADS_ORIGIN = (() => {
   try {
-    return new URL(import.meta.env.VITE_UPLOADS_ORIGIN || '').origin;
+    return new URL(import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamxerox-nxt.web.app').origin;
   } catch {
-    return '';
+    return 'https://subhamxerox-nxt.web.app';
   }
 })();
 
 /**
- * Point an uploaded-asset URL at the backend we're configured to talk to.
+ * Point an uploaded-asset URL at the uploads host that actually serves files.
  * Stored image URLs are absolute, which bakes in whatever BACKEND_URL was set
  * when the row was written — rewriting the origin here keeps images working
  * if the API moves to another port or domain.
@@ -111,7 +111,15 @@ const UPLOADS_ORIGIN = (() => {
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
-  if (url.includes('subhamapi.hypernxt.space')) return url;
+
+  if (url.includes('/uploads/')) {
+    const filename = url.split('/uploads/')[1];
+    if (filename) return `${UPLOADS_ORIGIN}/uploads/${filename}`;
+  }
+  if (url.startsWith('/uploads/')) {
+    return `${UPLOADS_ORIGIN}${url}`;
+  }
+
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (!API_ORIGIN) return url;
   try {

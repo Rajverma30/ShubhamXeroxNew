@@ -45,15 +45,16 @@ const API_ORIGIN = (() => {
   catch { return ''; }
 })();
 
-// Optional asset host for legacy/production uploads while developing against
-// a local API. Leave empty when every upload exists on the local backend.
-const UPLOADS_ORIGIN = (() => {
-  try { return new URL(import.meta.env.VITE_UPLOADS_ORIGIN || '').origin; }
-  catch { return ''; }
-})();
+/**
+ * Canonical public host for catalogue uploads (Firebase hosting).
+ * Files live under /uploads on this origin; subhamapi often 404s the same paths.
+ */
+const UPLOADS_HOST = (
+  import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamxerox-nxt.web.app'
+).replace(/\/$/, '');
 
 /**
- * Point an uploaded-asset URL at the backend we're actually talking to.
+ * Point an uploaded-asset URL at the uploads host that actually serves files.
  *
  * Image URLs are stored absolute in the database (the storefront runs on a
  * different origin), which bakes in whatever BACKEND_URL was set when the row
@@ -63,19 +64,15 @@ const UPLOADS_ORIGIN = (() => {
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
-  if (url.includes('subhamapi.hypernxt.space')) return url;
 
-  // Extract filename if it contains /uploads/
+  // Any /uploads/... path → Firebase uploads host (web.app)
   if (url.includes('/uploads/')) {
-    const parts = url.split('/uploads/');
-    const filename = parts[1];
-    if (filename) {
-      return `https://subhamapi.hypernxt.space/uploads/${filename}`;
-    }
+    const filename = url.split('/uploads/')[1];
+    if (filename) return `${UPLOADS_HOST}/uploads/${filename}`;
   }
 
   if (url.startsWith('/uploads/')) {
-    return `https://subhamapi.hypernxt.space${url}`;
+    return `${UPLOADS_HOST}${url}`;
   }
 
   if (url.startsWith('http://') || url.startsWith('https://')) return url;

@@ -169,7 +169,12 @@ app.use('/uploads', (req, res, next) => {
       return res.sendFile(filePath, { maxAge: '30d', immutable: true });
     }
   }
-  next();
+
+  // Last resort: files still live on Firebase hosting (storefront uploads folder).
+  // Live frontend often rewrites image hosts to this API origin; proxy-miss → redirect.
+  const fallbackHost = (process.env.UPLOADS_FALLBACK_ORIGIN || 'https://subhamxerox-nxt.web.app').replace(/\/$/, '');
+  const rel = req.path.startsWith('/') ? req.path : `/${req.path}`;
+  return res.redirect(302, `${fallbackHost}/uploads${rel}`);
 });
 
 /* ── health ── */

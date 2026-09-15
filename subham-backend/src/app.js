@@ -149,19 +149,19 @@ const uploadSearchDirs = [
   path.join(__dirname, '..', '..', 'uploads'),
 ];
 
-app.use(
-  '/uploads',
-  express.static(path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads'), {
-    maxAge: '30d',
-    etag: true,
-    immutable: true,
-  }),
-);
+const uploadsRoot = path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads');
+const uploadsFallbackHost = (process.env.UPLOADS_FALLBACK_ORIGIN || 'https://subhamxerox-nxt.web.app').replace(/\/$/, '');
 
-// Fallback for upload assets: look in products/ subfolder, root uploads, or legacy uploads
-app.use('/uploads', (req, res, next) => {
+function sendUploadOrFallback(req, res, next, { redirectPrefix = '/uploads' } = {}) {
   const filename = path.basename(req.path);
   if (!filename || filename === '/' || filename === '.') return next();
+
+  // Prefer exact relative path under uploads root (products/…, media/…)
+  const rel = req.path.replace(/^\/+/, '');
+  const direct = path.join(uploadsRoot, rel);
+  if (fs.existsSync(direct) && fs.statSync(direct).isFile()) {
+    return res.sendFile(direct, { maxAge: '30d', immutable: true });
+  }
 
   for (const dir of uploadSearchDirs) {
     const filePath = path.join(dir, filename);
@@ -170,12 +170,36 @@ app.use('/uploads', (req, res, next) => {
     }
   }
 
-  // Last resort: files still live on Firebase hosting (storefront uploads folder).
-  // Live frontend often rewrites image hosts to this API origin; proxy-miss → redirect.
-  const fallbackHost = (process.env.UPLOADS_FALLBACK_ORIGIN || 'https://subhamxerox-nxt.web.app').replace(/\/$/, '');
-  const rel = req.path.startsWith('/') ? req.path : `/${req.path}`;
-  return res.redirect(302, `${fallbackHost}/uploads${rel}`);
-});
+  // Last resort: Firebase hosting still has the full uploads tree.
+  const fallbackRel = req.path.startsWith('/') ? req.path : `/${req.path}`;
+  return res.redirect(302, `${uploadsFallbackHost}${redirectPrefix}${fallbackRel}`);
+}
+
+app.use(
+  '/uploads',
+  express.static(uploadsRoot, {
+    maxAge: '30d',
+    etag: true,
+    immutable: true,
+  }),
+);
+
+app.use('/uploads', (req, res, next) => sendUploadOrFallback(req, res, next, { redirectPrefix: '/uploads' }));
+
+/*
+ * /img alias — same files as /uploads.
+ * Live storefront rewrites any URL containing "/uploads/" to a dead host
+ * (subhamapi). Serving catalogue images under /img bypasses that rewrite.
+ */
+app.use(
+  '/img',
+  express.static(uploadsRoot, {
+    maxAge: '30d',
+    etag: true,
+    immutable: true,
+  }),
+);
+app.use('/img', (req, res, next) => sendUploadOrFallback(req, res, next, { redirectPrefix: '/uploads' }));
 
 /* ── health ── */
 app.get('/health', (_req, res) =>

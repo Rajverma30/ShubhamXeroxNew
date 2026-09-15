@@ -47,28 +47,33 @@ const API_ORIGIN = (() => {
 
 /**
  * Canonical public host for catalogue image files.
- * Backend (API) can be Railway; image bytes still come from this uploads host.
- * Do not point this at subhamapi — that origin 404s most /uploads files.
+ * Prefer Railway /img (bypasses broken storefront /uploads/ rewrites).
+ * Fallback: Firebase uploads host.
  */
 const UPLOADS_HOST = (
-  import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamxerox-nxt.web.app'
+  import.meta.env.VITE_UPLOADS_ORIGIN || 'https://shubhamxeroxnew-production.up.railway.app'
 ).replace(/\/$/, '');
 
+const USE_IMG_PREFIX = !/subhamxerox-nxt\.web\.app$/i.test(UPLOADS_HOST);
+
 /**
- * Always serve /uploads assets from UPLOADS_HOST (Firebase), regardless of
- * whatever absolute host was baked into the MongoDB URL.
+ * Always serve catalogue assets from UPLOADS_HOST.
+ * On Railway use /img/... so old storefront builds that rewrite "/uploads/"
+ * to a dead host cannot break product images.
  */
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
 
-  if (url.includes('/uploads/')) {
-    const filename = url.split('/uploads/')[1];
-    if (filename) return `${UPLOADS_HOST}/uploads/${filename}`;
-  }
+  let rel = '';
+  if (url.includes('/uploads/')) rel = url.split('/uploads/')[1];
+  else if (url.includes('/img/')) rel = url.split('/img/')[1];
+  else if (url.startsWith('/uploads/')) rel = url.slice('/uploads/'.length);
+  else if (url.startsWith('/img/')) rel = url.slice('/img/'.length);
 
-  if (url.startsWith('/uploads/')) {
-    return `${UPLOADS_HOST}${url}`;
+  if (rel) {
+    const prefix = USE_IMG_PREFIX ? '/img/' : '/uploads/';
+    return `${UPLOADS_HOST}${prefix}${rel.replace(/^\/+/, '')}`;
   }
 
   if (url.startsWith('http://') || url.startsWith('https://')) return url;

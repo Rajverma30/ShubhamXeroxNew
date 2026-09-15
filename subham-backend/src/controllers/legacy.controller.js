@@ -175,8 +175,8 @@ exports.redirectMiddleware = async (req, res, next) => {
   if (String(process.env.LEGACY_REDIRECT).toLowerCase() !== 'true') return next();
   if (req.method !== 'GET') return next();
 
-  // Never touch the API, uploads, health or SEO files.
-  if (/^\/(api|uploads|health|sitemap\.xml|robots\.txt|shiprocket-checkout)/.test(req.path)) return next();
+  // Never touch the API, uploads, img alias, health or SEO files.
+  if (/^\/(api|uploads|img|health|sitemap\.xml|robots\.txt|shiprocket-checkout)/.test(req.path)) return next();
 
   try {
     const match = await resolveLegacy(req.originalUrl);

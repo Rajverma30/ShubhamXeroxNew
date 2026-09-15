@@ -46,26 +46,22 @@ const API_ORIGIN = (() => {
 })();
 
 /**
- * Canonical public host for catalogue uploads (Firebase hosting).
- * Files live under /uploads on this origin; subhamapi often 404s the same paths.
+ * Canonical public host for catalogue image files.
+ * Backend (API) can be Railway; image bytes still come from this uploads host.
+ * Do not point this at subhamapi — that origin 404s most /uploads files.
  */
 const UPLOADS_HOST = (
   import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamxerox-nxt.web.app'
 ).replace(/\/$/, '');
 
 /**
- * Point an uploaded-asset URL at the uploads host that actually serves files.
- *
- * Image URLs are stored absolute in the database (the storefront runs on a
- * different origin), which bakes in whatever BACKEND_URL was set when the row
- * was written. Rewriting the origin here — the one place all image URLs pass
- * through — keeps the catalogue working wherever the backend lives.
+ * Always serve /uploads assets from UPLOADS_HOST (Firebase), regardless of
+ * whatever absolute host was baked into the MongoDB URL.
  */
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
 
-  // Any /uploads/... path → Firebase uploads host (web.app)
   if (url.includes('/uploads/')) {
     const filename = url.split('/uploads/')[1];
     if (filename) return `${UPLOADS_HOST}/uploads/${filename}`;

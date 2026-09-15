@@ -46,9 +46,7 @@ const API_ORIGIN = (() => {
 })();
 
 /**
- * Canonical public host for catalogue image files.
- * Prefer Railway /img (bypasses broken storefront /uploads/ rewrites).
- * Fallback: Firebase uploads host.
+ * Public host for catalogue media files (API may live on another origin).
  */
 const UPLOADS_HOST = (
   import.meta.env.VITE_UPLOADS_ORIGIN || 'https://shubhamxeroxnew-production.up.railway.app'
@@ -56,11 +54,7 @@ const UPLOADS_HOST = (
 
 const USE_IMG_PREFIX = !/subhamxerox-nxt\.web\.app$/i.test(UPLOADS_HOST);
 
-/**
- * Always serve catalogue assets from UPLOADS_HOST.
- * On Railway use /img/... so old storefront builds that rewrite "/uploads/"
- * to a dead host cannot break product images.
- */
+/** Normalize stored media URLs onto the configured uploads host. */
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;

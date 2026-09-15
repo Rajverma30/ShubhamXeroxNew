@@ -170,7 +170,7 @@ function sendUploadOrFallback(req, res, next, { redirectPrefix = '/uploads' } = 
     }
   }
 
-  // Last resort: Firebase hosting still has the full uploads tree.
+  // Optional CDN / Firebase fallback when a file is not on this instance's disk.
   const fallbackRel = req.path.startsWith('/') ? req.path : `/${req.path}`;
   return res.redirect(302, `${uploadsFallbackHost}${redirectPrefix}${fallbackRel}`);
 }
@@ -186,11 +186,7 @@ app.use(
 
 app.use('/uploads', (req, res, next) => sendUploadOrFallback(req, res, next, { redirectPrefix: '/uploads' }));
 
-/*
- * /img alias — same files as /uploads.
- * Live storefront rewrites any URL containing "/uploads/" to a dead host
- * (subhamapi). Serving catalogue images under /img bypasses that rewrite.
- */
+/* /img — alias of /uploads for catalogue media URLs */
 app.use(
   '/img',
   express.static(uploadsRoot, {

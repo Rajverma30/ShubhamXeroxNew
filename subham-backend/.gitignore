@@ -7,6 +7,10 @@ dist/
 .env.*
 !.env.example
 
+# One-off local scripts (never ship)
+scratch/
+scratch_*.js
+
 # Temporary uploads — ignore temp files only
 uploads/tmp/*
 !uploads/tmp/.gitkeep

@@ -9,7 +9,7 @@ NODE_ENV=production
 PORT=5005
 
 # ── Database ────────────────────────────────────────────────────
-MONGO_URI=mongodb+srv://hypersagetech:7oDb5EZK9YnnBSkl@salon.ovdjb.mongodb.net/subhamxerox?retryWrites=true&w=majority&appName=subhamxerox
+MONGO_URI=mongodb+srv://shubhamxerox25_db_user:qAEAS6MTppUzQqUG@cluster0.08smhkb.mongodb.net/subhamxerox?retryWrites=true&w=majority&appName=Cluster0
 
 # ── Auth ────────────────────────────────────────────────────────
 JWT_SECRET=LgheaBXCakULjqQUtEm6eHYJ6vY--Ue5UKOuUEqE54NxnuBbcZisafdMDvRlTpqZ

@@ -18,11 +18,15 @@ const SIZES = { thumb: 160, card: 600, full: 1400 };
  * BACKEND_URL must be absolute: the storefront and admin panel run on other
  * origins, so a root-relative "/uploads/…" would resolve against *their* host
  * and 404. Falls back to localhost:PORT for local development.
+ *
+ * Railway also exposes /img as an alias of /uploads.
  */
 const backendOrigin = () =>
   (process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`).replace(/\/$/, '');
 
-const publicUrl = (folder, filename) => `${backendOrigin()}/uploads/${folder}/${filename}`;
+const assetPrefix = () => (/railway\.app/i.test(backendOrigin()) ? 'img' : 'uploads');
+
+const publicUrl = (folder, filename) => `${backendOrigin()}/${assetPrefix()}/${folder}/${filename}`;
 
 /**
  * Process one temp file into a stored image record.

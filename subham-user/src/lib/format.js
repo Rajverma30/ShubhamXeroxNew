@@ -52,7 +52,8 @@ const UPLOADS_HOST = (
   import.meta.env.VITE_UPLOADS_ORIGIN || 'https://shubhamxeroxnew-production.up.railway.app'
 ).replace(/\/$/, '');
 
-const USE_IMG_PREFIX = !/subhamxerox-nxt\.web\.app$/i.test(UPLOADS_HOST);
+/** Only Railway serves the /img alias; other hosts keep /uploads. */
+const USE_IMG_PREFIX = /railway\.app/i.test(UPLOADS_HOST);
 
 /** Normalize stored media URLs onto the configured uploads host. */
 export function resolveAssetUrl(url) {

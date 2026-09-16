@@ -96,28 +96,29 @@ const API_ORIGIN = (() => {
 // a local API. Leave empty when every upload exists on the local backend.
 const UPLOADS_ORIGIN = (() => {
   try {
-    return new URL(import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamxerox-nxt.web.app').origin;
+    return new URL(import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamapi.hypernxt.space').origin;
   } catch {
-    return 'https://subhamxerox-nxt.web.app';
+    return 'https://subhamapi.hypernxt.space';
   }
 })();
 
 /**
- * Point an uploaded-asset URL at the uploads host that actually serves files.
- * Stored image URLs are absolute, which bakes in whatever BACKEND_URL was set
- * when the row was written — rewriting the origin here keeps images working
- * if the API moves to another port or domain.
+ * Normalize media URLs onto the configured uploads origin.
+ * Keep /uploads on non-Railway hosts; Railway may use /img.
  */
 export function resolveAssetUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
 
-  if (url.includes('/uploads/')) {
-    const filename = url.split('/uploads/')[1];
-    if (filename) return `${UPLOADS_ORIGIN}/uploads/${filename}`;
-  }
-  if (url.startsWith('/uploads/')) {
-    return `${UPLOADS_ORIGIN}${url}`;
+  let rel = '';
+  if (url.includes('/uploads/')) rel = url.split('/uploads/')[1];
+  else if (url.includes('/img/')) rel = url.split('/img/')[1];
+  else if (url.startsWith('/uploads/')) rel = url.slice('/uploads/'.length);
+  else if (url.startsWith('/img/')) rel = url.slice('/img/'.length);
+
+  if (rel) {
+    const prefix = /railway\.app/i.test(UPLOADS_ORIGIN) ? '/img/' : '/uploads/';
+    return `${UPLOADS_ORIGIN}${prefix}${rel.replace(/^\/+/, '')}`;
   }
 
   if (url.startsWith('http://') || url.startsWith('https://')) return url;

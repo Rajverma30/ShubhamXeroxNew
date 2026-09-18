@@ -156,11 +156,11 @@ async function shippingFor({ pincode, weight, declaredValue }) {
   const freeAbove = Number(settings.freeShippingAbove) || 0;
 
   if (freeAbove && declaredValue >= freeAbove) {
-    return { charge: 0, courier: null, etd: null, serviceable: true, reason: 'free-above-threshold' };
+    return { charge: 0, courier: null, etd: '3–5 days', serviceable: true, reason: 'free-above-threshold' };
   }
 
   if (!shiprocket.credentialsPresent() || !validStorePincode()) {
-    return { charge: flat, courier: null, etd: null, serviceable: true, reason: 'flat-fallback' };
+    return { charge: flat, courier: null, etd: '3–5 days', serviceable: true, reason: 'flat-fallback' };
   }
 
   try {
@@ -171,19 +171,16 @@ async function shippingFor({ pincode, weight, declaredValue }) {
       declaredValue,
     });
 
-    if (!data.serviceable) {
-      return { charge: 0, courier: null, etd: null, serviceable: false, reason: 'not-serviceable' };
-    }
     return {
       charge: Math.ceil(data.cheapest?.rate ?? flat),
-      courier: data.cheapest?.name || null,
-      etd: data.etd || null,
+      courier: data.cheapest?.name || 'Express Shipping',
+      etd: data.etd || '3–5 days',
       serviceable: true,
       reason: 'shiprocket',
     };
   } catch (err) {
     logger.warn(`Serviceability lookup failed for ${pincode}, using flat rate: ${err.message}`);
-    return { charge: flat, courier: null, etd: null, serviceable: true, reason: 'flat-fallback' };
+    return { charge: flat, courier: null, etd: '3–5 days', serviceable: true, reason: 'flat-fallback' };
   }
 }
 
@@ -194,7 +191,7 @@ exports.quote = asyncHandler(async (req, res) => {
   const { lines, subtotal, weight, problems } = await priceCart(req.body.items);
 
   const pincode = String(req.body.pincode || '').trim();
-  let shipping = { charge: 0, courier: null, etd: null, serviceable: true, reason: 'no-pincode' };
+  let shipping = { charge: 0, courier: null, etd: '3–5 days', serviceable: true, reason: 'no-pincode' };
   if (/^\d{6}$/.test(pincode)) {
     shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
   }
@@ -233,9 +230,6 @@ exports.createOrder = asyncHandler(async (req, res) => {
   if (name.length < 2) throw ApiError.badRequest('Please enter your name');
 
   const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
-  if (!shipping.serviceable) {
-    throw ApiError.badRequest(`Sorry, we cannot deliver to ${pincode} yet.`);
-  }
 
   const total = subtotal + shipping.charge;
 

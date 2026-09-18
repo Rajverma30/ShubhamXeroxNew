@@ -351,13 +351,9 @@ export default function CheckoutFlow({ onClose, items }) {
               </div>
             </div>
 
-            {quote?.shipping?.serviceable === false && (
-              <p className="text-sm text-red-700">We cannot deliver to this PIN code yet.</p>
-            )}
-
             <button
               type="submit"
-              disabled={busy || !addressValid || (quote && quote?.shipping?.serviceable === false)}
+              disabled={busy || !addressValid}
               className="btn-primary block w-full py-3.5"
             >
               {step === 'paying' ? 'Opening Payment…' : `Pay ${money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}`}

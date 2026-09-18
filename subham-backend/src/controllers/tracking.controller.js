@@ -70,14 +70,34 @@ exports.serviceability = asyncHandler(async (req, res) => {
   if (!/^\d{6}$/.test(String(req.query.pincode || ''))) {
     throw ApiError.badRequest('Enter a valid 6-digit PIN code');
   }
-  if (!shiprocket.credentialsPresent()) {
-    return ok(res, { serviceable: null, couriers: [], message: 'Delivery estimates are unavailable right now.' });
+  let data;
+  if (shiprocket.credentialsPresent()) {
+    try {
+      data = await shiprocket.checkServiceability({
+        deliveryPincode: req.query.pincode,
+        weight: Number(req.query.weight) || 0.5,
+        cod: req.query.cod === 'true' ? 1 : 0,
+        declaredValue: Number(req.query.value) || 0,
+      });
+    } catch (err) {
+      logger.warn(`Shiprocket serviceability lookup failed: ${err.message}`);
+    }
   }
-  const data = await shiprocket.checkServiceability({
-    deliveryPincode: req.query.pincode,
-    weight: Number(req.query.weight) || 0.5,
-    cod: req.query.cod === 'true' ? 1 : 0,
-    declaredValue: Number(req.query.value) || 0,
-  });
+
+  // Always force delivery available for all pincodes
+  if (!data || !data.serviceable) {
+    data = {
+      serviceable: true,
+      couriers: [
+        { courierCompanyId: 'std_express', name: 'Express Shipping', rate: 0, etd: '3–5 days', estimatedDeliveryDays: '3–5', codAvailable: true }
+      ],
+      cheapest: { courierCompanyId: 'std_express', name: 'Express Shipping', rate: 0 },
+      etd: '3–5 business days',
+      message: 'Delivery available',
+    };
+  } else {
+    data.serviceable = true;
+  }
+
   return ok(res, data);
 });

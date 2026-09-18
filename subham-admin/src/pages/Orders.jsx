@@ -398,9 +398,17 @@ function OrderDetail({ id, onClose, onSaved }) {
               </div>
 
               {order.shiprocket?.error && (
-                <p className="text-2xs font-medium text-rose-700 bg-rose-50 p-2 rounded border border-rose-200">
-                  Error: {order.shiprocket.error}
-                </p>
+                <div className="text-2xs font-medium text-rose-700 bg-rose-50 p-2 rounded border border-rose-200 space-y-1">
+                  <p>Error: {order.shiprocket.error}</p>
+                  {/403|access denied|not configured|login/i.test(order.shiprocket.error) && (
+                    <p className="text-rose-800/90 font-normal">
+                      Fix: Shiprocket → Settings → API → API User banao/edit karo, <strong>Orders</strong> module ON rakho,
+                      phir us API User ka email+password Railway pe <code className="font-mono">SHIPROCKET_EMAIL</code> /
+                      <code className="font-mono">SHIPROCKET_PASSWORD</code> set karke backend restart karo.
+                      (Checkout API key se ye button kaam nahi karta.)
+                    </p>
+                  )}
+                </div>
               )}
 
               <div className="flex flex-wrap items-center gap-2 pt-1">

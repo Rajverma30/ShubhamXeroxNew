@@ -47,6 +47,24 @@ exports.errorHandler = (err, req, res, _next) => {
   }
   if (err.code === 'LIMIT_UNEXPECTED_FILE') error = ApiError.badRequest(`Unexpected upload field "${err.field}"`);
 
+  // Raw axios failures (e.g. Shiprocket login) otherwise leak as
+  // "Request failed with status code 403" with a confusing 500.
+  if (err.isAxiosError && !(err instanceof ApiError) && error === err) {
+    const status = err.response?.status;
+    const payload = err.response?.data;
+    const msg =
+      (typeof payload === 'string' && payload.trim()) ||
+      payload?.message ||
+      payload?.error ||
+      err.message ||
+      'Upstream request failed';
+    error = new ApiError(
+      status && status < 500 ? 400 : 502,
+      String(msg).slice(0, 400),
+      payload && typeof payload === 'object' ? payload : undefined,
+    );
+  }
+
   const statusCode = error.statusCode || 500;
   if (statusCode >= 500) logger.error(err.stack || err.message);
 

@@ -14,6 +14,7 @@ class ApiError extends Error {
   static conflict(m = 'Already exists') { return new ApiError(409, m); }
   static unprocessable(m = 'Validation failed', d) { return new ApiError(422, m, d); }
   static tooMany(m = 'Too many requests') { return new ApiError(429, m); }
+  static badGateway(m = 'Upstream service failed') { return new ApiError(502, m); }
   static internal(m = 'Something went wrong') { return new ApiError(500, m); }
 }
 module.exports = ApiError;

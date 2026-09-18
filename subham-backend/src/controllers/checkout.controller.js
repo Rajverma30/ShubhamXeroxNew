@@ -948,8 +948,14 @@ exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
 
     return ok(res, { order, result, message: 'Order successfully pushed to Shiprocket!' });
   } catch (err) {
+    const detail =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      (err.response?.data && JSON.stringify(err.response.data).slice(0, 300)) ||
+      err.message ||
+      'Shiprocket push failed';
     order.shiprocket = order.shiprocket || {};
-    order.shiprocket.error = err.message;
+    order.shiprocket.error = String(detail).slice(0, 500);
     await order.save();
     throw err;
   }

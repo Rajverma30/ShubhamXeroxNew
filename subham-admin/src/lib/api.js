@@ -41,6 +41,7 @@ client.interceptors.response.use(
 
     const message =
       error.response?.data?.message ||
+      error.message ||
       (!error.response ? 'Cannot reach the API. Is the backend running?' : 'Something went wrong');
 
     return Promise.reject(Object.assign(new Error(message), { status, details: error.response?.data?.details }));

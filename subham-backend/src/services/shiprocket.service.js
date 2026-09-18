@@ -20,26 +20,71 @@ let cache = { token: null, expiresAt: 0 };
 const http = axios.create({ baseURL: BASE_URL, timeout: 30000 });
 
 function credentialsPresent() {
-  return Boolean(process.env.SHIPROCKET_EMAIL && process.env.SHIPROCKET_PASSWORD);
+  return Boolean(
+    String(process.env.SHIPROCKET_EMAIL || '').trim() &&
+      String(process.env.SHIPROCKET_PASSWORD || '').trim(),
+  );
+}
+
+function accessDeniedHint(message = '') {
+  const m = String(message || '');
+  if (/access denied|403/i.test(m)) {
+    return (
+      ' Shiprocket API user ke liye Settings → API → Configure mein Orders / Create Order modules ON karo. ' +
+      'Panel login email mat use karo — alag API User email+password chahiye.'
+    );
+  }
+  return '';
+}
+
+function shiprocketErrorMessage(err, fallback = 'Shiprocket request failed') {
+  const payload = err.response?.data;
+  if (!payload) return err.message || fallback;
+  if (typeof payload === 'string' && payload.trim()) return payload.slice(0, 300);
+  return (
+    payload.message ||
+    payload.error ||
+    (payload.errors && JSON.stringify(payload.errors)) ||
+    err.message ||
+    fallback
+  );
 }
 
 /** POST /auth/login → bearer token (cached). */
 async function login(force = false) {
   if (!credentialsPresent()) {
-    throw ApiError.internal('Shiprocket credentials are not configured (SHIPROCKET_EMAIL / SHIPROCKET_PASSWORD).');
+    throw ApiError.internal(
+      'Shiprocket Shipping API is not configured. Set SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD ' +
+        '(Shiprocket panel → Settings → API) on the server, then restart. ' +
+        'Checkout API keys alone are not enough for Push to Shiprocket.',
+    );
   }
   if (!force && cache.token && Date.now() < cache.expiresAt) return cache.token;
 
-  const { data } = await http.post('/auth/login', {
-    email: process.env.SHIPROCKET_EMAIL,
-    password: process.env.SHIPROCKET_PASSWORD,
-  });
+  try {
+    const { data } = await http.post('/auth/login', {
+      email: process.env.SHIPROCKET_EMAIL,
+      password: process.env.SHIPROCKET_PASSWORD,
+    });
 
-  if (!data?.token) throw ApiError.internal('Shiprocket login failed — no token returned.');
+    if (!data?.token) throw ApiError.internal('Shiprocket login failed — no token returned.');
 
-  cache = { token: data.token, expiresAt: Date.now() + 9 * 24 * 60 * 60 * 1000 };
-  logger.info('Shiprocket token refreshed');
-  return cache.token;
+    cache = { token: data.token, expiresAt: Date.now() + 9 * 24 * 60 * 60 * 1000 };
+    logger.info('Shiprocket token refreshed');
+    return cache.token;
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    const status = err.response?.status;
+    const message = shiprocketErrorMessage(err, 'Shiprocket login failed');
+    logger.error(`Shiprocket login failed (${status || 'no-status'}): ${message}`);
+    if (status === 401 || status === 403) {
+      throw ApiError.badRequest(
+        'Shiprocket rejected the Shipping API login (403/401). Check SHIPROCKET_EMAIL / SHIPROCKET_PASSWORD on Railway.' +
+          accessDeniedHint(message),
+      );
+    }
+    throw ApiError.badGateway(`Shiprocket login failed: ${message}`);
+  }
 }
 
 /** Authenticated request with one automatic re-login on 401. */
@@ -61,12 +106,13 @@ async function request(method, url, { data, params } = {}, retry = true) {
       return request(method, url, { data, params }, false);
     }
     const payload = err.response?.data;
-    const message =
-      payload?.message ||
-      (payload?.errors && JSON.stringify(payload.errors)) ||
-      err.message ||
-      'Shiprocket request failed';
+    const message = shiprocketErrorMessage(err);
     logger.error(`Shiprocket ${method.toUpperCase()} ${url} -> ${status}: ${message}`);
+    if (status === 401 || status === 403) {
+      throw ApiError.badRequest(
+        `Shiprocket API access denied (${status}): ${message}.` + accessDeniedHint(message),
+      );
+    }
     throw new ApiError(status && status < 500 ? 400 : 502, `Shiprocket: ${message}`, payload);
   }
 }
@@ -171,7 +217,9 @@ function mapStatus(shiprocketStatus = '') {
  */
 async function createAdhocOrder(order) {
   if (!credentialsPresent()) {
-    throw ApiError.internal('Shiprocket credentials are not configured (SHIPROCKET_EMAIL / SHIPROCKET_PASSWORD).');
+    throw ApiError.internal(
+      'Shiprocket Shipping API is not configured. Set SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD on the server (Shiprocket → Settings → API).',
+    );
   }
 
   if (!order || !order.shippingAddress) {
@@ -213,12 +261,16 @@ async function createAdhocOrder(order) {
     shipping_is_billing: true,
     order_items: orderItems,
     payment_method: order.payment?.status === 'paid' ? 'Prepaid' : 'COD',
-    sub_total: order.total || 0,
+    // Shiprocket expects item subtotal (not grand total with shipping).
+    sub_total: orderItems.reduce((sum, i) => sum + Number(i.selling_price || 0) * Number(i.units || 1), 0),
     length: 10,
     breadth: 10,
     height: 5,
     weight: 0.5,
   };
+
+  const channelId = String(process.env.SHIPROCKET_CHANNEL_ID || '').trim();
+  if (channelId) payload.channel_id = channelId;
 
   logger.info(`Pushing Order ${order.orderNumber} to Shiprocket adhoc API...`);
   const data = await request('post', '/orders/create/adhoc', payload);

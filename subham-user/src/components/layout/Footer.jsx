@@ -134,7 +134,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col-reverse items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
-          <p className="text-2xs text-white/40">© {new Date().getFullYear()} {settings?.storeName || 'Subham Xerox'}. All rights reserved.</p>
+          <p className="text-2xs text-white/40">© {new Date().getFullYear()} {settings?.storeName || 'Shubham Xerox'}. All rights reserved.</p>
           {settings?.poweredBy?.text && (
             /* Agency attribution. Comes from POWERED_BY_TEXT / POWERED_BY_URL
                in the backend .env, not from the database — so it cannot be

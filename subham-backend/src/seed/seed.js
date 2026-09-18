@@ -273,9 +273,9 @@ async function seed() {
       image: art.mobile,
       banner: art.desktop,
       seo: {
-        metaTitle: `${cat.name} — buy online at Subham Xerox`,
+        metaTitle: `${cat.name} — buy online at Shubham Xerox`,
         metaDescription: cat.shortDescription,
-        metaKeywords: [cat.name.toLowerCase(), 'buy online', 'subham xerox'],
+        metaKeywords: [cat.name.toLowerCase(), 'buy online', 'shubham xerox'],
       },
     });
     categoryDocs[cat.name] = doc;
@@ -296,7 +296,7 @@ async function seed() {
         shortDescription: `${sub.name} titles and materials in ${cat.name}.`,
         image: subArt.mobile,
         banner: subArt.desktop,
-        seo: { metaTitle: `${sub.name} ${cat.name} — Subham Xerox`, metaDescription: `Shop ${sub.name} in ${cat.name} at Subham Xerox.` },
+        seo: { metaTitle: `${sub.name} ${cat.name} — Shubham Xerox`, metaDescription: `Shop ${sub.name} in ${cat.name} at Shubham Xerox.` },
       });
       subDocs[`${cat.name}::${sub.name}`] = subDoc;
     }
@@ -394,7 +394,7 @@ async function seed() {
           ? { ebook: { fileUrl: `${BACKEND}/uploads/ebooks/sample-${i + 1}.pdf`, filename: `sample-${i + 1}.pdf`, isFree: true, allowPreview: true, previewPages: 5, pageCount: pages, sizeBytes: 1024 * 1024 * 2, downloadCount: Math.round(Math.random() * 500) } }
           : {}),
         seo: {
-          metaTitle: `${title} — buy online | Subham Xerox`,
+          metaTitle: `${title} — buy online | Shubham Xerox`,
           metaDescription: `Buy ${title} by ${author} (${publisher}) online at ${discount}% off. Free delivery above ₹499.`,
           metaKeywords: [title.toLowerCase(), author.toLowerCase(), subName.toLowerCase()],
         },
@@ -450,7 +450,7 @@ async function seed() {
         views: Math.round(80 + Math.random() * 2000),
         rating: { average: Math.round((4.0 + Math.random()) * 10) / 10, count: Math.round(6 + Math.random() * 120) },
         seo: {
-          metaTitle: `${title} — buy online | Subham Xerox`,
+          metaTitle: `${title} — buy online | Shubham Xerox`,
           metaDescription: `Buy ${title} online at ${discount}% off. Genuine ${brand} product.`,
         },
       },
@@ -515,10 +515,10 @@ async function seed() {
   await Setting.deleteMany({});
   await Setting.create({
     singleton: 'global',
-    storeName: 'Subham Xerox',
+    storeName: 'Shubham Xerox',
     tagline: 'Books, Exam Guides & Stationery',
     logo: '/logo.png',
-    email: process.env.STORE_EMAIL || 'support@subhamxerox.com',
+    email: process.env.STORE_EMAIL || 'support@shubhamxerox.com',
     phone: process.env.STORE_PHONE || '+91 99999 99999',
     whatsapp: process.env.STORE_PHONE || '+91 99999 99999',
     address: process.env.STORE_ADDRESS || 'Plot No 1, Market Building, Bhubaneswar, Odisha 751001',
@@ -534,16 +534,16 @@ async function seed() {
     footerLinks: data.footerLinks,
     popularSearches: data.popularSearches,
     policies: {
-      about: '<p>Subham Xerox has been serving students, teachers and offices for over a decade. What began as a neighbourhood photocopy shop is now a full book store stocking exam guides, school textbooks and stationery — with the same fast, honest service.</p>',
+      about: '<p>Shubham Xerox has been serving students, teachers and offices for over a decade. What began as a neighbourhood photocopy shop is now a full book store stocking exam guides, school textbooks and stationery — with the same fast, honest service.</p>',
       shipping: '<p>Orders are dispatched within 24 hours on business days and delivered across India via Shiprocket partner couriers. Delivery typically takes 2–6 days depending on your PIN code. Shipping is free on orders above ₹499.</p>',
       returns: '<p>If a book arrives damaged or is the wrong title, tell us within 7 days of delivery and we will replace it or refund you in full. Digital ebook downloads are non-refundable.</p>',
       privacy: '<p>We collect only the details needed to fulfil your order — name, phone, email and delivery address. We never sell your data. Payments and shipping are handled by our partners under their own privacy terms.</p>',
       terms: '<p>By placing an order you confirm the details you have entered are accurate. Prices and stock are subject to change. Free ebooks are licensed for personal use only.</p>',
     },
     seo: {
-      metaTitle: 'Subham Xerox — Books, Exam Guides & Stationery Online',
-      metaDescription: 'Buy exam books, school textbooks, ebooks and stationery online at Subham Xerox. Guest checkout, free delivery above ₹499, free ebooks with selected guides.',
-      metaKeywords: ['book store', 'exam books', 'school books', 'stationery', 'odisha', 'subham xerox'],
+      metaTitle: 'Shubham Xerox — Books, Exam Guides & Stationery Online',
+      metaDescription: 'Buy exam books, school textbooks, ebooks and stationery online at Shubham Xerox. Guest checkout, free delivery above ₹499, free ebooks with selected guides.',
+      metaKeywords: ['book store', 'exam books', 'school books', 'stationery', 'odisha', 'shubham xerox'],
     },
   });
 

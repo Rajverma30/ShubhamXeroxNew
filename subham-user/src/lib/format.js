@@ -28,7 +28,7 @@ export const stripHtml = (html = '') => String(html).replace(/<[^>]+>/g, ' ').re
 export const truncate = (str = '', n = 90) => (str.length > n ? `${str.slice(0, n - 1).trimEnd()}…` : str);
 
 /** Branded inline placeholder so a missing image never shows a broken icon. */
-export function placeholderImage(text = 'Subham Xerox') {
+export function placeholderImage(text = 'Shubham Xerox') {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
     <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#eceef2"/><stop offset="100%" stop-color="#d5d9e2"/>

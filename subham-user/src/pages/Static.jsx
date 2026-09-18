@@ -11,10 +11,10 @@ export function About() {
   const { settings } = useStore();
   return (
     <>
-      <Seo title="About us" description="Subham Xerox has served students, teachers and offices for over a decade." path="/about" />
+      <Seo title="About us" description="Shubham Xerox has served students, teachers and offices for over a decade." path="/about" />
       <div className="container-x max-w-4xl py-7">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'About' }]} className="mb-5" />
-        <SectionHeader eyebrow="Our story" title={`About ${settings?.storeName || 'Subham Xerox'}`} />
+        <SectionHeader eyebrow="Our story" title={`About ${settings?.storeName || 'Shubham Xerox'}`} />
         <div className="rounded-3xl border border-ink-100 bg-white p-6 shadow-soft sm:p-8">
           {settings?.policies?.about
             // eslint-disable-next-line react/no-danger
@@ -64,7 +64,7 @@ export function Contact() {
 
   return (
     <>
-      <Seo title="Contact us" description="Get in touch with Subham Xerox." path="/contact" />
+      <Seo title="Contact us" description="Get in touch with Shubham Xerox." path="/contact" />
       <div className="container-x max-w-5xl py-7">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Contact' }]} className="mb-5" />
         <SectionHeader eyebrow="Say hello" title="Get in touch"
@@ -135,7 +135,7 @@ export function Policy() {
 
   return (
     <>
-      <Seo title={meta.title} description={`${meta.title} at Subham Xerox.`} path={`/policy/${slug}`} />
+      <Seo title={meta.title} description={`${meta.title} at Shubham Xerox.`} path={`/policy/${slug}`} />
       <div className="container-x max-w-3xl py-7">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: meta.title }]} className="mb-5" />
         <SectionHeader eyebrow={meta.eyebrow} title={meta.title} />

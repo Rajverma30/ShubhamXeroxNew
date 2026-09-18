@@ -1,5 +1,5 @@
 /**
- * Subham Xerox — API entry point.
+ * Shubham Xerox — API entry point.
  * Boots the database first, then the HTTP server, and wires graceful shutdown.
  */
 require('dotenv').config();
@@ -68,7 +68,7 @@ const PORT = process.env.PORT || 5000;
   checkUploads();
 
   const server = app.listen(PORT, () => {
-    logger.info(`Subham Xerox API listening on :${PORT} (${process.env.NODE_ENV || 'development'})`);
+    logger.info(`Shubham Xerox API listening on :${PORT} (${process.env.NODE_ENV || 'development'})`);
   });
 
   const shutdown = (signal) => () => {

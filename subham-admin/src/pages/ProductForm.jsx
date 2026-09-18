@@ -96,19 +96,19 @@ export default function ProductForm() {
     const finalPrice = Math.round(priceNum * (1 - discNum / 100));
     const priceString = finalPrice > 0 ? ` ₹${finalPrice}` : '';
 
-    const metaTitle = `${titleVal.slice(0, 50)}${priceString} | Subham Xerox`.slice(0, 70);
+    const metaTitle = `${titleVal.slice(0, 50)}${priceString} | Shubham Xerox`.slice(0, 70);
     const creatorText = authorVal ? `by ${authorVal}` : (publisherVal ? `published by ${publisherVal}` : '');
     const categoryText = catObj?.name ? `in ${catObj.name}` : 'online';
-    const metaDescription = `Buy ${titleVal} ${creatorText} ${priceString} ${categoryText} at Subham Xerox. Fast delivery & best deals across India.`.slice(0, 160);
+    const metaDescription = `Buy ${titleVal} ${creatorText} ${priceString} ${categoryText} at Shubham Xerox. Fast delivery & best deals across India.`.slice(0, 160);
 
-    const keywordParts = [titleVal, authorVal, publisherVal, catObj?.name, subCatObj?.name, 'subham xerox', 'buy online', 'best price'].filter(Boolean);
+    const keywordParts = [titleVal, authorVal, publisherVal, catObj?.name, subCatObj?.name, 'shubham xerox', 'buy online', 'best price'].filter(Boolean);
     const rawKeywords = keywordParts.join(' ').toLowerCase().replace(/[^a-z0-9\s,]/gi, ' ').split(/\s+/).filter((w) => w.length > 2);
     const uniqueKeywords = Array.from(new Set([
       titleVal.toLowerCase(),
       authorVal?.toLowerCase(),
       publisherVal?.toLowerCase(),
       catObj?.name?.toLowerCase(),
-      'subham xerox',
+      'shubham xerox',
       ...rawKeywords.slice(0, 8),
     ].filter(Boolean))).join(', ');
 
@@ -509,13 +509,13 @@ export default function ProductForm() {
 
             <div className="grid gap-4">
               <Field label="Meta title" hint="Falls back to the product title. Click 'Auto-generate SEO' above to generate.">
-                <Input maxLength={160} {...register('seo.metaTitle')} placeholder="e.g. Pariksha Bodh Social Science | Subham Xerox" />
+                <Input maxLength={160} {...register('seo.metaTitle')} placeholder="e.g. Pariksha Bodh Social Science | Shubham Xerox" />
               </Field>
               <Field label="Meta description" hint="Aim for 150–160 characters.">
-                <Textarea rows={2} maxLength={320} {...register('seo.metaDescription')} placeholder="Buy Pariksha Bodh Social Science by Navbodh Prakashan at ₹200 online at Subham Xerox." />
+                <Textarea rows={2} maxLength={320} {...register('seo.metaDescription')} placeholder="Buy Pariksha Bodh Social Science by Navbodh Prakashan at ₹200 online at Shubham Xerox." />
               </Field>
               <Field label="Meta keywords" hint="Comma separated tags for search engines.">
-                <Input {...register('seo.metaKeywords')} placeholder="pariksha bodh, social science, mp board, subham xerox" />
+                <Input {...register('seo.metaKeywords')} placeholder="pariksha bodh, social science, mp board, shubham xerox" />
               </Field>
             </div>
           </SectionCard>

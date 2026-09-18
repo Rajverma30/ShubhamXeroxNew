@@ -9,17 +9,17 @@ import { money } from '../../lib/format';
 export function Logo({ className = 'h-9 w-9', showText = true, dark = false }) {
   const [src, setSrc] = useState(import.meta.env.VITE_LOGO || '/logo.png');
   return (
-    <Link to="/" className="group flex items-center gap-2.5" aria-label="Subham Xerox — home">
+    <Link to="/" className="group flex items-center gap-2.5" aria-label="Shubham Xerox — home">
       <img
         src={src}
         onError={() => setSrc('/logo.svg')}
-        alt="Subham Xerox"
+        alt="Shubham Xerox"
         className={`${className} rounded-xl object-contain transition-transform duration-500 ease-snap group-hover:scale-105`}
       />
       {showText && (
         <span className="leading-none">
           <span className={`block font-display text-lg font-bold tracking-tight ${dark ? 'text-white' : 'text-ink-900'}`}>
-            Subham Xerox
+            Shubham Xerox
           </span>
           <span className={`block text-2xs font-medium uppercase tracking-[0.16em] ${dark ? 'text-white/50' : 'text-ink-400'}`}>
             Books &amp; Stationery

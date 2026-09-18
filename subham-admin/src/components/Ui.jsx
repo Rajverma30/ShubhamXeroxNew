@@ -25,13 +25,13 @@ export function Logo({ className = 'h-9 w-9', dark = false, showText = true }) {
       <img
         src={src}
         onError={() => setSrc('/logo.svg')}
-        alt="Subham Xerox"
+        alt="Shubham Xerox"
         className={`${className} rounded-lg object-contain`}
       />
       {showText && (
         <span className="leading-none">
           <span className={`block font-display text-base font-bold ${dark ? 'text-white' : 'text-ink-900'}`}>
-            Subham Xerox
+            Shubham Xerox
           </span>
           <span className={`block text-2xs font-medium uppercase tracking-wider ${dark ? 'text-white/45' : 'text-ink-400'}`}>
             Admin panel

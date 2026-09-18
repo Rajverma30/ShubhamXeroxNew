@@ -33,7 +33,7 @@ async function send({ to, subject, html, text }) {
     return { skipped: true };
   }
   return t.sendMail({
-    from: `"${process.env.SMTP_FROM_NAME || 'Subham Xerox'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_EMAIL}>`,
+    from: `"${process.env.SMTP_FROM_NAME || 'Shubham Xerox'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_EMAIL}>`,
     to,
     subject,
     text,
@@ -45,7 +45,7 @@ const shell = (title, body) => `
 <div style="font-family:Inter,Segoe UI,Arial,sans-serif;background:#f6f7fb;padding:32px">
   <div style="max-width:560px;margin:auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.08)">
     <div style="padding:22px 28px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff">
-      <h1 style="margin:0;font-size:19px;letter-spacing:-.3px">Subham Xerox</h1>
+      <h1 style="margin:0;font-size:19px;letter-spacing:-.3px">Shubham Xerox</h1>
       <p style="margin:4px 0 0;font-size:12px;opacity:.7">Books &amp; Stationery</p>
     </div>
     <div style="padding:28px">
@@ -53,7 +53,7 @@ const shell = (title, body) => `
       ${body}
     </div>
     <div style="padding:16px 28px;background:#f8fafc;color:#64748b;font-size:11px">
-      You are receiving this email because you placed an order or subscribed at Subham Xerox.
+      You are receiving this email because you placed an order or subscribed at Shubham Xerox.
     </div>
   </div>
 </div>`;

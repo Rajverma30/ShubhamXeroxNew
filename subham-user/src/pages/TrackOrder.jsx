@@ -76,7 +76,7 @@ export default function TrackOrder() {
     setPayingOrderId(ord._id || ord.orderNumber);
     try {
       await payExistingOrder(ord, {
-        storeName: settings?.name || 'Subham Xerox',
+        storeName: settings?.name || 'Shubham Xerox',
         logo: settings?.logo,
       });
       toast?.('Payment completed successfully!');
@@ -97,7 +97,7 @@ export default function TrackOrder() {
 
   return (
     <>
-      <Seo title="Track your order / My Orders" description="Track your Subham Xerox orders — no account needed." path="/track" />
+      <Seo title="Track your order / My Orders" description="Track your Shubham Xerox orders — no account needed." path="/track" />
 
       <div className="container-x max-w-3xl py-7">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Track order & My Orders' }]} className="mb-5" />

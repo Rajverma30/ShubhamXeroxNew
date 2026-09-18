@@ -39,7 +39,7 @@ function toProduct(p) {
     id: pId,
     title: p.title || '',
     body_html: p.description || p.shortDescription || '',
-    vendor: p.publisher || p.brand || 'Subham Xerox',
+    vendor: p.publisher || p.brand || 'Shubham Xerox',
     product_type: p.subCategoryName || p.categoryName || p.type || 'Books',
     created_at: iso(p.createdAt),
     handle: p.slug || '',

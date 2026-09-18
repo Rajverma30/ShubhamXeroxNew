@@ -55,7 +55,7 @@ function buildParams(phone, code) {
       ...base,
       route: 'q',
       sender_id: SENDER(),
-      message: `Your Subham Xerox verification code is ${code}. Valid for a few minutes. Do not share it.`,
+      message: `Your Shubham Xerox verification code is ${code}. Valid for a few minutes. Do not share it.`,
     };
   }
 

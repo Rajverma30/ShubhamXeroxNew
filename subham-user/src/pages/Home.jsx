@@ -47,11 +47,11 @@ export default function Home() {
   return (
     <>
       <Seo
-        description={settings?.seo?.metaDescription || 'Buy exam books, school textbooks, free ebooks and stationery online at Subham Xerox.'}
+        description={settings?.seo?.metaDescription || 'Buy exam books, school textbooks, free ebooks and stationery online at Shubham Xerox.'}
         path="/" keywords={settings?.seo?.metaKeywords}
         schema={{
           '@context': 'https://schema.org', '@type': 'WebSite',
-          name: settings?.storeName || 'Subham Xerox', url: import.meta.env.VITE_SITE_URL,
+          name: settings?.storeName || 'Shubham Xerox', url: import.meta.env.VITE_SITE_URL,
           potentialAction: {
             '@type': 'SearchAction',
             target: `${import.meta.env.VITE_SITE_URL}/shop?search={search_term_string}`,

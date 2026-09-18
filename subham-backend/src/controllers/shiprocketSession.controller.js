@@ -125,7 +125,7 @@ async function resolveCart(rawItems) {
       variantTitle: variant.title || 'Default Title',
       price,
       quantity,
-      vendor: serialised.vendor || 'Subham Xerox',
+      vendor: serialised.vendor || 'Shubham Xerox',
       product_type: serialised.product_type || '',
       ...(variant.image?.src ? { image: variant.image.src } : {}),
     });

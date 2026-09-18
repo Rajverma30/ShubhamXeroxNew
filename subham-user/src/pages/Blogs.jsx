@@ -63,7 +63,7 @@ export default function Blogs() {
     description: 'Preparation guides, book recommendations, and study strategies for MPPSC, MP Board, SSC and competitive exam aspirants.',
     publisher: {
       '@type': 'Organization',
-      name: 'Shubham Xerox (Subham Xerox)',
+      name: 'Shubham Xerox',
       logo: 'https://shubhamxerox.in/logo.png'
     }
   };

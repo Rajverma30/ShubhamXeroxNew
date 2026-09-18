@@ -49,7 +49,7 @@ export default function Login() {
       >
         <div className="mb-7 text-center">
           <div className="mb-5 flex justify-center"><Logo dark showText={false} className="h-14 w-14" /></div>
-          <h1 className="font-display text-2xl font-bold text-white">Subham Xerox</h1>
+          <h1 className="font-display text-2xl font-bold text-white">Shubham Xerox</h1>
           <p className="mt-1.5 text-sm text-white/50">Sign in to the admin panel</p>
         </div>
 

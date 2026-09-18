@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiAlertCircle, FiCheck, FiClock, FiCopy, FiCreditCard, FiHome, FiMail, FiPackage, FiPhone } from 'react-icons/fi';
+import { FiAlertCircle, FiCheck, FiClock, FiCopy, FiCreditCard, FiHome, FiMail, FiPhone, FiRefreshCw } from 'react-icons/fi';
 
 import { useStore } from '../context/StoreContext';
 import { fetchOrder, payExistingOrder } from '../lib/checkout';
@@ -26,6 +26,7 @@ export default function OrderPlaced() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(Boolean(orderNumber));
+  const [orderError, setOrderError] = useState('');
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState('');
 
@@ -44,9 +45,15 @@ export default function OrderPlaced() {
   useEffect(() => {
     if (!orderNumber) { setLoading(false); return; }
     let cancelled = false;
+    setLoading(true);
+    setOrderError('');
     fetchOrder(orderNumber, phone)
-      .then((d) => { if (!cancelled) setOrder(d); })
-      .catch(() => {})
+      .then((d) => {
+        if (!cancelled) setOrder(d);
+      })
+      .catch((err) => {
+        if (!cancelled) setOrderError(err?.message || 'Could not load order details. Please check order number or phone.');
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [orderNumber, phone]);
@@ -64,7 +71,7 @@ export default function OrderPlaced() {
     setPayError('');
     try {
       await payExistingOrder(order, {
-        storeName: settings?.name || 'Subham Xerox',
+        storeName: settings?.storeName || 'Shubham Xerox',
         logo: settings?.logo,
       });
       toast?.('Payment successful! Order confirmed.');
@@ -80,8 +87,10 @@ export default function OrderPlaced() {
 
   const isPaid = Boolean(order) && (
     order.payment?.status === 'paid' ||
-    ['paid', 'processing', 'dispatched', 'delivered', 'completed'].includes(order.status)
-  );
+    (['confirmed', 'processing', 'dispatched', 'delivered', 'completed'].includes(order.status) &&
+      order.payment?.status !== 'created' &&
+      order.payment?.status !== 'failed')
+  ) && order.status !== 'awaiting-payment';
 
   if (loading) {
     return (
@@ -97,7 +106,20 @@ export default function OrderPlaced() {
       <Seo title={isPaid ? "Order Confirmed" : "Complete Payment"} path="/order-placed" noIndex />
 
       <div className="container-x max-w-xl py-10 text-center sm:py-14">
-        {isPaid ? (
+        {orderError ? (
+          <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center shadow-soft">
+            <FiAlertCircle size={32} className="mx-auto mb-2 text-rose-600" />
+            <h2 className="font-display text-lg font-bold text-rose-900">Order Details Not Found</h2>
+            <p className="mt-1 text-xs leading-relaxed text-rose-700">{orderError}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="btn-outline mt-4 inline-flex items-center gap-2 text-xs"
+            >
+              <FiRefreshCw size={14} /> Try Reloading
+            </button>
+          </div>
+        ) : isPaid ? (
           <>
             <motion.div
               initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -128,7 +150,7 @@ export default function OrderPlaced() {
               Payment Pending
             </h1>
             <p className="mt-2 text-pretty text-sm leading-relaxed text-ink-500">
-              Aapka order receive ho gaya hai lekin payment abhi baki hai. Order confirm karne ke liye neeche diye gaye button se payment complete karein.
+              Aapka order receive ho gaya hai lekin payment abhi baki hai. Order confirm karne ke liye neeche दिए गए button se payment complete karein.
             </p>
           </>
         )}
@@ -152,13 +174,13 @@ export default function OrderPlaced() {
         )}
 
         {!isPaid && order && (
-          <div className="mt-5 rounded-2xl border border-amber-300 bg-amber-50/80 p-4 text-left">
+          <div className="mt-5 rounded-2xl border border-amber-300 bg-amber-50/90 p-5 text-left shadow-soft">
             <div className="flex items-start gap-3">
-              <FiAlertCircle size={20} className="mt-0.5 shrink-0 text-amber-600" />
+              <FiAlertCircle size={22} className="mt-0.5 shrink-0 text-amber-600" />
               <div>
-                <p className="text-sm font-bold text-amber-900">Payment required to process this order</p>
-                <p className="mt-0.5 text-xs text-amber-700">
-                  Total amount due: <span className="font-bold text-amber-900">{money(order.total)}</span>
+                <p className="text-base font-bold text-amber-900">Payment required to process this order</p>
+                <p className="mt-0.5 text-xs text-amber-800">
+                  Total amount due: <span className="font-bold text-amber-950 text-sm">{money(order.total)}</span>
                 </p>
               </div>
             </div>
@@ -173,12 +195,12 @@ export default function OrderPlaced() {
               type="button"
               onClick={handlePayNow}
               disabled={paying}
-              className="btn-primary mt-4 w-full gap-2 py-3.5 text-base shadow-lift"
+              className="btn-primary mt-4 w-full gap-2 py-3.5 text-base shadow-lift font-bold"
             >
               {paying ? (
                 <><Spinner size={18} /> Processing payment…</>
               ) : (
-                <><FiCreditCard size={18} /> Pay {money(order.total)} Now via Razorpay</>
+                <><FiCreditCard size={18} /> Complete Payment ({money(order.total)}) Now via Razorpay</>
               )}
             </button>
           </div>

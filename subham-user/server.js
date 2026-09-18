@@ -57,10 +57,10 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
         const discountText = p.discountPercent > 0 ? ` (${p.discountPercent}% OFF)` : (mrp > finalPrice ? ` (Save ₹${Math.round(mrp - finalPrice)})` : '');
         const priceText = `₹${finalPrice}${discountText}`;
 
-        const rawTitle = p.seo?.metaTitle || p.title || 'Subham Xerox';
+        const rawTitle = p.seo?.metaTitle || p.title || 'Shubham Xerox';
         const title = escapeHtml(`${rawTitle} — ${priceText}`);
         const rawDesc = p.shortDescription || (p.description || '').replace(/<[^>]*>?/gm, '').slice(0, 180);
-        const desc = escapeHtml(`${priceText} · ${rawDesc || `Buy ${rawTitle} online at Subham Xerox.`}`);
+        const desc = escapeHtml(`${priceText} · ${rawDesc || `Buy ${rawTitle} online at Shubham Xerox.`}`);
         const rawImg = p.images?.[0]?.url || p.images?.[0]?.thumbUrl || '';
         const imageUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BACKEND_TARGET}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : 'https://www.shubhamxerox.in/logo.png';
         const pageUrl = `https://www.shubhamxerox.in/product/${slug}`;
@@ -73,7 +73,7 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
   <title>${title}</title>
   <meta name="description" content="${desc}">
   <meta property="og:type" content="product">
-  <meta property="og:site_name" content="Subham Xerox">
+  <meta property="og:site_name" content="Shubham Xerox">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${desc}">
   <meta property="og:price:amount" content="${finalPrice}">

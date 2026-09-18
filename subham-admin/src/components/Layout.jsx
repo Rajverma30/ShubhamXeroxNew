@@ -180,7 +180,7 @@ export default function Layout() {
 
           <div className="hidden items-center gap-2 text-sm text-ink-400 sm:flex">
             <FiBarChart2 size={15} />
-            <span className="font-medium text-ink-600">Subham Xerox control panel</span>
+            <span className="font-medium text-ink-600">Shubham Xerox control panel</span>
           </div>
 
           <div className="ml-auto flex items-center gap-3">

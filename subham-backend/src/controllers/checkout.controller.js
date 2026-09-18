@@ -540,25 +540,43 @@ exports.getOrder = asyncHandler(async (req, res) => {
   if (rawPhone && orderPhone && orderPhone !== rawPhone) throw ApiError.notFound('Order not found');
 
   // Real-time auto-reconcile with Razorpay if order is still awaiting payment
-  if (order.payment?.status !== 'paid' && order.payment?.razorpayOrderId && razorpay.isConfigured()) {
-    try {
-      const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
-      const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${order.payment.razorpayOrderId}/payments`, {
-        headers: { Authorization: auth },
-        timeout: 4000,
-      });
-      const captured = (data.items || []).find(p => p.status === 'captured');
-      if (captured) {
-        const updated = await markPaid(order, {
-          paymentId: captured.id,
-          method: captured.method || 'online',
-          amountPaisa: captured.amount,
-          raw: { source: 'get-order-auto-reconcile', payment: captured },
+  if (order.payment?.status !== 'paid' && razorpay.isConfigured()) {
+    if (order.payment?.razorpayOrderId) {
+      try {
+        const auth = 'Basic ' + Buffer.from(process.env.RAZORPAY_KEY_ID + ':' + process.env.RAZORPAY_KEY_SECRET).toString('base64');
+        const { data } = await axios.get(`https://api.razorpay.com/v1/orders/${order.payment.razorpayOrderId}/payments`, {
+          headers: { Authorization: auth },
+          timeout: 4000,
         });
-        if (updated) order = updated.toObject ? updated.toObject() : updated;
+        const captured = (data.items || []).find(p => p.status === 'captured');
+        if (captured) {
+          const updated = await markPaid(order, {
+            paymentId: captured.id,
+            method: captured.method || 'online',
+            amountPaisa: captured.amount,
+            raw: { source: 'get-order-auto-reconcile', payment: captured },
+          });
+          if (updated) order = updated.toObject ? updated.toObject() : updated;
+        }
+      } catch (err) {
+        // Silently skip if Razorpay API check fails
       }
-    } catch (err) {
-      // Silently skip if Razorpay API fails
+    } else if (!order.payment?.razorpayOrderId) {
+      try {
+        const rzp = await razorpay.createOrder(order.total, order.orderNumber, {
+          orderNumber: order.orderNumber,
+          phone: order.customer?.phone,
+        });
+        await Order.updateOne(
+          { _id: order._id },
+          { $set: { 'payment.razorpayOrderId': rzp.id, 'payment.amountPaisa': rzp.amount } }
+        );
+        order.payment = order.payment || {};
+        order.payment.razorpayOrderId = rzp.id;
+        order.payment.amountPaisa = rzp.amount;
+      } catch (err) {
+        logger.warn(`Failed auto-generating Razorpay order ID for ${order.orderNumber}: ${err.message}`);
+      }
     }
   }
 

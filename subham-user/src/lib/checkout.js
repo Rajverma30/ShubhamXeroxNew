@@ -179,7 +179,7 @@ export async function placeOrder(cart, { token, customer, address, storeName, lo
       key: order.keyId,
       amount: order.amount,             // paise, straight from the server
       currency: order.currency || 'INR',
-      name: storeName || 'Subham Xerox',
+      name: storeName || 'Shubham Xerox',
       description: `Order ${order.orderNumber}`,
       image: logo || undefined,
       order_id: order.razorpayOrderId,
@@ -254,7 +254,7 @@ export async function payExistingOrder(orderData, { storeName, logo } = {}) {
       key: keyId,
       amount: amountPaisa,
       currency: 'INR',
-      name: storeName || 'Subham Xerox',
+      name: storeName || 'Shubham Xerox',
       description: `Payment for ${orderData.orderNumber}`,
       image: logo || undefined,
       order_id: razorpayOrderId,

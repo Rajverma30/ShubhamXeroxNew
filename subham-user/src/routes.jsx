@@ -30,7 +30,7 @@ const Ebooks = () => (
   <Shop fixed={{ type: 'ebook,book+ebook' }} heading="Ebooks & free downloads"
     subheading="Digital editions and print titles that ship with a free PDF."
     breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Ebooks' }]}
-    seo={{ title: 'Free ebooks & digital editions', description: 'Download free ebooks with selected Subham Xerox titles.', path: '/ebooks' }} />
+    seo={{ title: 'Free ebooks & digital editions', description: 'Download free ebooks with selected Shubham Xerox titles.', path: '/ebooks' }} />
 );
 
 const Stationery = () => (

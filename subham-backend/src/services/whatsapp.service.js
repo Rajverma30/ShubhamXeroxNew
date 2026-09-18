@@ -1,5 +1,5 @@
 /**
- * WhatsApp Notification Service for Subham Xerox.
+ * WhatsApp Notification Service for Shubham Xerox.
  *
  * ENV variables:
  *   WHATSAPP_API_URL         (Optional) REST API Endpoint for WhatsApp Gateway (e.g. Meta Cloud API, UltraMsg, Wati, Interakt, Twilio)
@@ -49,13 +49,13 @@ function buildPaymentPendingMessage(order) {
 
   return (
     `Namaste ${name}! 🙏\n\n` +
-    `Aapka Subham Xerox Order #${orderNum} (₹${total}) abhi payment ka wait kar raha hai.\n\n` +
+    `Aapka Shubham Xerox Order #${orderNum} (₹${total}) abhi payment ka wait kar raha hai.\n\n` +
     `Agar payment ke dauran koi issue aaya hai, toh aap neeche diye gaye link se aasani se payment complete kar sakte hain 👇\n\n` +
     `🔗 *Complete Payment:* \n` +
     `${payUrl}\n\n` +
     `Agar payment ko lekar koi problem ya query ho, toh hume WhatsApp par ${sender} par message karein. 💬\n\n` +
     `Dhanyawad! ❤️\n` +
-    `Subham Xerox Team`
+    `Shubham Xerox Team`
   );
 }
 
@@ -72,7 +72,7 @@ function buildOrderConfirmationMessage(order) {
 
   return (
     `Namaste ${name}! 🙏\n\n` +
-    `Subham Xerox par aapka order successfully confirm ho gaya hai! 🎉\n\n` +
+    `Shubham Xerox par aapka order successfully confirm ho gaya hai! 🎉\n\n` +
     `Aapka payment (₹${total}) hume mil chuka hai. Hum aapke order par kaam shuru kar rahe hain. 📦\n\n` +
     `📋 *Order Summary:*\n` +
     `• Order Number: #${orderNum}\n` +
@@ -82,7 +82,7 @@ function buildOrderConfirmationMessage(order) {
     `${orderUrl}\n\n` +
     `Kisi bhi help ya query ke liye hume is WhatsApp number par contact karein: ${sender} 💬\n\n` +
     `Dhanyawad! ❤️\n` +
-    `Subham Xerox Team`
+    `Shubham Xerox Team`
   );
 }
 

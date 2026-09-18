@@ -6,13 +6,13 @@ const settingSchema = new mongoose.Schema(
   {
     singleton: { type: String, default: 'global', unique: true, immutable: true },
 
-    storeName: { type: String, default: 'Subham Xerox' },
+    storeName: { type: String, default: 'Shubham Xerox' },
     tagline: { type: String, default: 'Books, Exam Guides & Stationery' },
     logo: { type: String, default: '/logo.png' },
     logoDark: { type: String, default: '/logo.png' },
     favicon: { type: String, default: '/favicon.png' },
 
-    email: { type: String, default: 'support@subhamxerox.com' },
+    email: { type: String, default: 'support@shubhamxerox.com' },
     phone: { type: String, default: '' },
     whatsapp: { type: String, default: '' },
     address: { type: String, default: '' },

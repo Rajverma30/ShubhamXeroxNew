@@ -10,7 +10,7 @@ export default function StoreLocation() {
 
   const keywords = [
     'Shubham Xerox Indore',
-    'Subham Xerox Bhawarkua',
+    'Shubham Xerox Bhawarkua',
     'Book store near Bhawarkua Indore',
     'MPPSC book shop Indore',
     'Shubham Xerox address phone number',
@@ -21,7 +21,7 @@ export default function StoreLocation() {
   return (
     <div className="bg-slate-50 min-h-screen pb-16">
       <Seo
-        title="Store Location & Contact Indore | Shubham Xerox (Subham Xerox)"
+        title="Store Location & Contact Indore | Shubham Xerox"
         description="Visit Shubham Xerox main store at Bhawarkua Square, Indore. MPPSC guides, competitive exam books, MP board textbooks & premium stationery available."
         path="/store-indore"
         keywords={keywords}
@@ -61,7 +61,7 @@ export default function StoreLocation() {
                   <div>
                     <h3 className="font-semibold text-slate-900">Address</h3>
                     <p className="mt-1 leading-relaxed">
-                      Shubham Xerox (Subham Xerox)<br />
+                      Shubham Xerox<br />
                       Near Bhawarkua Square, Main Road,<br />
                       Indore, Madhya Pradesh 452001
                     </p>

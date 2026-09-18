@@ -207,7 +207,7 @@ const footerLinks = [
   { group: 'Help', label: 'Shipping & delivery', url: '/policy/shipping' },
   { group: 'Help', label: 'Returns & refunds', url: '/policy/returns' },
   { group: 'Help', label: 'Contact us', url: '/contact' },
-  { group: 'Company', label: 'About Subham Xerox', url: '/about' },
+  { group: 'Company', label: 'About Shubham Xerox', url: '/about' },
   { group: 'Company', label: 'Privacy policy', url: '/policy/privacy' },
   { group: 'Company', label: 'Terms of service', url: '/policy/terms' },
 ];

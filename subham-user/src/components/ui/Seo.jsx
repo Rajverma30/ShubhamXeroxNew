@@ -2,16 +2,16 @@
 import { Helmet } from 'react-helmet-async';
 
 const SITE = (import.meta.env.VITE_SITE_URL || 'https://shubhamxerox.in').replace(/\/$/, '');
-const STORE = 'Shubham Xerox (Subham Xerox)';
+const STORE = 'Shubham Xerox';
 
 const DEFAULT_KEYWORDS = [
-  'Shubham Xerox', 'Subham Xerox', 'Shubham Xerox Indore', 'Subham Xerox Bhawarkua',
+  'Shubham Xerox', 'Shubham Xerox Indore', 'Shubham Xerox Bhawarkua',
   'MPPSC books online Indore', 'MP Board school books', 'Pariksha Bodh 2026',
   'Ghatna Chakra Purvavlokan', 'Stationery shop Bhawarkua Indore', 'Exam books online India',
 ];
 
 export default function Seo({ title, description, path = '', image, type = 'website', noIndex = false, keywords, schema, children }) {
-  const fullTitle = title ? `${title} | Shubham Xerox (Subham Xerox)` : `Shubham Xerox — Books, MPPSC Guides & Stationery Online Indore`;
+  const fullTitle = title ? `${title} | Shubham Xerox` : `Shubham Xerox — Books, MPPSC Guides & Stationery Online Indore`;
   const canonical = `${SITE}${path}`;
   const ogImage = image?.startsWith('http') ? image : `${SITE}${image || '/logo.png'}`;
 
@@ -52,7 +52,7 @@ export const storeSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'BookStore',
   name: 'Shubham Xerox',
-  alternateName: ['Subham Xerox', 'Shubham Xerox Indore', 'Subham Xerox Bhawarkua'],
+  alternateName: ['Shubham Xerox Indore', 'Shubham Xerox Bhawarkua'],
   url: 'https://shubhamxerox.in',
   logo: 'https://shubhamxerox.in/logo.png',
   image: 'https://shubhamxerox.in/logo.png',

@@ -13,7 +13,7 @@ export default function Categories() {
 
   return (
     <>
-      <Seo title="All categories" description="Browse every category at Subham Xerox." path="/categories" />
+      <Seo title="All categories" description="Browse every category at Shubham Xerox." path="/categories" />
 
       <div className="container-x py-7">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Categories' }]} className="mb-5" />

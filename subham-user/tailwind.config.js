@@ -1,4 +1,4 @@
-/** Subham Xerox design system. */
+/** Shubham Xerox design system. */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {

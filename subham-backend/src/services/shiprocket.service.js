@@ -294,6 +294,108 @@ function mapStatus(shiprocketStatus = '') {
   return 'processing';
 }
 
+/** GET pickup addresses registered on the Shiprocket account. */
+async function listPickupLocations() {
+  const data = await request('get', '/settings/company/pickup');
+  const locs = data?.data?.shipping_address || data?.data || data?.shipping_address || [];
+  return Array.isArray(locs) ? locs : [];
+}
+
+/**
+ * Resolve the exact pickup_location nickname Shiprocket expects.
+ * SHIPROCKET_PICKUP_LOCATION can be:
+ *   - the nickname (e.g. "Primary", "shop 5")
+ *   - or part of the street address (we map it to the nickname)
+ */
+async function resolvePickupLocationName() {
+  const wantedRaw = cleanEnv(process.env.SHIPROCKET_PICKUP_LOCATION) || 'Primary';
+  const wanted = wantedRaw.toLowerCase();
+  const locs = await listPickupLocations();
+
+  if (!locs.length) {
+    throw ApiError.badRequest(
+      'Shiprocket account mein koi pickup location nahi mili. Shiprocket panel → Settings → Pickup Address add karo.',
+    );
+  }
+
+  const rows = locs.map((l) => {
+    const name = String(l.pickup_location || l.name || '').trim();
+    const hay = [
+      name,
+      l.address,
+      l.address_2,
+      l.address2,
+      l.city,
+      l.state,
+      l.pin_code,
+      l.pincode,
+      l.phone,
+      l.email,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return { name, hay, id: l.id };
+  });
+
+  const names = rows.map((r) => r.name).filter(Boolean);
+
+  // 1) Exact nickname
+  const exact = rows.find((r) => r.name === wantedRaw);
+  if (exact?.name) return { name: exact.name, available: names, auto: false, id: exact.id };
+
+  // 2) Case-insensitive nickname
+  const ci = rows.find((r) => r.name.toLowerCase() === wanted);
+  if (ci?.name) return { name: ci.name, available: names, auto: false, id: ci.id };
+
+  // 3) Nickname / address contains the env value (or env contains nickname)
+  const partial = rows.find(
+    (r) =>
+      (r.name && (r.name.toLowerCase().includes(wanted) || wanted.includes(r.name.toLowerCase()))) ||
+      (r.hay && (r.hay.includes(wanted) || wanted.split(/[,\n]/).some((part) => {
+        const p = part.trim();
+        return p.length >= 6 && r.hay.includes(p);
+      }))),
+  );
+  if (partial?.name) {
+    logger.warn(`Shiprocket pickup env matched address → using nickname "${partial.name}" (id=${partial.id})`);
+    return { name: partial.name, available: names, auto: true, id: partial.id };
+  }
+
+  // 4) Significant tokens from address (vinayak, bhawarkua, 452001, tinkus…)
+  const tokens = wanted
+    .split(/[^a-z0-9]+/i)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 5);
+  if (tokens.length) {
+    const scored = rows
+      .map((r) => ({
+        ...r,
+        score: tokens.filter((t) => r.hay.includes(t)).length,
+      }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score);
+    if (scored[0]?.name && scored[0].score >= Math.min(2, tokens.length)) {
+      logger.warn(
+        `Shiprocket pickup env token-matched → "${scored[0].name}" (score ${scored[0].score}/${tokens.length})`,
+      );
+      return { name: scored[0].name, available: names, auto: true, id: scored[0].id };
+    }
+  }
+
+  if (names.length === 1) {
+    logger.warn(`Shiprocket pickup env unmatched; using only available nickname "${names[0]}"`);
+    return { name: names[0], available: names, auto: true, id: rows[0]?.id };
+  }
+
+  throw ApiError.badRequest(
+    `Shiprocket pickup match nahi hua. Env mein poora address mat dalo — nickname chahiye. ` +
+      `Available nicknames: ${names.join(' | ')}. ` +
+      `Shiprocket → Settings → Pickup Address pe left side ka short name copy karke ` +
+      `SHIPROCKET_PICKUP_LOCATION mein set karo.`,
+  );
+}
+
 /**
  * Create a custom/adhoc B2C Order in Shiprocket for delivery fulfillment.
  * Endpoint: POST /orders/create/adhoc
@@ -314,10 +416,31 @@ function shiprocketChannelOrderId(order) {
 }
 
 function extractCreatedOrder(result) {
-  const root = result?.data && typeof result.data === 'object' ? { ...result, ...result.data } : result || {};
+  // Wrong pickup often returns an array of pickup addresses instead of an order.
+  if (Array.isArray(result) || Array.isArray(result?.data)) {
+    const locs = Array.isArray(result) ? result : result.data;
+    const names = locs.map((l) => l?.pickup_location || l?.name).filter(Boolean);
+    if (names.length && locs[0]?.pickup_location) {
+      return {
+        orderId: '',
+        shipmentId: '',
+        awb: '',
+        courier: '',
+        status: 'PICKUP_MISMATCH',
+        statusCode: 0,
+        raw: result,
+        pickupHint: names,
+      };
+    }
+  }
+
+  const root = result?.data && typeof result.data === 'object' && !Array.isArray(result.data)
+    ? { ...result, ...result.data }
+    : result || {};
   const orderId = root.order_id ?? root.orderId ?? root.sr_order_id ?? null;
   const shipmentId = root.shipment_id ?? root.shipmentId ?? null;
   const statusCode = root.status_code ?? root.statusCode;
+  const msg = root.message || result?.message || '';
   return {
     orderId: orderId === 0 || orderId ? String(orderId) : '',
     shipmentId: shipmentId === 0 || shipmentId ? String(shipmentId) : '',
@@ -326,6 +449,8 @@ function extractCreatedOrder(result) {
     status: root.status || 'NEW',
     statusCode,
     raw: result,
+    message: msg,
+    pickupHint: null,
   };
 }
 
@@ -379,10 +504,12 @@ async function createAdhocOrder(order) {
     channelOrderId = `${channelOrderId}`.slice(0, 16) + String(Date.now()).slice(-4);
   }
 
+  const pickup = await resolvePickupLocationName();
+
   const payload = {
     order_id: channelOrderId,
     order_date: orderDateFormatted,
-    pickup_location: cleanEnv(process.env.SHIPROCKET_PICKUP_LOCATION) || 'Primary',
+    pickup_location: pickup.name,
     billing_customer_name: firstName,
     billing_last_name: lastName,
     billing_address: order.shippingAddress.address || '',
@@ -400,14 +527,15 @@ async function createAdhocOrder(order) {
     length: 10,
     breadth: 10,
     height: 5,
-    weight: Math.max(0.5, orderItems.length * 0.4),
+    // Always bill/ship as 500g — do not scale with item count or product weight.
+    weight: 0.5,
   };
 
   const channelId = cleanEnv(process.env.SHIPROCKET_CHANNEL_ID);
   if (channelId) payload.channel_id = Number(channelId) || channelId;
 
   logger.info(
-    `Pushing Order ${order.orderNumber} → Shiprocket channel order_id=${channelOrderId} pickup=${payload.pickup_location}`,
+    `Pushing Order ${order.orderNumber} → Shiprocket channel order_id=${channelOrderId} pickup="${payload.pickup_location}"`,
   );
 
   // request() expects { data, params } — passing payload directly sent an empty body.
@@ -417,26 +545,34 @@ async function createAdhocOrder(order) {
   logger.info(
     `Shiprocket create response for ${order.orderNumber}: ` +
       `order_id=${created.orderId || '(none)'} shipment_id=${created.shipmentId || '(none)'} ` +
-      `status_code=${created.statusCode} keys=${Object.keys(result || {}).join(',')}`,
+      `status_code=${created.statusCode}`,
   );
+
+  if (created.pickupHint?.length) {
+    throw ApiError.badRequest(
+      `Shiprocket pickup location galat hai. Available: ${created.pickupHint.join(' | ')}. ` +
+        `Railway pe SHIPROCKET_PICKUP_LOCATION exact set karo (tried: "${payload.pickup_location}").`,
+    );
+  }
 
   if (created.statusCode === 0 || created.statusCode === '0') {
     throw ApiError.badRequest(
-      `Shiprocket rejected the order (status_code=0): ${JSON.stringify(result).slice(0, 400)}`,
+      `Shiprocket rejected the order (status_code=0): ${created.message || JSON.stringify(result).slice(0, 400)}`,
     );
   }
 
   if (!created.orderId || !created.shipmentId) {
     throw ApiError.badRequest(
-      'Shiprocket did not return order_id/shipment_id. Order may not have been created. ' +
-        `Response: ${JSON.stringify(result).slice(0, 400)}. ` +
-        'Check pickup location name matches Shiprocket exactly, and Orders module is enabled for the API user.',
+      'Shiprocket did not return order_id/shipment_id. ' +
+        `Tried pickup "${payload.pickup_location}". Available: ${pickup.available.join(' | ')}. ` +
+        `Response: ${JSON.stringify(result).slice(0, 300)}`,
     );
   }
 
   return {
     ...created,
     channelOrderId,
+    pickupLocation: payload.pickup_location,
     order_id: created.orderId,
     shipment_id: created.shipmentId,
     awb_code: created.awb,
@@ -448,6 +584,8 @@ module.exports = {
   login,
   credentialsPresent,
   diagnoseConnection,
+  listPickupLocations,
+  resolvePickupLocationName,
   checkServiceability,
   trackByAwb,
   trackByShipmentId,

@@ -298,6 +298,37 @@ function mapStatus(shiprocketStatus = '') {
  * Create a custom/adhoc B2C Order in Shiprocket for delivery fulfillment.
  * Endpoint: POST /orders/create/adhoc
  */
+function shiprocketChannelOrderId(order) {
+  // Shiprocket docs: avoid letters in order_id (breaks some courier APIs).
+  // Build a digit-only id from ObjectId + orderNumber digits, max 20 chars.
+  const hex = String(order._id || '');
+  let fromId = '';
+  try {
+    fromId = BigInt(`0x${hex.slice(-10)}`).toString();
+  } catch {
+    fromId = String(Date.now());
+  }
+  const fromNumber = String(order.orderNumber || '').replace(/\D/g, '');
+  const id = `${fromNumber}${fromId}`.replace(/\D/g, '').slice(0, 20);
+  return id || String(Date.now()).slice(-12);
+}
+
+function extractCreatedOrder(result) {
+  const root = result?.data && typeof result.data === 'object' ? { ...result, ...result.data } : result || {};
+  const orderId = root.order_id ?? root.orderId ?? root.sr_order_id ?? null;
+  const shipmentId = root.shipment_id ?? root.shipmentId ?? null;
+  const statusCode = root.status_code ?? root.statusCode;
+  return {
+    orderId: orderId === 0 || orderId ? String(orderId) : '',
+    shipmentId: shipmentId === 0 || shipmentId ? String(shipmentId) : '',
+    awb: root.awb_code || root.awb || '',
+    courier: root.courier_name || '',
+    status: root.status || 'NEW',
+    statusCode,
+    raw: result,
+  };
+}
+
 async function createAdhocOrder(order) {
   if (!credentialsPresent()) {
     throw ApiError.internal(
@@ -342,8 +373,14 @@ async function createAdhocOrder(order) {
     0,
   );
 
+  // If a previous push saved empty IDs, don't reuse a colliding channel order_id.
+  let channelOrderId = shiprocketChannelOrderId(order);
+  if (order.shiprocket?.pushedAt && !order.shiprocket?.orderId) {
+    channelOrderId = `${channelOrderId}`.slice(0, 16) + String(Date.now()).slice(-4);
+  }
+
   const payload = {
-    order_id: String(order.orderNumber),
+    order_id: channelOrderId,
     order_date: orderDateFormatted,
     pickup_location: cleanEnv(process.env.SHIPROCKET_PICKUP_LOCATION) || 'Primary',
     billing_customer_name: firstName,
@@ -369,11 +406,42 @@ async function createAdhocOrder(order) {
   const channelId = cleanEnv(process.env.SHIPROCKET_CHANNEL_ID);
   if (channelId) payload.channel_id = Number(channelId) || channelId;
 
-  logger.info(`Pushing Order ${order.orderNumber} to Shiprocket adhoc API...`);
-  // request() expects { data, params } — passing the payload object directly
-  // sent an empty body and Shiprocket returned "Either empty or Invalid JSON".
-  const data = await request('post', '/orders/create/adhoc', { data: payload });
-  return data;
+  logger.info(
+    `Pushing Order ${order.orderNumber} → Shiprocket channel order_id=${channelOrderId} pickup=${payload.pickup_location}`,
+  );
+
+  // request() expects { data, params } — passing payload directly sent an empty body.
+  const result = await request('post', '/orders/create/adhoc', { data: payload });
+  const created = extractCreatedOrder(result);
+
+  logger.info(
+    `Shiprocket create response for ${order.orderNumber}: ` +
+      `order_id=${created.orderId || '(none)'} shipment_id=${created.shipmentId || '(none)'} ` +
+      `status_code=${created.statusCode} keys=${Object.keys(result || {}).join(',')}`,
+  );
+
+  if (created.statusCode === 0 || created.statusCode === '0') {
+    throw ApiError.badRequest(
+      `Shiprocket rejected the order (status_code=0): ${JSON.stringify(result).slice(0, 400)}`,
+    );
+  }
+
+  if (!created.orderId || !created.shipmentId) {
+    throw ApiError.badRequest(
+      'Shiprocket did not return order_id/shipment_id. Order may not have been created. ' +
+        `Response: ${JSON.stringify(result).slice(0, 400)}. ` +
+        'Check pickup location name matches Shiprocket exactly, and Orders module is enabled for the API user.',
+    );
+  }
+
+  return {
+    ...created,
+    channelOrderId,
+    order_id: created.orderId,
+    shipment_id: created.shipmentId,
+    awb_code: created.awb,
+    courier_name: created.courier,
+  };
 }
 
 module.exports = {

@@ -393,6 +393,8 @@ function OrderDetail({ id, onClose, onSaved }) {
                     ? `✅ Order #${order.shiprocket.orderId}`
                     : order.shiprocket?.error
                     ? '⚠️ Push Failed'
+                    : order.shiprocket?.pushedAt
+                    ? '⚠️ Push incomplete (no Shiprocket id)'
                     : '⏳ Delivery Not Created'}
                 </span>
               </div>

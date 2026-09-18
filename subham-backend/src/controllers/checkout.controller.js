@@ -938,22 +938,34 @@ exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
   const shiprocket = require('../services/shiprocket.service');
   try {
     const result = await shiprocket.createAdhocOrder(order);
-    
+
+    if (!result.order_id || !result.shipment_id) {
+      throw ApiError.badRequest(
+        'Shiprocket push returned no order/shipment id. Not marking as created.',
+      );
+    }
+
     order.shiprocket = {
-      orderId: String(result.order_id || result.data?.order_id || ''),
-      shipmentId: String(result.shipment_id || result.data?.shipment_id || ''),
-      awb: String(result.awb_code || result.data?.awb_code || ''),
+      orderId: String(result.order_id),
+      shipmentId: String(result.shipment_id),
+      awb: String(result.awb_code || ''),
       status: result.status || 'CREATED',
+      channelOrderId: result.channelOrderId || '',
       pushedAt: new Date(),
       error: null,
     };
+    if (!order.tracking) order.tracking = {};
     if (result.awb_code) {
       order.tracking.awb = result.awb_code;
       order.tracking.courier = result.courier_name || 'Shiprocket';
     }
     await order.save();
 
-    return ok(res, { order, result, message: 'Order successfully pushed to Shiprocket!' });
+    return ok(res, {
+      order,
+      result,
+      message: `Order pushed to Shiprocket (SR #${result.order_id}, shipment ${result.shipment_id})`,
+    });
   } catch (err) {
     const detail =
       err.response?.data?.message ||

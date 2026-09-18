@@ -94,6 +94,8 @@ const orderSchema = new mongoose.Schema(
       shipmentId: String,
       awb: String,
       status: String,
+      /** Digit-only id we sent to Shiprocket as order_id */
+      channelOrderId: String,
       pushedAt: Date,
       error: String,
     },

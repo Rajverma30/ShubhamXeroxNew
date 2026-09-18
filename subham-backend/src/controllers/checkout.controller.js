@@ -920,6 +920,13 @@ exports.adminSendWhatsApp = asyncHandler(async (req, res) => {
   });
 });
 
+/** GET /api/admin/shiprocket/status — diagnose Shipping API login (no secrets). */
+exports.adminShiprocketStatus = asyncHandler(async (_req, res) => {
+  const shiprocket = require('../services/shiprocket.service');
+  const status = await shiprocket.diagnoseConnection();
+  return ok(res, status);
+});
+
 /** POST /api/admin/orders/:id/push-shiprocket — Push order to Shiprocket for delivery */
 exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
   const { id } = req.params;

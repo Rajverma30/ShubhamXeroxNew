@@ -70,6 +70,7 @@ router.patch('/orders/:id', orderCtrl.adminUpdateOrder);
 router.post('/orders/:id/sync-payment', orderCtrl.adminSyncPayment);
 router.post('/orders/:id/whatsapp', orderCtrl.adminSendWhatsApp);
 router.post('/orders/:id/push-shiprocket', orderCtrl.adminPushToShiprocket);
+router.get('/shiprocket/status', orderCtrl.adminShiprocketStatus);
 
 
 /* ── products (books / ebooks / stationery) ── */

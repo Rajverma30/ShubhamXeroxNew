@@ -248,6 +248,35 @@ export default function Settings() {
                 {resyncMutation.isPending ? 'Queueing…' : 'Sync catalogue now'}
               </button>
             </div>
+
+            <div className={`mt-3 rounded-xl border p-3.5 text-xs ${shiprocket?.shippingApi?.loginOk ? 'border-emerald-200 bg-emerald-50/70 text-emerald-900' : 'border-amber-200 bg-amber-50/70 text-amber-950'}`}>
+              <p className="font-semibold">
+                Push-to-Shiprocket (Shipping API):{' '}
+                {shiprocket?.shippingApi
+                  ? (shiprocket.shippingApi.loginOk ? 'Login OK' : 'Login FAILED')
+                  : 'Checking…'}
+              </p>
+              {shiprocket?.shippingApi && (
+                <p className="mt-1 leading-relaxed">
+                  Email on server: <code className="font-mono">{shiprocket.shippingApi.emailMasked}</code>
+                  {' · '}HTTP {shiprocket.shippingApi.httpStatus ?? '—'}
+                  {' · '}Pickup env: <code className="font-mono">{shiprocket.shippingApi.pickupLocationEnv || 'Primary'}</code>
+                  {shiprocket.shippingApi.pickupNames?.length ? (
+                    <> · Available pickups: {shiprocket.shippingApi.pickupNames.join(', ')}</>
+                  ) : null}
+                  <br />
+                  {shiprocket.shippingApi.message}
+                </p>
+              )}
+              <p className="mt-2 text-2xs opacity-80">
+                Ye alag credentials hain: <code className="font-mono">SHIPROCKET_EMAIL</code> + <code className="font-mono">SHIPROCKET_PASSWORD</code>
+                (Settings → API → API User). Panel login / Checkout API key yahan kaam nahi karta.
+              </p>
+              <button type="button" className="btn-outline btn-sm mt-2" onClick={() => refetchShiprocket()}>
+                Re-test Shipping API login
+              </button>
+            </div>
+
             <p className="mt-2 text-2xs text-ink-400">
               Required server variables: SHIPROCKET_CHECKOUT_API_KEY, SHIPROCKET_CHECKOUT_API_SECRET, FASTRR_SELLER_DOMAIN,
               FASTRR_PRODUCT_WEBHOOK_URL, FASTRR_COLLECTION_WEBHOOK_URL, FASTRR_API_KEY and FASTRR_WEBHOOK_SECRET.

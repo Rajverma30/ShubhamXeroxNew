@@ -468,11 +468,17 @@ exports.webhookCustomer = webhookCustomer;
 
 /** Admin-only configuration health; secrets are never returned. */
 exports.diagnostics = asyncHandler(async (_req, res) => {
-  const [settings, productCount, collectionCount, subCollectionCount] = await Promise.all([
+  const shiprocketShipping = require('../services/shiprocket.service');
+  const [settings, productCount, collectionCount, subCollectionCount, shippingApi] = await Promise.all([
     Setting.getSingleton(),
     Product.countDocuments({ isActive: true, isHidden: false }),
     Category.countDocuments({ isActive: true }),
     SubCategory.countDocuments({ isActive: true }),
+    shiprocketShipping.diagnoseConnection().catch((err) => ({
+      configured: shiprocketShipping.credentialsPresent(),
+      loginOk: false,
+      message: err.message || 'diagnose failed',
+    })),
   ]);
   return ok(res, {
     checkoutMode: settings.checkout?.mode === 'shiprocket' ? 'shiprocket' : 'razorpay',
@@ -482,6 +488,8 @@ exports.diagnostics = asyncHandler(async (_req, res) => {
     checkoutUiBaseUrl: CHECKOUT_UI(),
     catalogue: { products: productCount, collections: collectionCount + subCollectionCount },
     autoSync: catalogueSync.diagnostics(),
+    /** External Shipping API used by "Push to Shiprocket" (email/password). */
+    shippingApi,
   });
 });
 

@@ -381,29 +381,43 @@ async function markPaid(orderRef, { paymentId, signature, method, amountPaisa, r
     ).catch((e) => logger.warn(`Failed updating WA confirmation status on ${transitioned.orderNumber}: ${e.message}`));
   }).catch((e) => logger.warn(`Failed sending WA order confirmation greeting for ${transitioned.orderNumber}: ${e.message}`));
 
-  // Auto-push to Shiprocket if enabled in settings
+  // Auto-push to Shiprocket — PAID orders only.
   try {
     const Setting = require('../models/Setting');
     const settings = await Setting.getSingleton();
-    if (settings?.shiprocketAutoPush && !transitioned.shiprocket?.orderId) {
+    const isPaid = transitioned.payment?.status === 'paid';
+    if (settings?.shiprocketAutoPush && isPaid && !transitioned.shiprocket?.orderId) {
       const shiprocket = require('../services/shiprocket.service');
       const srRes = await shiprocket.createAdhocOrder(transitioned);
+      if (!srRes.order_id || !srRes.shipment_id) {
+        throw new Error('Shiprocket returned no order/shipment id');
+      }
       transitioned.shiprocket = {
-        orderId: String(srRes.order_id || srRes.data?.order_id || ''),
-        shipmentId: String(srRes.shipment_id || srRes.data?.shipment_id || ''),
-        awb: String(srRes.awb_code || srRes.data?.awb_code || ''),
+        orderId: String(srRes.order_id),
+        shipmentId: String(srRes.shipment_id),
+        awb: String(srRes.awb_code || ''),
         status: srRes.status || 'CREATED',
+        channelOrderId: srRes.channelOrderId || '',
         pushedAt: new Date(),
+        error: null,
       };
+      if (!transitioned.tracking) transitioned.tracking = {};
       if (srRes.awb_code) {
         transitioned.tracking.awb = srRes.awb_code;
         transitioned.tracking.courier = srRes.courier_name || 'Shiprocket';
       }
       await transitioned.save();
-      logger.info(`Auto-pushed order ${transitioned.orderNumber} to Shiprocket successfully.`);
+      logger.info(`Auto-pushed paid order ${transitioned.orderNumber} to Shiprocket (SR #${srRes.order_id}).`);
+    } else if (settings?.shiprocketAutoPush && !isPaid) {
+      logger.info(`Skipping Shiprocket auto-push for ${transitioned.orderNumber}: payment not paid`);
     }
   } catch (srErr) {
     logger.warn(`Failed auto-pushing order ${transitioned.orderNumber} to Shiprocket: ${srErr.message}`);
+    try {
+      transitioned.shiprocket = transitioned.shiprocket || {};
+      transitioned.shiprocket.error = String(srErr.message || 'auto-push failed').slice(0, 500);
+      await transitioned.save();
+    } catch (_) { /* ignore */ }
   }
 
   return transitioned;
@@ -934,6 +948,12 @@ exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
 
   const order = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
   if (!order) throw ApiError.notFound('Order not found');
+
+  if (order.payment?.status !== 'paid') {
+    throw ApiError.badRequest(
+      'Sirf paid orders Shiprocket pe push ho sakte hain. Is order ka payment abhi confirm nahi hua.',
+    );
+  }
 
   const shiprocket = require('../services/shiprocket.service');
   try {

@@ -140,7 +140,7 @@ export default function Orders() {
             }`}
           >
             <FiTruck size={14} />
-            Auto-Push to Shiprocket: <span className="font-bold uppercase">{settingsData?.shiprocketAutoPush ? 'ON' : 'OFF'}</span>
+            Auto-Push (paid only): <span className="font-bold uppercase">{settingsData?.shiprocketAutoPush ? 'ON' : 'OFF'}</span>
           </button>
         </div>
       </div>
@@ -417,12 +417,16 @@ function OrderDetail({ id, onClose, onSaved }) {
                 <button
                   type="button"
                   onClick={handlePushShiprocket}
-                  disabled={pushingShiprocket}
+                  disabled={pushingShiprocket || !paid}
+                  title={!paid ? 'Only paid orders can be pushed to Shiprocket' : undefined}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-2xs"
                 >
                   {pushingShiprocket ? <Spinner size={12} /> : <FiSend size={12} />}
                   {order.shiprocket?.orderId ? 'Re-push Order to Shiprocket' : 'Push to Shiprocket (Create Delivery)'}
                 </button>
+                {!paid && (
+                  <span className="text-2xs text-amber-700">Payment confirm hone ke baad hi push hoga.</span>
+                )}
 
                 {order.shiprocket?.orderId && (
                   <span className="text-2xs font-mono text-sky-900 bg-white px-2.5 py-1.5 rounded border border-sky-200 font-semibold">

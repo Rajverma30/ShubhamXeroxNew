@@ -17,7 +17,6 @@ import { useStore } from '../context/StoreContext';
 import CheckoutFlow from '../components/checkout/CheckoutFlow';
 import Seo from '../components/ui/Seo';
 import Gallery from '../components/product/Gallery';
-import BookPreview from '../components/product/BookPreview';
 import ProductRail from '../components/product/ProductRail';
 import { Breadcrumbs, EmptyState, PriceTag, QuantityStepper, Rating, Spinner, Tag } from '../components/ui/Common';
 import { DetailSkeleton } from '../components/ui/Skeleton';
@@ -36,7 +35,6 @@ export default function ProductDetail() {
 
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState('description');
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState(null);
 
@@ -239,25 +237,18 @@ export default function ProductDetail() {
               </button>
             </div>
 
-            {(product.ebook?.available || product.imagesFromPdf || (product.images?.length > 0 && product.type !== 'stationery')) && (
+            {product.ebook?.available && (
               <div className="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5">
                 <p className="flex items-center gap-2 text-sm font-bold text-emerald-800">
-                  <FiBookOpen size={16} /> {product.ebook?.available ? 'Free ebook with this title' : 'Sample pages available'}
+                  <FiBookOpen size={16} /> Free Ebook Included
                 </p>
                 <p className="mt-1.5 text-xs leading-relaxed text-emerald-700/80">
-                  {product.ebook?.available
-                    ? 'Download the complete PDF at no extra cost — no account needed.'
-                    : 'Read the first few pages before you buy.'}
+                  Preview or download the complete PDF at no extra cost — no account needed.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2.5">
-                  {product.ebook?.available && (
-                    <a href={api.ebookUrl(product.slug)} target="_blank" rel="noreferrer" className="btn bg-emerald-600 px-5 py-2.5 text-white hover:bg-emerald-700">
-                      <FiDownload size={15} /> Download free ebook
-                    </a>
-                  )}
-                  <button type="button" onClick={() => setPreviewOpen(true)} className="btn border border-emerald-300 bg-white px-5 py-2.5 text-emerald-800 hover:bg-emerald-50">
-                    <FiBookOpen size={15} /> Read a sample
-                  </button>
+                  <a href={api.ebookUrl(product.slug)} target="_blank" rel="noreferrer" className="btn bg-emerald-600 px-5 py-2.5 text-white hover:bg-emerald-700 gap-2 font-medium">
+                    <FiDownload size={16} /> Preview & Download Free Ebook
+                  </a>
                 </div>
               </div>
             )}
@@ -357,9 +348,6 @@ export default function ProductDetail() {
       </div>
       {/* clears both the action bar and the floating nav */}
       <div className="h-28 lg:hidden" aria-hidden />
-
-      <BookPreview open={previewOpen} onClose={() => setPreviewOpen(false)} slug={product.slug}
-        title={product.title} ebookAvailable={product.ebook?.available} />
 
       {/* Buy now → mobile number → OTP → address → Razorpay. */}
       {checkoutOpen && (

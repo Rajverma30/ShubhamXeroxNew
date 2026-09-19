@@ -239,7 +239,7 @@ export default function ProductDetail() {
               </button>
             </div>
 
-            {(product.ebook?.available || product.imagesFromPdf) && (
+            {(product.ebook?.available || product.imagesFromPdf || (product.images?.length > 0 && product.type !== 'stationery')) && (
               <div className="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5">
                 <p className="flex items-center gap-2 text-sm font-bold text-emerald-800">
                   <FiBookOpen size={16} /> {product.ebook?.available ? 'Free ebook with this title' : 'Sample pages available'}

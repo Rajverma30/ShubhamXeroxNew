@@ -306,16 +306,41 @@ exports.getBySlug = asyncHandler(async (req, res) => {
 
 /** GET /api/products/:slug/preview — page images for the reader modal. */
 exports.preview = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({ slug: req.params.slug }).lean();
+  const product = await Product.findOne({ slug: req.params.slug });
   if (!product) throw ApiError.notFound('Product not found');
-  if (!product.ebook?.allowPreview && !product.imagesFromPdf) {
-    throw ApiError.forbidden('Preview is not available for this title');
+
+  let pdfPages = (product.images || []).filter((i) => i.source === 'pdf').map((i) => i.url);
+
+  // If no pdf pages pre-extracted, check if pdf file exists to extract preview pages on the fly
+  if (!pdfPages.length && (product.sourcePdf?.path || product.ebook?.filePath)) {
+    const pdfPath = product.sourcePdf?.path || product.ebook?.filePath;
+    try {
+      const extracted = await pdfService.extractPreviewImages(pdfPath, {
+        pages: product.ebook?.previewPages || pdfService.PREVIEW_PAGES,
+        folder: 'products',
+        altBase: product.title,
+      });
+      if (extracted.length) {
+        pdfPages = extracted.map((i) => i.url);
+        product.images = [...(product.images || []), ...extracted];
+        product.imagesFromPdf = true;
+        await product.save({ validateBeforeSave: false });
+      }
+    } catch (err) {
+      logger.warn(`On-the-fly PDF preview extraction failed for "${product.title}":`, err.message);
+    }
   }
-  const pages = (product.images || []).filter((i) => i.source === 'pdf').map((i) => i.url);
-  return ok(res, { pages, pageCount: product.ebook?.pageCount || product.sourcePdf?.pageCount || pages.length });
+
+  // Fallback to product images if no pdf-specific pages available
+  const pages = pdfPages.length ? pdfPages : (product.images || []).map((i) => i.url);
+
+  return ok(res, {
+    pages,
+    pageCount: product.ebook?.pageCount || product.sourcePdf?.pageCount || pages.length,
+  });
 });
 
-/** GET /api/products/:slug/ebook — free ebook download (counter + stream). */
+/** GET /api/products/:slug/ebook — free ebook download (counter + stream/redirect). */
 exports.downloadEbook = asyncHandler(async (req, res) => {
   const product = await Product.findOne({ slug: req.params.slug });
   if (!product) throw ApiError.notFound('Product not found');
@@ -326,13 +351,28 @@ exports.downloadEbook = asyncHandler(async (req, res) => {
   await product.save({ validateBeforeSave: false });
 
   const filePath = product.ebook.filePath;
-  try {
-    await fs.access(filePath);
-  } catch {
-    // Cloudinary / external storage — hand back the URL instead.
-    return ok(res, { url: product.ebook.fileUrl });
+  let fileExists = false;
+  if (filePath) {
+    try {
+      await fs.access(filePath);
+      fileExists = true;
+    } catch {
+      fileExists = false;
+    }
   }
-  return res.download(filePath, `${product.slug}.pdf`);
+
+  if (fileExists) {
+    return res.download(filePath, `${product.slug}.pdf`);
+  }
+
+  // File path not available on local filesystem — redirect directly to public URL
+  let targetUrl = product.ebook.fileUrl;
+  if (targetUrl.startsWith('/')) {
+    const host = req.get('host');
+    const protocol = req.protocol;
+    targetUrl = `${protocol}://${host}${targetUrl}`;
+  }
+  return res.redirect(targetUrl);
 });
 
 /** GET /api/search/suggest?q= — instant suggestions with rich metadata. */

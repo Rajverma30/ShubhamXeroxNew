@@ -157,8 +157,9 @@ async function syncMedia(doc, files = {}, keep = null, settings = null) {
     const sourcePath = doc.sourcePdf?.path || doc.ebook?.filePath;
     if (sourcePath) {
       try {
+        const pagesToExtract = Number(settings?.pdfPageCount || settings?.previewPages) || pdfService.PREVIEW_PAGES;
         const pages = await pdfService.extractPreviewImages(sourcePath, {
-          pages: pdfService.PREVIEW_PAGES,
+          pages: pagesToExtract,
           folder: 'products',
           altBase: doc.title,
         });

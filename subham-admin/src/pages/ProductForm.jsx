@@ -10,7 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  FiArrowLeft, FiDownloadCloud, FiFileText, FiInfo, FiPlus, FiSave, FiTrash2, FiX,
+  FiArrowLeft, FiDownloadCloud, FiFileText, FiImage, FiInfo, FiPlus, FiSave, FiTrash2, FiX,
 } from 'react-icons/fi';
 import api, { toFormData } from '../lib/api';
 import { useToast } from '../context/ToastContext';
@@ -18,7 +18,7 @@ import { PRODUCT_TYPES } from '../lib/format';
 import ImageDropzone, { FileDropzone } from '../components/ImageDropzone';
 import RichTextEditor from '../components/RichTextEditor';
 import {
-  CheckboxRow, Field, Input, LoadingBlock, PageHeader, SectionCard, Select, Spinner, Textarea,
+  CheckboxRow, Field, Input, LoadingBlock, Modal, PageHeader, SectionCard, Select, Spinner, Textarea,
 } from '../components/Ui';
 
 const DEFAULTS = {
@@ -50,6 +50,8 @@ export default function ProductForm() {
   const [pdfFile, setPdfFile] = useState(null);
   const [ebookFile, setEbookFile] = useState(null);
   const [description, setDescription] = useState('');
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfPageCount, setPdfPageCount] = useState(5);
 
   const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isSubmitting } } =
     useForm({ defaultValues: DEFAULTS });
@@ -152,6 +154,7 @@ export default function ProductForm() {
     });
     setDescription(existing.description || '');
     setKeepImages((existing.images || []).map((i) => i.url));
+    if (existing.ebook?.previewPages) setPdfPageCount(existing.ebook.previewPages);
   }, [existing, reset]);
 
   const savedImages = useMemo(
@@ -210,7 +213,11 @@ export default function ProductForm() {
 
     // `ebook` is both a file field and an object of settings — send the
     // settings under a distinct key so multer doesn't collide with them.
-    payload.ebookSettings = values.ebook;
+    payload.ebookSettings = {
+      ...values.ebook,
+      pdfPageCount,
+      previewPages: pdfPageCount,
+    };
     delete payload.ebook;
     payload.ebook = ebookFile;
 
@@ -290,38 +297,94 @@ export default function ProductForm() {
             />
           </SectionCard>
 
-          <SectionCard title="Images" description="The first image is the cover. Cards rotate through the first 5 on hover.">
-            <ImageDropzone
-              files={images}
-              onChange={setImages}
-              existing={savedImages}
-              onRemoveExisting={(url) => setKeepImages((k) => (k || []).filter((u) => u !== url))}
-            />
+          <SectionCard
+            title="Book Media & Cover Images"
+            description="Partitioned Upload: Upload images manually (Left) OR upload a PDF to auto-convert its pages to images (Right)."
+          >
+            <div className="grid gap-5 lg:grid-cols-2">
+              {/* Left Partition: Manual Image Upload */}
+              <div className="rounded-2xl border border-ink-100 bg-white p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-ink-100 pb-2.5">
+                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-800">
+                    <FiImage size={16} className="text-brand-600" /> 1. Upload Images
+                  </span>
+                  <span className="text-2xs text-ink-400">PNG, JPG, WebP</span>
+                </div>
+                <ImageDropzone
+                  files={images}
+                  onChange={setImages}
+                  existing={savedImages}
+                  onRemoveExisting={(url) => setKeepImages((k) => (k || []).filter((u) => u !== url))}
+                />
+              </div>
+
+              {/* Right Partition: Upload PDF for Auto-Image Generation */}
+              <div className="rounded-2xl border border-ink-100 bg-white p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-ink-100 pb-2.5">
+                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-800">
+                    <FiFileText size={16} className="text-brand-600" /> 2. Upload PDF (Auto-Images)
+                  </span>
+                  <span className="text-2xs text-ink-400">PDF up to 60 MB</span>
+                </div>
+
+                <FileDropzone
+                  file={pdfFile}
+                  onChange={(file) => {
+                    setPdfFile(file);
+                    if (file) {
+                      setPdfModalOpen(true);
+                    }
+                  }}
+                  label="Source PDF (for cover & page images)"
+                  hint="Drop PDF here. Page 1 becomes main cover photo."
+                  accept={{ 'application/pdf': ['.pdf'] }}
+                  existingUrl={existing?.sourcePdf?.url}
+                  icon={FiFileText}
+                />
+
+                {(pdfFile || existing?.sourcePdf?.url) && (
+                  <div className="rounded-xl border border-brand-200 bg-brand-50/80 p-3.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2.5">
+                        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white font-bold text-xs">
+                          <FiFileText size={14} />
+                        </span>
+                        <div>
+                          <p className="truncate text-xs font-bold text-brand-950">
+                            {pdfFile?.name || existing?.sourcePdf?.filename || 'Source PDF Attached'}
+                          </p>
+                          <p className="mt-0.5 text-2xs font-medium text-brand-800">
+                            Converting first <span className="font-bold underline">{pdfPageCount} pages</span> to images
+                            (Page 1 = Main Cover)
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPdfModalOpen(true)}
+                        className="btn-outline btn-xs shrink-0 border-brand-300 bg-white text-brand-800 hover:bg-brand-100"
+                      >
+                        Select Pages
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {willUsePdfImages && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-brand-50 px-3.5 py-2.5 text-2xs leading-relaxed text-brand-800">
+              <p className="mt-4 flex items-start gap-2 rounded-xl bg-brand-50 px-3.5 py-2.5 text-2xs leading-relaxed text-brand-800">
                 <FiInfo size={13} className="mt-0.5 shrink-0" />
-                No images set — the first 5 pages of the attached PDF will be converted to images and used as the
-                gallery when you save.
+                No manual images uploaded — the first <strong>{pdfPageCount} pages</strong> of the attached PDF will be converted into high-quality images and used as the gallery (Page 1 = Main Cover photo).
               </p>
             )}
           </SectionCard>
 
           <SectionCard
-            title="PDF & free ebook"
-            description="Attach the source PDF (used for auto-generated covers) and/or the free ebook customers can download."
+            title="Free ebook PDF"
+            description="Attach the free ebook PDF that customers can download on the storefront."
           >
             <div className="grid gap-4">
-              <FileDropzone
-                file={pdfFile}
-                onChange={setPdfFile}
-                label="Source PDF (for cover generation)"
-                hint="PDF up to 60 MB. Only its first 5 pages are rasterised."
-                accept={{ 'application/pdf': ['.pdf'] }}
-                existingUrl={existing?.sourcePdf?.url}
-                icon={FiFileText}
-              />
-
               <FileDropzone
                 file={ebookFile}
                 onChange={setEbookFile}
@@ -335,7 +398,7 @@ export default function ProductForm() {
               {(ebookFile || existing?.ebook?.fileUrl) && (
                 <div className="grid gap-3 rounded-xl bg-ink-50 p-4 sm:grid-cols-3">
                   <CheckboxRow label="Free download" description="Customers download at no cost" {...register('ebook.isFree')} />
-                  <CheckboxRow label="Allow preview" description="Show the sample reader" {...register('ebook.allowPreview')} />
+                  <CheckboxRow label="Allow preview" description="Show sample reader" {...register('ebook.allowPreview')} />
                   <Field label="Preview pages">
                     <Input type="number" min={1} max={20} {...register('ebook.previewPages')} />
                   </Field>
@@ -615,6 +678,98 @@ export default function ProductForm() {
           )}
         </div>
       </div>
+
+      {/* Page Count Selection Modal */}
+      <Modal
+        open={pdfModalOpen}
+        onClose={() => setPdfModalOpen(false)}
+        title="Select PDF Pages to Convert to Images"
+        size="md"
+        footer={
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-ink-500">
+              Converting <span className="font-bold text-ink-900">{pdfPageCount} pages</span>
+            </span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setPdfModalOpen(false)} className="btn-outline">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setValue('ebook.previewPages', pdfPageCount);
+                  setPdfModalOpen(false);
+                  toast(`Set to convert first ${pdfPageCount} pages (Page 1 = Main Cover Photo).`);
+                }}
+                className="btn-primary"
+              >
+                Confirm Pages
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-brand-100 bg-brand-50/70 p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white">
+                <FiFileText size={20} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-brand-950">
+                  {pdfFile?.name || existing?.sourcePdf?.filename || 'Source PDF File'}
+                </p>
+                <p className="text-2xs text-brand-700">
+                  Page 1 will automatically be set as the <span className="font-bold">Main Book Cover Photo</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Select how many pages to convert into book images (1 to 20):</label>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {[1, 3, 5, 7, 10, 15].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setPdfPageCount(num)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+                    pdfPageCount === num
+                      ? 'bg-ink-900 text-white shadow-soft'
+                      : 'border border-ink-200 bg-ink-50 text-ink-700 hover:bg-ink-100'
+                  }`}
+                >
+                  {num === 1 ? '1 Page (Cover Only)' : `${num} Pages`}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                min={1}
+                max={20}
+                value={pdfPageCount}
+                onChange={(e) => setPdfPageCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                className="w-32"
+              />
+              <span className="text-xs text-ink-500">pages will be converted to high-quality images</span>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-amber-50 p-3.5 text-2xs leading-relaxed text-amber-800 flex items-start gap-2">
+            <FiInfo size={15} className="mt-0.5 shrink-0 text-amber-600" />
+            <span>
+              If you choose <strong>{pdfPageCount} pages</strong>:
+              <br />
+              • <strong>Page 1</strong> will be converted into the <strong>Main Book Cover Photo</strong>.
+              <br />
+              • <strong>Pages 2 to {pdfPageCount}</strong> will form the sample gallery images.
+            </span>
+          </div>
+        </div>
+      </Modal>
     </form>
   );
 }

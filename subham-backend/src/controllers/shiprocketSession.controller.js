@@ -213,11 +213,20 @@ function extractOrderId(payload) {
   // The Fastrr cart cannot always preserve a merchant reference; accept our
   // own order-id if the provider uses it as `order_id`.
   for (const object of objects) {
-    const value = first(object.order_id, object.orderId, object.id);
+    const value = first(object.order_id, object.orderId, object.id, object.shiprocket_order_id, object.sr_order_id, object.order_number);
     if (value && String(value).startsWith('SXSR-')) return String(value);
   }
   const embedded = JSON.stringify(payload).match(/\bSXSR-[A-Z0-9-]+\b/i)?.[0];
   if (embedded) return embedded.toUpperCase();
+
+  // Fallback: Use Fastrr's native order ID (e.g. 391233424 -> SR-391233424)
+  for (const object of objects) {
+    const value = first(object.order_id, object.orderId, object.id, object.shiprocket_order_id, object.sr_order_id, object.order_number);
+    if (value && String(value).trim() && String(value) !== '[object Object]') {
+      const cleanVal = String(value).trim();
+      return cleanVal.startsWith('SR-') || cleanVal.startsWith('SX-') ? cleanVal : `SR-${cleanVal}`;
+    }
+  }
   return '';
 }
 
@@ -419,6 +428,128 @@ async function confirmOrderFromSession(session, payload = {}) {
   return order;
 }
 
+async function createOrderFromFastrrPayload(payload, orderId) {
+  const customer = webhookCustomer(payload);
+  const objects = collectObjects(payload);
+
+  const cleanId = orderId || `SR-${Date.now()}`;
+  let existing = await Order.findOne({
+    $or: [
+      { orderNumber: cleanId },
+      ...(cleanId.startsWith('SR-') ? [{ orderNumber: cleanId.replace(/^SR-/, '') }] : []),
+    ],
+  });
+
+  if (existing) {
+    let updated = false;
+    if (customer.name && customer.name !== 'Shiprocket Guest' && customer.name !== 'Customer') {
+      existing.customer.name = customer.name;
+      updated = true;
+    }
+    if (customer.phone && customer.phone !== 'Via Fastrr' && customer.phone !== '9999999999') {
+      existing.customer.phone = customer.phone;
+      updated = true;
+    }
+    if (customer.email && customer.email !== existing.customer.email) {
+      existing.customer.email = customer.email;
+      updated = true;
+    }
+    if (customer.address && customer.address.address && customer.address.address !== 'Shiprocket Checkout Attempt') {
+      existing.shippingAddress = customer.address;
+      updated = true;
+    }
+    if (updated) await existing.save();
+    return existing;
+  }
+
+  // Extract raw line items from Fastrr payload
+  const rawItems = first(
+    payload.line_items,
+    payload.cart,
+    payload.items,
+    payload.products,
+    payload.order?.line_items,
+    payload.data?.line_items,
+    payload.order?.items,
+  ) || [];
+
+  const items = [];
+  let subtotal = 0;
+
+  if (Array.isArray(rawItems) && rawItems.length > 0) {
+    for (const raw of rawItems) {
+      const pId = first(raw.product_id, raw.productId, raw.id, raw._id);
+      const sku = first(raw.sku, raw.variant_sku, raw.product_sku);
+      const title = first(raw.title, raw.name, raw.product_name) || 'Product';
+      const quantity = Math.max(1, num(first(raw.quantity, raw.qty, raw.count), 1));
+      const price = num(first(raw.price, raw.unit_price, raw.amount), 0);
+
+      let productDoc = null;
+      if (sku) productDoc = await Product.findOne({ sku }).lean();
+      if (!productDoc && pId && mongoose.isValidObjectId(pId)) productDoc = await Product.findById(pId).lean();
+      if (!productDoc && pId && /^\d+$/.test(String(pId))) {
+        const allProducts = await Product.find({ isActive: true }).select('_id title price sku').lean();
+        productDoc = allProducts.find((p) => numericId(p._id) === Number(pId));
+      }
+      if (!productDoc && title) {
+        productDoc = await Product.findOne({ title: new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }).lean();
+      }
+
+      const itemPrice = productDoc ? sellingPrice(productDoc) : (price || 100);
+      const lineTotal = itemPrice * quantity;
+      subtotal += lineTotal;
+
+      items.push({
+        product: productDoc?._id || new mongoose.Types.ObjectId(),
+        title: productDoc?.title || title,
+        slug: productDoc?.slug || '',
+        sku: productDoc?.sku || String(sku || ''),
+        image: productDoc?.images?.[0]?.url || '',
+        price: itemPrice,
+        mrp: Number(productDoc?.price || itemPrice),
+        quantity,
+        lineTotal,
+      });
+    }
+  }
+
+  const reportedTotal = num(first(...objects.map((o) => o.total || o.grand_total || o.amount)), subtotal);
+  const total = Math.max(subtotal, reportedTotal);
+  const paymentMethod = String(first(...objects.map((o) => o.payment_method || o.paymentMethod || o.gateway)) || 'online');
+  const providerOrderId = String(first(...objects.map((o) => o.shiprocket_order_id || o.sr_order_id || o.order_id || o.id)) || cleanId);
+
+  const order = await Order.create({
+    orderNumber: cleanId,
+    customer: { name: customer.name, phone: customer.phone, email: customer.email },
+    shippingAddress: customer.address,
+    items: items.length > 0 ? items : [{
+      product: new mongoose.Types.ObjectId(),
+      title: 'Fastrr Checkout Order',
+      price: total || 100,
+      quantity: 1,
+      lineTotal: total || 100,
+    }],
+    subtotal: subtotal || total,
+    shippingCharge: Math.max(0, total - subtotal),
+    total: total || 100,
+    payment: {
+      provider: 'shiprocket-checkout',
+      razorpayPaymentId: providerOrderId,
+      method: paymentMethod,
+      status: 'paid',
+      paidAt: new Date(),
+      amountPaisa: Math.round((total || 100) * 100),
+    },
+    status: 'confirmed',
+    raw: payload,
+    stockAdjusted: true,
+  });
+
+  await decrementStock(order);
+  logger.info(`Fastrr direct webhook order successfully recorded as ${order.orderNumber}`);
+  return order;
+}
+
 /** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
 exports.webhook = asyncHandler(async (req, res) => {
   const signature = req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'];
@@ -427,39 +558,63 @@ exports.webhook = asyncHandler(async (req, res) => {
   }
 
   const payload = req.body || {};
-  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 300)}`);
+  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
 
   const orderId = extractOrderId(payload);
-  if (!orderId) return ok(res, { received: true, ignored: 'no merchant order id' });
-  const session = await ShiprocketCheckoutSession.findOne({ orderId });
-  if (!session) return ok(res, { received: true, ignored: 'unknown or expired session' });
+  let order = null;
 
-  const customerInfo = webhookCustomer(payload);
-  if (customerInfo.name !== 'Shiprocket Guest') {
-    session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
-  }
-  if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
-    session.shippingAddress = customerInfo.address;
-  }
-  session.raw = payload;
-  await session.save();
+  if (orderId) {
+    const session = await ShiprocketCheckoutSession.findOne({ orderId });
+    if (session) {
+      const customerInfo = webhookCustomer(payload);
+      if (customerInfo.name !== 'Shiprocket Guest') {
+        session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
+      }
+      if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
+        session.shippingAddress = customerInfo.address;
+      }
+      session.raw = payload;
+      await session.save();
 
-  const kind = webhookKind(payload);
-  if (kind === 'failed') {
-    session.status = 'failed';
-    await session.save();
-    return ok(res, { received: true, status: 'failed' });
+      const kind = webhookKind(payload);
+      if (kind === 'failed') {
+        session.status = 'failed';
+        await session.save();
+        return res.status(200).json({
+          success: true,
+          status: true,
+          message: 'Order status updated to failed',
+          order_id: orderId,
+        });
+      }
+
+      order = await confirmOrderFromSession(session, payload);
+    }
   }
 
-  const order = await confirmOrderFromSession(session, payload);
+  // Fallback: If no session found or orderId was missing/numeric, build order directly from webhook payload
+  if (!order) {
+    const kind = webhookKind(payload);
+    if (kind === 'failed') {
+      return res.status(200).json({
+        success: true,
+        status: true,
+        message: 'Order payment failed',
+        order_id: orderId || 'UNKNOWN',
+      });
+    }
+    order = await createOrderFromFastrrPayload(payload, orderId);
+  }
 
   return res.status(200).json({
     success: true,
     status: true,
+    status_code: 200,
     message: 'Order confirmed',
     order_id: order.orderNumber,
     orderNumber: order.orderNumber,
-    data: { received: true, orderNumber: order.orderNumber },
+    order_number: order.orderNumber,
+    data: { received: true, order_id: order.orderNumber, orderNumber: order.orderNumber },
   });
 });
 

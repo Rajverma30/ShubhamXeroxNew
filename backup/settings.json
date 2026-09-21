@@ -1,0 +1,178 @@
+[
+  {
+    "_id": "6a7ec1dc9bc3fb1f4954a42c",
+    "singleton": "global",
+    "storeName": "Shubham Xerox",
+    "tagline": "Books, Exam Guides & Stationery",
+    "logo": "/logo.png",
+    "logoDark": "/logo.png",
+    "favicon": "/favicon.png",
+    "email": "shubhamxerox25@gmail.com",
+    "phone": "9826462963",
+    "whatsapp": "9826462963",
+    "address": "Shop No 5, infront tinku's, Vinayak Empire, Square, Bhanwar Kuwa, Indore, Madhya Pradesh 452001",
+    "mapEmbedUrl": "https://maps.app.goo.gl/9haZcAwVz5xjvkVq9",
+    "openingHours": "Mon–Sun, 11:00 AM – 10:00 PM",
+    "social": {
+      "facebook": "https://www.facebook.com/profile.php?id=100086673576881",
+      "instagram": "https://www.instagram.com/shubhamxeroxindore/",
+      "youtube": "https://www.youtube.com/@shubhamxeroxindore",
+      "twitter": "",
+      "telegram": "https://t.me/shubhamxerox"
+    },
+    "currency": "INR",
+    "currencySymbol": "₹",
+    "taxPercent": 0,
+    "shippingFlat": 69,
+    "freeShippingAbove": 2999,
+    "codEnabled": true,
+    "codFee": 49,
+    "prepaidEnabled": true,
+    "minOrderValue": 0,
+    "announcementBar": {
+      "enabled": true,
+      "text": "Free delivery on orders above ₹499 · Free ebook with selected guides",
+      "url": "/offers"
+    },
+    "testimonials": [
+      {
+        "name": "Ananya Patra",
+        "role": "OSSC aspirant, Cuttack",
+        "rating": 5,
+        "text": "Ordered three guides on a Tuesday and had them by Thursday. The free ebook meant I could start revising the same evening."
+      },
+      {
+        "name": "Rohit Sahoo",
+        "role": "Class 12 student",
+        "rating": 5,
+        "text": "Cheaper than my local shop and the packaging was spotless. The whole checkout took under a minute — no account needed."
+      },
+      {
+        "name": "Sunita Das",
+        "role": "Teacher, Bhubaneswar",
+        "rating": 5,
+        "text": "I order registers and files for my whole classroom here every term. Reliable stock and honest pricing."
+      },
+      {
+        "name": "Debasis Nayak",
+        "role": "Railway exam aspirant",
+        "rating": 4,
+        "text": "The practice sets are genuinely the latest edition. Tracking updates came through on WhatsApp and email."
+      },
+      {
+        "name": "Priya Mohanty",
+        "role": "Parent",
+        "rating": 5,
+        "text": "Found every book on my daughter's Class 8 list in one order. That has never happened before."
+      }
+    ],
+    "footerLinks": [
+      {
+        "label": "All products",
+        "url": "/shop",
+        "group": "Shop"
+      },
+      {
+        "label": "Exam books",
+        "url": "/category/exam-books",
+        "group": "Shop"
+      },
+      {
+        "label": "School books",
+        "url": "/category/school-books",
+        "group": "Shop"
+      },
+      {
+        "label": "Stationery",
+        "url": "/category/stationery",
+        "group": "Shop"
+      },
+      {
+        "label": "Free ebooks",
+        "url": "/ebooks",
+        "group": "Shop"
+      },
+      {
+        "label": "Track your order",
+        "url": "/track",
+        "group": "Help"
+      },
+      {
+        "label": "Shipping & delivery",
+        "url": "/policy/shipping",
+        "group": "Help"
+      },
+      {
+        "label": "Returns & refunds",
+        "url": "/policy/returns",
+        "group": "Help"
+      },
+      {
+        "label": "Contact us",
+        "url": "/contact",
+        "group": "Help"
+      },
+      {
+        "label": "About Subham Xerox",
+        "url": "/about",
+        "group": "Company"
+      },
+      {
+        "label": "Privacy policy",
+        "url": "/policy/privacy",
+        "group": "Company"
+      },
+      {
+        "label": "Terms of service",
+        "url": "/policy/terms",
+        "group": "Company"
+      }
+    ],
+    "policies": {
+      "shipping": "<p>Orders are dispatched within 24 hours on business days and delivered across India via Shiprocket partner couriers. Delivery typically takes 2–6 days depending on your PIN code. Shipping is free on orders above ₹499.</p>",
+      "returns": "<p>If a book arrives damaged or is the wrong title, tell us within 7 days of delivery and we will replace it or refund you in full. Digital ebook downloads are non-refundable.</p>",
+      "privacy": "<p>We collect only the details needed to fulfil your order — name, phone, email and delivery address. We never sell your data. Payments and shipping are handled by our partners under their own privacy terms.</p>",
+      "terms": "<p>By placing an order you confirm the details you have entered are accurate. Prices and stock are subject to change. Free ebooks are licensed for personal use only.</p>",
+      "about": "<p>Subham Xerox has been serving students, teachers and offices for over a decade. What began as a neighbourhood photocopy shop is now a full book store stocking exam guides, school textbooks and stationery — with the same fast, honest service.</p>"
+    },
+    "checkout": {
+      "mode": "razorpay"
+    },
+    "popularSearches": [
+      "ssc cgl",
+      "upsc prelims",
+      "class 10 maths",
+      "odisha police",
+      "current affairs 2026",
+      "ncert science",
+      "notebook pack",
+      "railway ntpc",
+      "ctet paper 1",
+      "drawing kit"
+    ],
+    "seo": {
+      "metaTitle": "Shubham Xerox — Books, Exam Guides & Stationery Online",
+      "metaDescription": "Buy exam books, school textbooks, ebooks and stationery online at Subham Xerox. Guest checkout, free delivery above ₹499, free ebooks with selected guides.",
+      "metaKeywords": [
+        "book store",
+        "exam books",
+        "school books",
+        "stationery",
+        "odisha",
+        "subham xerox"
+      ],
+      "ogTitle": "",
+      "ogDescription": "",
+      "ogImage": "",
+      "canonicalUrl": "",
+      "noIndex": false
+    },
+    "maintenanceMode": false,
+    "createdAt": "2026-08-14T07:21:00.699Z",
+    "updatedAt": "2026-09-19T09:49:57.784Z",
+    "__v": 0,
+    "facebookPixelId": "",
+    "googleAnalyticsId": "",
+    "shiprocketAutoPush": false
+  }
+]

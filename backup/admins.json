@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "6a7ec1939bc3fb1f4954a383",
+    "username": "admin",
+    "email": "subhamxerox25@gmail.com",
+    "name": "Store Admin",
+    "password": "$2a$12$vRd4XwLR1Zx5/phNnaXaMu4air8M./5zwJv/6gXDHtg.aAEG4sxWW",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2026-08-14T07:19:47.410Z",
+    "updatedAt": "2026-09-19T06:45:52.254Z",
+    "__v": 0,
+    "lastLoginAt": "2026-09-19T06:45:52.254Z",
+    "lastLoginIp": "79.127.178.81",
+    "phone": "9826462963",
+    "passwordChangedAt": "2026-09-02T04:23:57.461Z"
+  }
+]

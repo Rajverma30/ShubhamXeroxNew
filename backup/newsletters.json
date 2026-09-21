@@ -1,0 +1,52 @@
+[
+  {
+    "_id": "6a7ec1dc9bc3fb1f4954a439",
+    "email": "ananya@example.com",
+    "name": "Ananya",
+    "isSubscribed": true,
+    "source": "footer",
+    "__v": 0,
+    "createdAt": "2026-08-14T07:21:00.815Z",
+    "updatedAt": "2026-08-14T07:21:00.815Z"
+  },
+  {
+    "_id": "6a7ec1dc9bc3fb1f4954a43a",
+    "email": "rohit@example.com",
+    "name": "Rohit",
+    "isSubscribed": true,
+    "source": "popup",
+    "__v": 0,
+    "createdAt": "2026-08-14T07:21:00.815Z",
+    "updatedAt": "2026-08-14T07:21:00.815Z"
+  },
+  {
+    "_id": "6a8154ad7aafdcbc28ba8065",
+    "email": "priyanshusoni45450@gmail.com",
+    "__v": 0,
+    "createdAt": "2026-08-16T06:11:57.540Z",
+    "isSubscribed": true,
+    "source": "footer",
+    "unsubscribedAt": null,
+    "updatedAt": "2026-08-16T06:11:57.540Z"
+  },
+  {
+    "_id": "6a8eb8216b43b0bdc8641b40",
+    "email": "akkushwaha62028@gmail.com",
+    "__v": 0,
+    "createdAt": "2026-08-26T09:55:45.727Z",
+    "isSubscribed": true,
+    "source": "footer",
+    "unsubscribedAt": null,
+    "updatedAt": "2026-08-26T09:55:45.727Z"
+  },
+  {
+    "_id": "6a95d908920519f4d21d250d",
+    "email": "varshakaithwas@gmail.com",
+    "__v": 0,
+    "createdAt": "2026-08-31T19:42:00.370Z",
+    "isSubscribed": true,
+    "source": "footer",
+    "unsubscribedAt": null,
+    "updatedAt": "2026-08-31T19:42:00.370Z"
+  }
+]

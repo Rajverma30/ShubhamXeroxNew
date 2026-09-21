@@ -1,0 +1,45 @@
+[
+  {
+    "_id": "6a86967c16ffd6c953618978",
+    "name": "Ajay",
+    "email": "ajaybamaniya637@gmail.com",
+    "phone": "09589491716",
+    "subject": "Management book order",
+    "message": "Management book order ki thi dhar se par dhar me book aa pahuch nhi rhi he Mene payment bhi kr diya hai 173rs",
+    "status": "replied",
+    "ip": "103.230.226.155",
+    "createdAt": "2026-08-20T05:54:04.445Z",
+    "updatedAt": "2026-08-21T17:14:19.517Z",
+    "__v": 0,
+    "adminReply": "Aap what app me \nAap ke details baj dijiya ",
+    "repliedAt": "2026-08-21T17:14:19.516Z"
+  },
+  {
+    "_id": "6a996c9e7fa6de89983d7076",
+    "name": "Avinash Dwivedi",
+    "email": "rustamdwivedi03@gmail.com",
+    "phone": "09340721893",
+    "subject": "Shubham gupta notes",
+    "message": "मैने पेमेंट कर दिया है पर शिपिंग नम्बर नहीं मिला है",
+    "status": "replied",
+    "ip": "152.233.15.123",
+    "createdAt": "2026-09-03T12:48:30.186Z",
+    "updatedAt": "2026-09-03T16:23:37.723Z",
+    "__v": 0,
+    "adminReply": "karwa diya ha\n\n",
+    "repliedAt": "2026-09-03T16:23:37.722Z"
+  },
+  {
+    "_id": "6aa2884877716e12cc2d3496",
+    "name": "Ranu Rajput",
+    "email": "ranurajpoo7@gmail.com",
+    "phone": "07697418191",
+    "subject": "Aakar ias mppsc mains notes",
+    "message": "Sir, \nPlease bataiye humare notes kab tak mil jayenge.",
+    "status": "archived",
+    "ip": "152.233.68.98",
+    "createdAt": "2026-09-10T10:36:56.291Z",
+    "updatedAt": "2026-09-15T10:54:02.566Z",
+    "__v": 0
+  }
+]

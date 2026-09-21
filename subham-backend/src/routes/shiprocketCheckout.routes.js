@@ -32,6 +32,8 @@ const syncLimiter = rateLimit({
 // Provider payment webhooks use their own HMAC verification. Catalogue GETs
 // below continue to require the separate catalogue API credentials.
 router.post('/webhook', sessionCtrl.webhook);
+router.post('/order/create', sessionCtrl.webhook);
+router.post('/order-create', sessionCtrl.webhook);
 router.use(syncLimiter, shiprocketCheckoutAuth);
 
 router.get('/ping', ctrl.ping);

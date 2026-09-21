@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-19T10:12:02.391Z",
+  "database": "subhamxerox",
+  "collections": {
+    "visitors": 19349,
+    "settings": 1,
+    "reviews": 0,
+    "products": 608,
+    "banners": 5,
+    "categories": 20,
+    "admins": 1,
+    "shiprocketcheckoutsessions": 2,
+    "searchhistories": 3960,
+    "coupons": 4,
+    "contacts": 3,
+    "guestcheckoutsessions": 0,
+    "otps": 0,
+    "subcategories": 53,
+    "orders": 359,
+    "media": 1244,
+    "newsletters": 5,
+    "homesections": 16
+  },
+  "totalDocuments": 25630
+}

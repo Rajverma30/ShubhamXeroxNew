@@ -1,0 +1,217 @@
+[
+  {
+    "_id": "6a7ec1db9bc3fb1f4954a40b",
+    "title": "Every exam guide you need, in one shelf",
+    "subtitle": "Police · SSC · UPSC · Railway · Banking — up to 35% off this week.",
+    "eyebrow": "New session 2026",
+    "description": "",
+    "placement": "hero",
+    "image": {
+      "url": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "tabletImage": {
+      "url": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "mobileImage": {
+      "url": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "buttonText": "Shop exam books",
+    "buttonUrl": "/category/exam-books",
+    "secondaryButtonText": "Browse all",
+    "secondaryButtonUrl": "/shop",
+    "textAlign": "right",
+    "theme": "dark",
+    "overlayOpacity": 0,
+    "priority": 73,
+    "isActive": true,
+    "clicks": 64,
+    "impressions": 0,
+    "createdAt": "2026-08-14T07:20:59.067Z",
+    "updatedAt": "2026-09-16T05:41:59.291Z",
+    "__v": 0,
+    "endsAt": null,
+    "startsAt": null
+  },
+  {
+    "_id": "6a7ec1db9bc3fb1f4954a40d",
+    "title": "Class 1 to 12, sorted before day one",
+    "subtitle": "Board-aligned textbooks, workbooks and reference guides.",
+    "eyebrow": "Back to school",
+    "description": "",
+    "placement": "hero",
+    "image": {
+      "url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "tabletImage": {
+      "url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "mobileImage": {
+      "url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "buttonText": "Shop school books",
+    "buttonUrl": "/category/school-books",
+    "secondaryButtonText": "",
+    "secondaryButtonUrl": "",
+    "textAlign": "left",
+    "theme": "light",
+    "overlayOpacity": 0.35,
+    "priority": 90,
+    "isActive": true,
+    "clicks": 27,
+    "impressions": 0,
+    "createdAt": "2026-08-14T07:20:59.435Z",
+    "updatedAt": "2026-09-15T16:45:07.006Z",
+    "__v": 0,
+    "endsAt": null,
+    "startsAt": null
+  },
+  {
+    "_id": "6a7ec1db9bc3fb1f4954a40f",
+    "title": "Stationery that feels as good as it writes",
+    "subtitle": "Pens, notebooks and art supplies from brands you trust.",
+    "eyebrow": "Desk upgrade",
+    "description": "",
+    "placement": "hero",
+    "image": {
+      "url": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "tabletImage": {
+      "url": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "mobileImage": {
+      "url": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80",
+      "alt": "",
+      "source": "upload"
+    },
+    "buttonText": "Shop stationery",
+    "buttonUrl": "/category/stationery",
+    "secondaryButtonText": "",
+    "secondaryButtonUrl": "",
+    "textAlign": "left",
+    "theme": "dark",
+    "overlayOpacity": 0.35,
+    "priority": 80,
+    "isActive": true,
+    "clicks": 11,
+    "impressions": 0,
+    "createdAt": "2026-08-14T07:20:59.814Z",
+    "updatedAt": "2026-09-14T11:46:41.485Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a7ec1dc9bc3fb1f4954a411",
+    "title": "Free ebook with every guide",
+    "subtitle": "Buy the print copy, download the PDF instantly.",
+    "eyebrow": "",
+    "description": "",
+    "placement": "offer",
+    "image": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-card.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-card.webp",
+      "alt": "Free ebook with every guide",
+      "width": 1920,
+      "height": 760,
+      "source": "upload"
+    },
+    "tabletImage": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-card.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-card.webp",
+      "alt": "Free ebook with every guide",
+      "width": 1920,
+      "height": 760,
+      "source": "upload"
+    },
+    "mobileImage": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-mobile.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-mobile.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-4-free-ebook-with-every-guide-mobile.webp",
+      "alt": "Free ebook with every guide",
+      "width": 900,
+      "height": 900,
+      "source": "upload"
+    },
+    "buttonText": "See titles",
+    "buttonUrl": "/ebooks",
+    "secondaryButtonText": "",
+    "secondaryButtonUrl": "",
+    "textAlign": "left",
+    "theme": "dark",
+    "overlayOpacity": 0.35,
+    "priority": 50,
+    "isActive": true,
+    "clicks": 27,
+    "impressions": 0,
+    "createdAt": "2026-08-14T07:21:00.117Z",
+    "updatedAt": "2026-09-12T15:18:40.130Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a7ec1dc9bc3fb1f4954a413",
+    "title": "Free delivery above ₹2999",
+    "subtitle": "Shipped across India with Shiprocket.",
+    "eyebrow": "",
+    "description": "",
+    "placement": "offer",
+    "image": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-card.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-card.webp",
+      "alt": "Free delivery above ₹499",
+      "width": 1920,
+      "height": 760,
+      "source": "upload"
+    },
+    "tabletImage": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-card.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-card.webp",
+      "alt": "Free delivery above ₹499",
+      "width": 1920,
+      "height": 760,
+      "source": "upload"
+    },
+    "mobileImage": {
+      "url": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-mobile.webp",
+      "cardUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-mobile.webp",
+      "thumbUrl": "https://subhamapi.hypernxt.space/uploads/banners/banner-5-free-delivery-above-indian-rup-mobile.webp",
+      "alt": "Free delivery above ₹499",
+      "width": 900,
+      "height": 900,
+      "source": "upload"
+    },
+    "buttonText": "Start shopping",
+    "buttonUrl": "/shop",
+    "secondaryButtonText": "",
+    "secondaryButtonUrl": "",
+    "textAlign": "left",
+    "theme": "dark",
+    "overlayOpacity": 0.35,
+    "priority": 40,
+    "isActive": true,
+    "clicks": 10,
+    "impressions": 0,
+    "createdAt": "2026-08-14T07:21:00.444Z",
+    "updatedAt": "2026-08-31T08:32:10.066Z",
+    "__v": 0,
+    "endsAt": null,
+    "startsAt": null
+  }
+]

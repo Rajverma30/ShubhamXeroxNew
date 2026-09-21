@@ -1,0 +1,84 @@
+[
+  {
+    "_id": "6aae57a7638f6fecdeab7c95",
+    "orderId": "SXSR-MU870P9Q-D60197",
+    "items": [
+      {
+        "product": "6aad4e2d705762d915acfbd5",
+        "title": "Champion Square MPPSC Prelims Unit-2: MP Ka Itihas, Sanskriti Evam Sahitya (3rd Edition) | Nitya Publication",
+        "slug": "champion-square-mppsc-prelims-unit-2-mp-ka-itihas-sanskriti-evam-sahitya-3rd-edition-or-nitya-publication",
+        "sku": "SX-F49030",
+        "image": "https://subhamapi.hypernxt.space/uploads/products/1789742637467-419603-WhatsApp-Image-2026-09-18-at-7-03-57-PM-full.webp",
+        "price": 204,
+        "mrp": 340,
+        "quantity": 1,
+        "lineTotal": 204
+      }
+    ],
+    "subtotal": 204,
+    "currency": "INR",
+    "sellerDomain": "shubhamxerox.in",
+    "status": "initiated",
+    "providerOrderId": "",
+    "customer": {
+      "name": "",
+      "phone": "",
+      "email": ""
+    },
+    "shippingAddress": {
+      "address": "",
+      "address2": "",
+      "landmark": "",
+      "city": "",
+      "district": "",
+      "state": "",
+      "pincode": "",
+      "country": "India"
+    },
+    "expiresAt": "2026-09-21T09:36:39.662Z",
+    "createdAt": "2026-09-19T09:36:39.665Z",
+    "updatedAt": "2026-09-19T09:36:39.665Z",
+    "__v": 0
+  },
+  {
+    "_id": "6aae5921638f6fecdeab82aa",
+    "orderId": "SXSR-MU878SV9-24B8D3",
+    "items": [
+      {
+        "product": "6a7f10e9bb698131eb051c7b",
+        "title": "Indian Geography (भारत का भूगोल) Spiral Book by Shubham Gupta | Complete Syllabus for MPPSC/UPSC | Hindi Medium | Updated Notes & PYQ Coverage B&W",
+        "slug": "indian-geography-spiral-notes-shubham-gupta-hindi",
+        "sku": "LEG-n111",
+        "image": "https://subhamapi.hypernxt.space/uploads/products/1786806134393-321343-ChatGPT-Image-Aug-15--2026--08_27_45-PM-full.webp",
+        "price": 260,
+        "mrp": 520,
+        "quantity": 1,
+        "lineTotal": 260
+      }
+    ],
+    "subtotal": 260,
+    "currency": "INR",
+    "sellerDomain": "shubhamxerox.in",
+    "status": "initiated",
+    "providerOrderId": "",
+    "customer": {
+      "name": "",
+      "phone": "",
+      "email": ""
+    },
+    "shippingAddress": {
+      "address": "",
+      "address2": "",
+      "landmark": "",
+      "city": "",
+      "district": "",
+      "state": "",
+      "pincode": "",
+      "country": "India"
+    },
+    "expiresAt": "2026-09-21T09:42:57.573Z",
+    "createdAt": "2026-09-19T09:42:57.575Z",
+    "updatedAt": "2026-09-19T09:42:57.575Z",
+    "__v": 0
+  }
+]

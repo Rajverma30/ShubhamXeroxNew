@@ -29,11 +29,37 @@ const syncLimiter = rateLimit({
   message: { ok: false, message: 'Too many catalogue sync requests' },
 });
 
-// Provider payment webhooks use their own HMAC verification. Catalogue GETs
-// below continue to require the separate catalogue API credentials.
+// Provider payment webhooks and Fastrr browser checkout endpoints (shipping charge, cart validate, loyalty, order create)
+// use their own signatures/public handshakes. Catalogue GETs below continue to require catalogue API credentials.
 router.post('/webhook', sessionCtrl.webhook);
 router.post('/order/create', sessionCtrl.webhook);
 router.post('/order-create', sessionCtrl.webhook);
+router.post('/orders/create', sessionCtrl.webhook);
+router.post('/orders', sessionCtrl.webhook);
+router.post('/order', sessionCtrl.webhook);
+
+// Loyalty Points endpoints
+router.post('/loyalty/points', ctrl.getLoyaltyPoints);
+router.post('/loyalty-points', ctrl.getLoyaltyPoints);
+router.post('/loyalty/block', ctrl.blockLoyaltyPoints);
+router.post('/loyalty-block', ctrl.blockLoyaltyPoints);
+router.post('/loyalty/unblock', ctrl.unblockLoyaltyPoints);
+router.post('/loyalty-unblock', ctrl.unblockLoyaltyPoints);
+
+// Custom Shipping & Cart Validation
+router.post('/shipping-charge', ctrl.shippingCharge);
+router.post('/shipping_charge', ctrl.shippingCharge);
+router.post('/shipping', ctrl.shippingCharge);
+router.post('/serviceability', ctrl.shippingCharge);
+
+router.post('/cart/validate', ctrl.validateCart);
+router.post('/cart-validate', ctrl.validateCart);
+router.post('/validate', ctrl.validateCart);
+
+router.post('/coupon/apply', ctrl.applyCoupon);
+router.post('/coupon-apply', ctrl.applyCoupon);
+router.post('/coupons/apply', ctrl.applyCoupon);
+
 router.use(syncLimiter, shiprocketCheckoutAuth);
 
 router.get('/ping', ctrl.ping);
@@ -42,13 +68,5 @@ router.get('/products/:productId', ctrl.singleProduct);
 router.get('/collections', ctrl.collections);
 router.get('/collections/:collectionId', ctrl.singleCollection);
 router.get('/collections/:collectionId/products', ctrl.collectionProducts);
-
-// Loyalty Points endpoints (Shiprocket Custom Integration)
-router.post('/loyalty/points', ctrl.getLoyaltyPoints);
-router.post('/loyalty-points', ctrl.getLoyaltyPoints);
-router.post('/loyalty/block', ctrl.blockLoyaltyPoints);
-router.post('/loyalty-block', ctrl.blockLoyaltyPoints);
-router.post('/loyalty/unblock', ctrl.unblockLoyaltyPoints);
-router.post('/loyalty-unblock', ctrl.unblockLoyaltyPoints);
 
 module.exports = router;

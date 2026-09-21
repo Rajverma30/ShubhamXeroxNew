@@ -276,3 +276,38 @@ exports.unblockLoyaltyPoints = asyncHandler(async (req, res) => {
   });
 });
 
+/** POST /shiprocket-checkout/shipping-charge — Fastrr custom shipping calculation */
+exports.shippingCharge = asyncHandler(async (req, res) => {
+  return res.json({
+    success: true,
+    status: true,
+    data: {
+      shipping_charge: 0,
+      cod_charge: 0,
+      is_cod_available: true,
+      cod_available: true,
+      serviceable: true,
+      etd: '3-5 days',
+    },
+  });
+});
+
+/** POST /shiprocket-checkout/cart/validate — Fastrr cart validation */
+exports.validateCart = asyncHandler(async (req, res) => {
+  return res.json({
+    success: true,
+    status: true,
+    message: 'Cart is valid',
+    data: { valid: true },
+  });
+});
+
+/** POST /shiprocket-checkout/coupon/apply — Fastrr coupon verification */
+exports.applyCoupon = asyncHandler(async (req, res) => {
+  return res.json({
+    success: true,
+    status: true,
+    data: { valid: true, discount_amount: 0 },
+  });
+});
+

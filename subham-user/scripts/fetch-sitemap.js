@@ -6,7 +6,7 @@ import axios from 'axios';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BACKEND_URL = process.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'https://shubhamxeroxnew-production.up.railway.app';
+const BACKEND_URL = process.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'https://subhamapi.hypernxt.space';
 
 async function fetchSitemap() {
   try {

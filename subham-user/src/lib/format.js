@@ -49,7 +49,7 @@ const API_ORIGIN = (() => {
  * Public host for catalogue media files (API may live on another origin).
  */
 const UPLOADS_HOST = (
-  import.meta.env.VITE_UPLOADS_ORIGIN || 'https://shubhamxeroxnew-production.up.railway.app'
+  import.meta.env.VITE_UPLOADS_ORIGIN || 'https://subhamapi.hypernxt.space'
 ).replace(/\/$/, '');
 
 /** Only Railway serves the /img alias; other hosts keep /uploads. */

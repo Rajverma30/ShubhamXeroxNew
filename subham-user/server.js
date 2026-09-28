@@ -62,7 +62,7 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
         const rawDesc = p.shortDescription || (p.description || '').replace(/<[^>]*>?/gm, '').slice(0, 180);
         const desc = escapeHtml(`${priceText} · ${rawDesc || `Buy ${rawTitle} online at Shubham Xerox.`}`);
         const rawImg = p.images?.[0]?.url || p.images?.[0]?.thumbUrl || '';
-        const imageUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BACKEND_TARGET}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : 'https://www.shubhamxerox.in/logo.png';
+        const imageUrl = rawImg ? `${BACKEND_TARGET}/api/og/image/${slug}.jpg` : 'https://www.shubhamxerox.in/logo.png';
         const pageUrl = `https://www.shubhamxerox.in/product/${slug}`;
 
         const html = `<!DOCTYPE html>
@@ -83,6 +83,9 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
   <meta property="og:url" content="${pageUrl}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:image:secure_url" content="${imageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="800">
+  <meta property="og:image:height" content="1000">
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:title" content="${title}">
   <meta property="twitter:description" content="${desc}">

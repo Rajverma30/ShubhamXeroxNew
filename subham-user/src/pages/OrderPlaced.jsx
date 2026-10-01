@@ -47,16 +47,32 @@ export default function OrderPlaced() {
     let cancelled = false;
     setLoading(true);
     setOrderError('');
-    fetchOrder(orderNumber, phone)
-      .then((d) => {
+
+    const loadOrder = async () => {
+      try {
+        const isShiprocket = params.get('provider') === 'shiprocket' || orderNumber.startsWith('SXSR');
+        if (isShiprocket) {
+          try {
+            await fetch('/api/checkout/shiprocket-verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: orderNumber, forceConfirm: true }),
+            });
+          } catch { /* verify attempt */ }
+        }
+
+        const d = await fetchOrder(orderNumber, phone);
         if (!cancelled) setOrder(d);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) setOrderError(err?.message || 'Could not load order details. Please check order number or phone.');
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadOrder();
     return () => { cancelled = true; };
-  }, [orderNumber, phone]);
+  }, [orderNumber, phone, params]);
 
   const copy = async () => {
     try {

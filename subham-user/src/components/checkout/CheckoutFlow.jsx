@@ -134,22 +134,7 @@ export default function CheckoutFlow({ onClose, items }) {
       .then((sessionData) => {
         if (!active) return;
         setShiprocketSession(sessionData);
-        const checkoutUrl = sessionData.checkoutUrl;
-        const width = 480;
-        const height = 750;
-        const left = Math.max(0, Math.round((window.screen.width - width) / 2));
-        const top = Math.max(0, Math.round((window.screen.height - height) / 2));
-        const popup = window.open(
-          checkoutUrl,
-          'FastrrCheckoutWindow',
-          `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes,status=yes`,
-        );
-        popupRef.current = popup;
-        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-          window.location.assign(checkoutUrl);
-        } else {
-          popup.focus();
-        }
+        window.location.assign(sessionData.checkoutUrl);
       })
       .catch((err) => {
         if (!active) return;
@@ -347,73 +332,25 @@ export default function CheckoutFlow({ onClose, items }) {
 
   if (useShiprocket) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-label="Shiprocket checkout">
-        <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-ink-100 pb-3">
-            <h2 className="text-base font-bold text-ink-900">Shiprocket Fastrr Payment Monitor</h2>
-            <button type="button" onClick={onClose} className="text-xl font-bold text-ink-400 hover:text-ink-700">×</button>
-          </div>
-
-          <div className="mt-4 text-center">
-            {liveMonitor.status === 'success' ? (
-              <div className="rounded-xl bg-emerald-50 p-4 text-emerald-800">
-                <div className="text-2xl mb-1">🎉</div>
-                <h3 className="font-bold text-lg">{liveMonitor.message}</h3>
-                <p className="text-xs mt-1">Redirecting to order receipt…</p>
-              </div>
-            ) : liveMonitor.status === 'error' ? (
-              <div className="rounded-xl bg-rose-50 p-4 text-left text-rose-900">
-                <div className="font-bold text-sm text-rose-700 mb-1">🚨 PAYMENT / WEBHOOK DIAGNOSTIC ERROR</div>
-                <p className="text-xs">{liveMonitor.message}</p>
-                {liveMonitor.details && (
-                  <pre className="mt-2 max-h-32 overflow-x-auto rounded bg-rose-900/10 p-2 font-mono text-[11px] text-rose-900">
-                    {JSON.stringify(liveMonitor.details, null, 2)}
-                  </pre>
-                )}
-              </div>
-            ) : (
-              <div className="py-3">
-                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
-                <h3 className="font-bold text-ink-900 text-sm">Payment Window Active</h3>
-                <p className="mt-1 text-xs text-ink-500">Complete payment or COD in the popup window.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Real-Time Diagnostic Box */}
-          <div className="mt-4 rounded-xl border border-ink-200 bg-slate-900 p-4 text-left font-mono text-xs text-white shadow-inner">
-            <div className="mb-2 flex items-center justify-between border-b border-slate-700 pb-2">
-              <span className="font-bold text-sky-400">⚡ LIVE ONSCREEN DIAGNOSTICS</span>
-              <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${liveMonitor.status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                {liveMonitor.status.toUpperCase()}
-              </span>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-3 border-brand-600 border-t-transparent" />
+          <h3 className="font-bold text-ink-900 text-base">Opening Secure Fastrr Checkout…</h3>
+          <p className="mt-1.5 text-xs text-ink-500">Please complete payment in the popup window.</p>
+          
+          {shiprocketError && (
+            <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 font-medium">
+              {shiprocketError}
             </div>
-            <div className="space-y-1.5 text-slate-300 text-[11px]">
-              <div><strong>Merchant Domain:</strong> www.shubhamxerox.in</div>
-              <div><strong>Session Order ID:</strong> <span className="text-amber-300">{shiprocketSession?.orderId || 'Generating…'}</span></div>
-              <div><strong>Live Server Log:</strong> {liveMonitor.message}</div>
-            </div>
-          </div>
+          )}
 
-          {shiprocketError && <div className="mt-3 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">{shiprocketError}</div>}
-
-          <div className="mt-4 flex flex-col gap-2">
-            <button
-              type="button"
-              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
-              onClick={forceCompleteOrder}
-            >
-              ✅ I Have Paid — Complete & View Order
-            </button>
-            <div className="flex gap-2">
-              <button type="button" className="btn-outline flex-1 text-xs py-2.5" onClick={onClose}>
-                Cancel / Close
-              </button>
-              <button type="button" className="btn-primary flex-1 text-xs py-2.5" onClick={reOpenFastrrWindow}>
-                🔗 Re-open Payment Popup
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="mt-5 btn-outline w-full text-xs py-2.5"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     );

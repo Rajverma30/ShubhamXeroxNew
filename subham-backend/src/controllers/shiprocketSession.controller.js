@@ -33,7 +33,10 @@ function base64UriJson(value) {
 }
 
 function checkoutEnabled(settings) {
-  return settings?.checkout?.mode === 'shiprocket';
+  return settings?.checkout?.mode === 'shiprocket'
+    || settings?.checkout?.mode === 'auto'
+    || String(process.env.SHIPROCKET_CHECKOUT_ENABLED).toLowerCase() === 'true'
+    || Boolean(CATALOG_KEY() && CATALOG_SECRET());
 }
 
 function checkoutOrderId() {
@@ -564,6 +567,10 @@ function recordWebhookLog(entry) {
 /** Express middleware to log ALL incoming Shiprocket Checkout traffic (webhook, shipping-charge, cart validate, etc.) */
 exports.logIncomingTraffic = (req, res, next) => {
   if (req.path === '/webhook-logs') return next();
+  // Do not clutter recentWebhookLogs with routine catalogue sync GET requests
+  if (req.method === 'GET' && (req.path.includes('/products') || req.path.includes('/collections') || req.path === '/ping')) {
+    return next();
+  }
   recordWebhookLog({
     method: req.method,
     path: req.path,
@@ -666,6 +673,12 @@ exports.getWebhookLogs = asyncHandler(async (_req, res) => {
     total: recentWebhookLogs.length,
     logs: recentWebhookLogs,
   });
+});
+
+/** GET /shiprocket-checkout/webhook-logs/clear — resets live logs memory */
+exports.clearWebhookLogs = asyncHandler(async (_req, res) => {
+  recentWebhookLogs.length = 0;
+  return ok(res, { message: 'Webhook logs cleared' });
 });
 
 exports.confirmOrderFromSession = confirmOrderFromSession;

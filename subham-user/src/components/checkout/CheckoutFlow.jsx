@@ -117,6 +117,10 @@ export default function CheckoutFlow({ onClose, items }) {
   /* Warm Razorpay SDK early */
   useEffect(() => { preloadCheckout(); }, []);
 
+  const [shiprocketSession, setShiprocketSession] = useState(null);
+  const [liveMonitor, setLiveMonitor] = useState({ status: 'waiting', message: 'Opening Fastrr secure payment popup…' });
+  const popupRef = useRef(null);
+
   /* Fastrr / Shiprocket Checkout Mode */
   useEffect(() => {
     if (!useShiprocket || shiprocketStarted.current) return;
@@ -124,9 +128,13 @@ export default function CheckoutFlow({ onClose, items }) {
     let active = true;
     setShiprocketStarting(true);
     setShiprocketError('');
+    setLiveMonitor({ status: 'waiting', message: 'Generating Fastrr checkout session…' });
+
     beginShiprocketCheckout(checkoutCart)
-      .then(({ checkoutUrl }) => {
+      .then((sessionData) => {
         if (!active) return;
+        setShiprocketSession(sessionData);
+        const checkoutUrl = sessionData.checkoutUrl;
         const width = 480;
         const height = 750;
         const left = Math.max(0, Math.round((window.screen.width - width) / 2));
@@ -136,11 +144,11 @@ export default function CheckoutFlow({ onClose, items }) {
           'FastrrCheckoutWindow',
           `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes,status=yes`,
         );
+        popupRef.current = popup;
         if (!popup || popup.closed || typeof popup.closed === 'undefined') {
           window.location.assign(checkoutUrl);
         } else {
           popup.focus();
-          onClose?.();
         }
       })
       .catch((err) => {
@@ -151,6 +159,57 @@ export default function CheckoutFlow({ onClose, items }) {
       });
     return () => { active = false; };
   }, [useShiprocket, shiprocketRetry, checkoutCart]);
+
+  /* Live Real-time Status Polling (1s interval during active checkout) */
+  useEffect(() => {
+    if (!useShiprocket || !shiprocketSession) return undefined;
+    let active = true;
+
+    const poll = async () => {
+      try {
+        const res = await fetch('/shiprocket-checkout/debug/data');
+        if (!res.ok) return;
+        const data = await res.json();
+        const logs = data.logs || [];
+
+        const orderHit = logs.find((l) => l.responseStatus === 200 && (l.url?.includes('webhook') || l.url?.includes('order')));
+        if (orderHit && active) {
+          const confirmedId = orderHit.responseBody?.order_id || orderHit.responseBody?.orderNumber || 'SXSR-CONFIRMED';
+          setLiveMonitor({
+            status: 'success',
+            orderNumber: confirmedId,
+            message: `Order Confirmed! (#${confirmedId})`,
+            details: orderHit,
+          });
+          setTimeout(() => {
+            clearCart?.();
+            navigate(`/order-placed?order=${encodeURIComponent(confirmedId)}&provider=shiprocket`, { replace: true });
+            onClose?.();
+          }, 1500);
+          return;
+        }
+
+        const errorHit = logs.find((l) => l.responseStatus >= 400);
+        if (errorHit && active) {
+          setLiveMonitor({
+            status: 'error',
+            message: errorHit.responseBody?.message || 'Server rejected order creation request',
+            details: errorHit,
+          });
+        }
+      } catch { /* ignore network error */ }
+    };
+
+    const interval = setInterval(poll, 1000);
+    return () => { active = false; clearInterval(interval); };
+  }, [useShiprocket, shiprocketSession, clearCart, navigate, onClose]);
+
+  const reOpenFastrrWindow = () => {
+    if (shiprocketSession?.checkoutUrl) {
+      const popup = window.open(shiprocketSession.checkoutUrl, 'FastrrCheckoutWindow', 'width=480,height=750,scrollbars=yes,resizable=yes');
+      popup?.focus();
+    }
+  };
 
   useEffect(() => {
     if (!resendIn) return undefined;
@@ -237,18 +296,64 @@ export default function CheckoutFlow({ onClose, items }) {
 
   if (useShiprocket) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true" aria-label="Shiprocket checkout">
-        <div className="w-full max-w-md rounded-t-2xl bg-white p-6 text-center sm:rounded-2xl">
-          <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
-          <h2 className="text-lg font-bold text-ink-900">Opening Shiprocket Checkout</h2>
-          <p className="mt-2 text-sm leading-relaxed text-ink-500">We are confirming the latest price and availability for your cart.</p>
-          {shiprocketError && <div className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{shiprocketError}</div>}
-          {shiprocketError ? (
-            <div className="mt-5 flex gap-2">
-              <button type="button" className="btn-outline flex-1" onClick={onClose}>Back to cart</button>
-              <button type="button" className="btn-primary flex-1" onClick={() => setShiprocketRetry((n) => n + 1)}>Try again</button>
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-label="Shiprocket checkout">
+        <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-ink-100 pb-3">
+            <h2 className="text-base font-bold text-ink-900">Shiprocket Fastrr Payment Monitor</h2>
+            <button type="button" onClick={onClose} className="text-xl font-bold text-ink-400 hover:text-ink-700">×</button>
+          </div>
+
+          <div className="mt-4 text-center">
+            {liveMonitor.status === 'success' ? (
+              <div className="rounded-xl bg-emerald-50 p-4 text-emerald-800">
+                <div className="text-2xl mb-1">🎉</div>
+                <h3 className="font-bold text-lg">{liveMonitor.message}</h3>
+                <p className="text-xs mt-1">Redirecting to order receipt…</p>
+              </div>
+            ) : liveMonitor.status === 'error' ? (
+              <div className="rounded-xl bg-rose-50 p-4 text-left text-rose-900">
+                <div className="font-bold text-sm text-rose-700 mb-1">🚨 PAYMENT / WEBHOOK DIAGNOSTIC ERROR</div>
+                <p className="text-xs">{liveMonitor.message}</p>
+                {liveMonitor.details && (
+                  <pre className="mt-2 max-h-32 overflow-x-auto rounded bg-rose-900/10 p-2 font-mono text-[11px] text-rose-900">
+                    {JSON.stringify(liveMonitor.details, null, 2)}
+                  </pre>
+                )}
+              </div>
+            ) : (
+              <div className="py-3">
+                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+                <h3 className="font-bold text-ink-900 text-sm">Payment Window Active</h3>
+                <p className="mt-1 text-xs text-ink-500">Complete payment or COD in the popup window.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Real-Time Diagnostic Box */}
+          <div className="mt-4 rounded-xl border border-ink-200 bg-slate-900 p-4 text-left font-mono text-xs text-white shadow-inner">
+            <div className="mb-2 flex items-center justify-between border-b border-slate-700 pb-2">
+              <span className="font-bold text-sky-400">⚡ LIVE ONSCREEN DIAGNOSTICS</span>
+              <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${liveMonitor.status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                {liveMonitor.status.toUpperCase()}
+              </span>
             </div>
-          ) : <p className="mt-5 text-xs font-medium text-ink-400">{shiprocketStarting ? 'Connecting securely…' : 'Preparing checkout…'}</p>}
+            <div className="space-y-1.5 text-slate-300 text-[11px]">
+              <div><strong>Merchant Domain:</strong> www.shubhamxerox.in</div>
+              <div><strong>Session Order ID:</strong> <span className="text-amber-300">{shiprocketSession?.orderId || 'Generating…'}</span></div>
+              <div><strong>Live Server Log:</strong> {liveMonitor.message}</div>
+            </div>
+          </div>
+
+          {shiprocketError && <div className="mt-3 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">{shiprocketError}</div>}
+
+          <div className="mt-5 flex gap-2">
+            <button type="button" className="btn-outline flex-1 text-xs py-2.5" onClick={onClose}>
+              Cancel / Close
+            </button>
+            <button type="button" className="btn-primary flex-1 text-xs py-2.5" onClick={reOpenFastrrWindow}>
+              🔗 Re-open Payment Popup
+            </button>
+          </div>
         </div>
       </div>
     );

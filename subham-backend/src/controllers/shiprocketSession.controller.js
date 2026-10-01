@@ -16,6 +16,7 @@ const { sellingPrice } = require('../utils/pricing');
 const logger = require('../utils/logger');
 const { toProduct, numericId } = require('../services/shiprocketCheckout.adapter');
 const catalogueSync = require('../services/shiprocketCatalogSync.service');
+const shiprocketShipping = require('../services/shiprocket.service');
 
 const CHECKOUT_UI = () => (process.env.SHIPROCKET_CHECKOUT_UI_BASE_URL || 'https://fastrr-boost-ui.pickrr.com').replace(/\/$/, '');
 const CATALOG_KEY = () => process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY || '';
@@ -480,6 +481,15 @@ async function confirmOrderFromSession(session, payload = {}) {
   await session.save();
 
   logger.info(`Shiprocket payment successfully recorded as ${order.orderNumber}`);
+
+  if (shiprocketShipping.credentialsPresent()) {
+    shiprocketShipping.createAdhocOrder(order).then((srRes) => {
+      logger.info(`Auto-pushed order ${order.orderNumber} to Shiprocket Panel: order_id=${srRes?.order_id}, shipment_id=${srRes?.shipment_id}`);
+    }).catch((err) => {
+      logger.error(`Failed to auto-push order ${order.orderNumber} to Shiprocket Panel: ${err.message}`);
+    });
+  }
+
   return order;
 }
 
@@ -602,6 +612,15 @@ async function createOrderFromFastrrPayload(payload, orderId) {
 
   await decrementStock(order);
   logger.info(`Fastrr direct webhook order successfully recorded as ${order.orderNumber}`);
+
+  if (shiprocketShipping.credentialsPresent()) {
+    shiprocketShipping.createAdhocOrder(order).then((srRes) => {
+      logger.info(`Auto-pushed order ${order.orderNumber} to Shiprocket Panel: order_id=${srRes?.order_id}, shipment_id=${srRes?.shipment_id}`);
+    }).catch((err) => {
+      logger.error(`Failed to auto-push order ${order.orderNumber} to Shiprocket Panel: ${err.message}`);
+    });
+  }
+
   return order;
 }
 

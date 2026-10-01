@@ -1,5 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import http from 'http';
+import https from 'https';
 import express from 'express';
 import axios from 'axios';
 
@@ -110,32 +112,45 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
   next();
 });
 
-// Proxy /shiprocket-checkout requests to backend service
-app.use('/shiprocket-checkout', async (req, res) => {
-  try {
-    const targetUrl = `${BACKEND_TARGET}/shiprocket-checkout${req.url}`;
-    const response = await axios({
+// Proxy /shiprocket-checkout → backend.
+// CRITICAL: do NOT use req.body here. This server has no body parser for these
+// routes; reading req.body yielded `{}` and Fastrr payment webhooks arrived
+// empty on the API — checkout then stuck on "Order Pending" despite HTTP 200.
+// Stream the raw request bytes through instead.
+app.use('/shiprocket-checkout', (req, res) => {
+  const target = new URL(`${BACKEND_TARGET}/shiprocket-checkout${req.url}`);
+  const lib = target.protocol === 'https:' ? https : http;
+
+  const headers = { ...req.headers, host: target.host };
+  // Avoid double-decoding compressed upstream responses through axios-less pipe
+  delete headers['accept-encoding'];
+
+  const proxyReq = lib.request(
+    {
+      protocol: target.protocol,
+      hostname: target.hostname,
+      port: target.port || (target.protocol === 'https:' ? 443 : 80),
+      path: `${target.pathname}${target.search}`,
       method: req.method,
-      url: targetUrl,
-      headers: {
-        ...req.headers,
-        host: new URL(BACKEND_TARGET).host,
-      },
-      data: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
-      validateStatus: () => true,
-    });
+      headers,
+      timeout: 60000,
+    },
+    (proxyRes) => {
+      const outHeaders = { ...proxyRes.headers };
+      delete outHeaders['transfer-encoding'];
+      res.writeHead(proxyRes.statusCode || 502, outHeaders);
+      proxyRes.pipe(res);
+    },
+  );
 
-    Object.entries(response.headers).forEach(([k, v]) => {
-      if (k !== 'transfer-encoding' && k !== 'content-encoding' && k !== 'content-length') {
-        res.setHeader(k, v);
-      }
-    });
-
-    return res.status(response.status).send(response.data);
-  } catch (err) {
+  proxyReq.on('error', (err) => {
     console.error('Shiprocket Checkout proxy error:', err.message);
-    return res.status(502).json({ error: 'Proxy error', message: err.message });
-  }
+    if (!res.headersSent) {
+      res.status(502).json({ error: 'Proxy error', message: err.message });
+    }
+  });
+
+  req.pipe(proxyReq);
 });
 
 // Proxy /sitemap.xml and /robots.txt to backend service for SEO

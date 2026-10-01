@@ -189,32 +189,33 @@ exports.verifySession = asyncHandler(async (req, res) => {
   // 1. Check if a session exists directly by orderId (SXSR-...)
   let session = await ShiprocketCheckoutSession.findOne({ orderId });
 
-  // 2. Fallback: If orderId is a Fastrr numeric ID (e.g. SR-1790877599287), find the latest active session from last 60m
+  // 2. Fallback: If orderId is a Fastrr numeric ID (e.g. SR-...), find latest unpaid/paid session from last 60m
   if (!session) {
     session = await ShiprocketCheckoutSession.findOne({
-      status: { $in: ['active', 'confirmed', 'paid'] },
+      status: { $in: ['initiated', 'paid'] },
       createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
     }).sort({ createdAt: -1 });
   }
 
-  // 3. If session found:
+  // 3. If session found and already paid, or client force-confirms after redirect:
   if (session) {
-    if (session.status === 'confirmed' || session.status === 'paid' || forceConfirm) {
-      session.status = 'confirmed';
-      await session.save();
+    if (session.status === 'paid' || forceConfirm) {
       const order = await confirmOrderFromSession(session, session.raw || {});
       return ok(res, {
         confirmed: true,
         orderNumber: order.orderNumber,
         orderId: order._id,
-        status: order.orderStatus,
+        status: order.status,
       });
     }
   }
 
   // 4. Check if Order already exists in main Order database (ignoring dummy guest orders)
   let order = await Order.findOne({
-    $or: [{ orderNumber: orderId }, { paymentTransactionId: orderId }],
+    $or: [
+      { orderNumber: orderId },
+      { 'payment.razorpayPaymentId': orderId },
+    ],
     'customer.name': { $ne: 'Shiprocket Guest' },
   });
 
@@ -223,7 +224,7 @@ exports.verifySession = asyncHandler(async (req, res) => {
       confirmed: true,
       orderNumber: order.orderNumber,
       orderId: order._id,
-      status: order.orderStatus,
+      status: order.status,
     });
   }
 
@@ -429,6 +430,7 @@ async function confirmOrderFromSession(session, payload = {}) {
   let existing = await Order.findOne({ orderNumber: session.orderId });
   if (existing) {
     let updated = false;
+    // Always upgrade unpaid / awaiting-payment rows when Fastrr confirms payment
     if (existing.status !== 'confirmed') {
       existing.status = 'confirmed';
       updated = true;
@@ -440,6 +442,7 @@ async function confirmOrderFromSession(session, payload = {}) {
         status: 'paid',
         paidAt: new Date(),
         razorpayPaymentId: providerOrderId || existing.payment?.razorpayPaymentId,
+        amountPaisa: existing.payment?.amountPaisa || Math.round(total * 100),
       };
       updated = true;
     }
@@ -464,6 +467,12 @@ async function confirmOrderFromSession(session, payload = {}) {
       updated = true;
     }
     if (updated) await existing.save();
+    if (session.status !== 'paid') {
+      session.status = 'paid';
+      session.providerOrderId = providerOrderId || session.providerOrderId;
+      session.raw = payload;
+      await session.save();
+    }
     return existing;
   }
 
@@ -514,6 +523,20 @@ async function createOrderFromFastrrPayload(payload, orderId) {
 
   if (existing) {
     let updated = false;
+    if (existing.status !== 'confirmed') {
+      existing.status = 'confirmed';
+      updated = true;
+    }
+    if (!existing.payment || existing.payment.status !== 'paid') {
+      existing.payment = {
+        ...(existing.payment || {}),
+        provider: 'shiprocket-checkout',
+        status: 'paid',
+        paidAt: new Date(),
+        razorpayPaymentId: existing.payment?.razorpayPaymentId || cleanId,
+      };
+      updated = true;
+    }
     if (customer.name && customer.name !== 'Shiprocket Guest' && customer.name !== 'Customer') {
       existing.customer.name = customer.name;
       updated = true;
@@ -665,15 +688,56 @@ exports.webhook = asyncHandler(async (req, res) => {
   if (typeof rawPayload === 'string') {
     try { rawPayload = JSON.parse(rawPayload); } catch { rawPayload = {}; }
   }
+  // Fastrr urlencoded payload check: Fastrr often wraps JSON string inside req.body.payload, data, order, json, etc.
+  if (rawPayload && typeof rawPayload === 'object') {
+    for (const k of ['payload', 'data', 'order', 'json', 'body', 'content', 'payload_data']) {
+      if (rawPayload[k] && typeof rawPayload[k] === 'string') {
+        try {
+          const parsed = JSON.parse(rawPayload[k]);
+          if (parsed && typeof parsed === 'object') {
+            rawPayload = { ...rawPayload, ...parsed };
+          }
+        } catch { /* not JSON */ }
+      }
+    }
+  }
+
+  // Prefer raw bytes when JSON middleware got an empty object but Content-Length > 0
+  // (common when an upstream proxy rewrites Content-Type or double-parses poorly).
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (
+    rawPayload && typeof rawPayload === 'object' && !Array.isArray(rawPayload)
+    && Object.keys(rawPayload).length === 0
+    && req.rawBody && req.rawBody.length
+  ) {
+    try {
+      const parsed = JSON.parse(req.rawBody.toString('utf8'));
+      if (parsed && typeof parsed === 'object') rawPayload = parsed;
+    } catch { /* keep empty */ }
+  }
+
   const payload = { ...req.query, ...rawPayload };
-  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
+  const payloadKeys = Object.keys(payload).filter((k) => payload[k] !== undefined);
+  logger.info(
+    `Shiprocket webhook received (content-length=${contentLength}, rawBody=${req.rawBody?.length || 0}b, keys=${payloadKeys.length}): ` +
+    `${JSON.stringify(payload).slice(0, 500)}`,
+  );
+
+  if (!payloadKeys.length) {
+    logger.error(
+      'Shiprocket webhook body is EMPTY. Fastrr payment data never reached this server. ' +
+      'Point the webhook at the API host directly (e.g. https://subhamapi.hypernxt.space/shiprocket-checkout/webhook) ' +
+      'or fix the storefront proxy so it streams the raw POST body.',
+    );
+  }
 
   const orderId = extractOrderId(payload);
   let order = null;
+  const kind = webhookKind(payload);
 
   try {
     if (orderId) {
-      const session = await ShiprocketCheckoutSession.findOne({ orderId });
+      const session = await ShiprocketCheckoutSession.findOne({ orderId }).maxTimeMS(5000);
       if (session) {
         const customerInfo = webhookCustomer(payload);
         if (customerInfo.name !== 'Shiprocket Guest') {
@@ -685,56 +749,65 @@ exports.webhook = asyncHandler(async (req, res) => {
         session.raw = payload;
         await session.save();
 
-        const kind = webhookKind(payload);
         if (kind === 'failed') {
           session.status = 'failed';
           await session.save();
-          const resObj = {
+          const failObj = {
             success: true,
             status: true,
             message: 'Order status updated to failed',
             order_id: orderId,
+            orderNumber: orderId,
           };
-          recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
-          return res.status(200).json(resObj);
+          recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: failObj });
+          return res.status(200).json(failObj);
         }
 
         order = await confirmOrderFromSession(session, payload);
       }
     }
 
-    // Fallback: If no session found or orderId was missing/numeric, build order directly from webhook payload
-    if (!order) {
-      const kind = webhookKind(payload);
-      if (kind === 'failed') {
-        const resObj = {
-          success: true,
-          status: true,
-          message: 'Order payment failed',
-          order_id: orderId || 'UNKNOWN',
-        };
-        recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
-        return res.status(200).json(resObj);
-      }
+    // Fallback: no session / missing SXSR id — build order from Fastrr payload when possible
+    if (!order && kind !== 'failed') {
       order = await createOrderFromFastrrPayload(payload, orderId);
     }
   } catch (err) {
     logger.error(`Error processing Shiprocket webhook order: ${err.message}`, err);
   }
 
+  // Fastrr checkout UI checks boolean `status: true` (same as shipping/cart stubs).
+  // Returning status: 'success' (string) leaves the modal on "Order Pending" even with HTTP 200.
   const confirmedOrderId = order?.orderNumber || orderId || `SR-${Date.now()}`;
   const resObj = {
     success: true,
     status: true,
     status_code: 200,
-    message: 'Order confirmed',
+    code: 200,
+    message: kind === 'failed' ? 'Order payment failed' : 'Order confirmed',
     order_id: confirmedOrderId,
     orderNumber: confirmedOrderId,
     order_number: confirmedOrderId,
-    data: { received: true, order_id: confirmedOrderId, orderNumber: confirmedOrderId },
+    payment_status: kind === 'failed' ? 'FAILED' : 'PAID',
+    data: {
+      status: true,
+      success: true,
+      payment_status: kind === 'failed' ? 'FAILED' : 'PAID',
+      received: true,
+      order_id: confirmedOrderId,
+      orderNumber: confirmedOrderId,
+    },
   };
 
-  recordWebhookLog({ ip: req.ip, orderId: confirmedOrderId, signature, payload, response: resObj });
+  recordWebhookLog({
+    ip: req.ip,
+    orderId: confirmedOrderId,
+    signature,
+    contentLength,
+    rawBodyBytes: req.rawBody?.length || 0,
+    payloadKeys: payloadKeys.length,
+    payload,
+    response: resObj,
+  });
   return res.status(200).json(resObj);
 });
 

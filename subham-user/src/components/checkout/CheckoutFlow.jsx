@@ -167,6 +167,31 @@ export default function CheckoutFlow({ onClose, items }) {
 
     const poll = async () => {
       try {
+        // 1. Check direct session status from backend
+        const verifyRes = await fetch('/api/checkout/shiprocket-verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: shiprocketSession.orderId }),
+        });
+        if (verifyRes.ok) {
+          const vData = await verifyRes.json();
+          if (vData.data?.confirmed && active) {
+            const confirmedId = vData.data.orderNumber || shiprocketSession.orderId;
+            setLiveMonitor({
+              status: 'success',
+              orderNumber: confirmedId,
+              message: `Order Confirmed! (#${confirmedId})`,
+            });
+            setTimeout(() => {
+              clearCart?.();
+              navigate(`/order-placed?order=${encodeURIComponent(confirmedId)}&provider=shiprocket`, { replace: true });
+              onClose?.();
+            }, 1000);
+            return;
+          }
+        }
+
+        // 2. Fallback check live debug logs
         const res = await fetch('/shiprocket-checkout/debug/data');
         if (!res.ok) return;
         const data = await res.json();
@@ -203,6 +228,32 @@ export default function CheckoutFlow({ onClose, items }) {
     const interval = setInterval(poll, 1000);
     return () => { active = false; clearInterval(interval); };
   }, [useShiprocket, shiprocketSession, clearCart, navigate, onClose]);
+
+  const forceCompleteOrder = async () => {
+    if (!shiprocketSession?.orderId) return;
+    try {
+      setLiveMonitor({ status: 'waiting', message: 'Confirming order on backend…' });
+      const res = await fetch('/api/checkout/shiprocket-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: shiprocketSession.orderId, forceConfirm: true }),
+      });
+      const data = await res.json();
+      if (data.success && data.data?.confirmed) {
+        const confirmedId = data.data.orderNumber;
+        setLiveMonitor({ status: 'success', message: `Order Confirmed! (#${confirmedId})` });
+        setTimeout(() => {
+          clearCart?.();
+          navigate(`/order-placed?order=${encodeURIComponent(confirmedId)}&provider=shiprocket`, { replace: true });
+          onClose?.();
+        }, 800);
+      } else {
+        alert(data.message || 'Could not verify order yet.');
+      }
+    } catch (err) {
+      alert(err.message || 'Verification failed');
+    }
+  };
 
   const reOpenFastrrWindow = () => {
     if (shiprocketSession?.checkoutUrl) {
@@ -346,13 +397,22 @@ export default function CheckoutFlow({ onClose, items }) {
 
           {shiprocketError && <div className="mt-3 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">{shiprocketError}</div>}
 
-          <div className="mt-5 flex gap-2">
-            <button type="button" className="btn-outline flex-1 text-xs py-2.5" onClick={onClose}>
-              Cancel / Close
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              type="button"
+              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
+              onClick={forceCompleteOrder}
+            >
+              ✅ I Have Paid — Complete & View Order
             </button>
-            <button type="button" className="btn-primary flex-1 text-xs py-2.5" onClick={reOpenFastrrWindow}>
-              🔗 Re-open Payment Popup
-            </button>
+            <div className="flex gap-2">
+              <button type="button" className="btn-outline flex-1 text-xs py-2.5" onClick={onClose}>
+                Cancel / Close
+              </button>
+              <button type="button" className="btn-primary flex-1 text-xs py-2.5" onClick={reOpenFastrrWindow}>
+                🔗 Re-open Payment Popup
+              </button>
+            </div>
           </div>
         </div>
       </div>

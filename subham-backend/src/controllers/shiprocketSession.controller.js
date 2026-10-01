@@ -429,6 +429,20 @@ async function confirmOrderFromSession(session, payload = {}) {
   let existing = await Order.findOne({ orderNumber: session.orderId });
   if (existing) {
     let updated = false;
+    if (existing.status !== 'confirmed') {
+      existing.status = 'confirmed';
+      updated = true;
+    }
+    if (!existing.payment || existing.payment.status !== 'paid') {
+      existing.payment = {
+        ...(existing.payment || {}),
+        provider: 'shiprocket-checkout',
+        status: 'paid',
+        paidAt: new Date(),
+        razorpayPaymentId: providerOrderId || existing.payment?.razorpayPaymentId,
+      };
+      updated = true;
+    }
     if (customer.name && customer.name !== 'Shiprocket Guest' && customer.name !== 'Customer') {
       existing.customer.name = customer.name;
       updated = true;

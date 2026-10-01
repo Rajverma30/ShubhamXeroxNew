@@ -228,7 +228,7 @@ const SR_PREFIX = process.env.SHIPROCKET_CHECKOUT_ROUTE_PREFIX || '/shiprocket-c
 const sessionCtrl = require('./controllers/shiprocketSession.controller');
 
 // Direct top-level webhook mounts for any external Fastrr / Shiprocket webhook paths
-app.post(['/webhook', '/fastrr-webhook', '/shiprocket-webhook', '/order-create', '/order/create', '/orders/create'], sessionCtrl.webhook);
+app.all(['/webhook', '/fastrr-webhook', '/shiprocket-webhook', '/order-create', '/order/create', '/orders/create'], sessionCtrl.webhook);
 
 app.use(SR_PREFIX, require('./routes/shiprocketCheckout.routes'));
 logger.info(`Shiprocket Checkout endpoints mounted at ${SR_PREFIX}`);

@@ -481,15 +481,6 @@ async function confirmOrderFromSession(session, payload = {}) {
   await session.save();
 
   logger.info(`Shiprocket payment successfully recorded as ${order.orderNumber}`);
-
-  if (shiprocketShipping.credentialsPresent()) {
-    shiprocketShipping.createAdhocOrder(order).then((srRes) => {
-      logger.info(`Auto-pushed order ${order.orderNumber} to Shiprocket Panel: order_id=${srRes?.order_id}, shipment_id=${srRes?.shipment_id}`);
-    }).catch((err) => {
-      logger.error(`Failed to auto-push order ${order.orderNumber} to Shiprocket Panel: ${err.message}`);
-    });
-  }
-
   return order;
 }
 
@@ -612,15 +603,6 @@ async function createOrderFromFastrrPayload(payload, orderId) {
 
   await decrementStock(order);
   logger.info(`Fastrr direct webhook order successfully recorded as ${order.orderNumber}`);
-
-  if (shiprocketShipping.credentialsPresent()) {
-    shiprocketShipping.createAdhocOrder(order).then((srRes) => {
-      logger.info(`Auto-pushed order ${order.orderNumber} to Shiprocket Panel: order_id=${srRes?.order_id}, shipment_id=${srRes?.shipment_id}`);
-    }).catch((err) => {
-      logger.error(`Failed to auto-push order ${order.orderNumber} to Shiprocket Panel: ${err.message}`);
-    });
-  }
-
   return order;
 }
 

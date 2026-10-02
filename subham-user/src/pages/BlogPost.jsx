@@ -16,12 +16,33 @@ import Seo, { breadcrumbSchema } from '../components/ui/Seo';
 import { useStore } from '../context/StoreContext';
 import { BLOG_POSTS, getBlogBySlug } from '../data/blogs';
 import { NotFound } from './Static';
+import MppscTop10 from './blog/MppscTop10';
+import GhatnaChakra from './blog/GhatnaChakra';
+import ParikshaBodh from './blog/ParikshaBodh';
+import StationeryChecklist from './blog/StationeryChecklist';
+import ConstableBooks from './blog/ConstableBooks';
+import BuyMppscIndore from './blog/BuyMppscIndore';
+import CurrentAffairsMppsc from './blog/CurrentAffairsMppsc';
+import PatwariBooks from './blog/PatwariBooks';
+import NcertMppsc from './blog/NcertMppsc';
 
 const SITE = (import.meta.env.VITE_SITE_URL || 'https://shubhamxerox.in').replace(/\/$/, '');
 const OFFICIAL = {
   mpesb: 'https://esb.mp.gov.in/',
   mppsc: 'https://mppsc.mp.gov.in/',
   mponline: 'https://www.mponline.gov.in/',
+};
+
+const ARTICLE_MAP = {
+  'mppsc-2026-best-books-list': MppscTop10,
+  'ghatna-chakra-purvavlokan-hindi-english': GhatnaChakra,
+  'mp-board-pariksha-bodh-vs-adhyayan': ParikshaBodh,
+  'essential-stationery-for-mppsc-aspirants': StationeryChecklist,
+  'mp-police-constable-best-books-2026': ConstableBooks,
+  'buy-mppsc-books-in-indore': BuyMppscIndore,
+  'current-affairs-for-mppsc-2026': CurrentAffairsMppsc,
+  'mp-patwari-mpesb-books-guide': PatwariBooks,
+  'ncert-books-for-mppsc-2026': NcertMppsc,
 };
 
 const TOC = [
@@ -783,18 +804,19 @@ export default function BlogPost() {
   const { slug } = useParams();
   const { settings } = useStore();
   const post = getBlogBySlug(slug);
+  const contact = {
+    phone: settings?.phone,
+    whatsapp: settings?.whatsapp || settings?.phone,
+  };
 
   if (!post) return <NotFound />;
 
-  if (post.id === 'mp-government-jobs-2026-guide' && post.fullContent) {
-    return (
-      <MpGovtJobsArticle
-        post={post}
-        phone={settings?.phone}
-        whatsapp={settings?.whatsapp || settings?.phone}
-      />
-    );
+  if (post.id === 'mp-government-jobs-2026-guide') {
+    return <MpGovtJobsArticle post={post} {...contact} />;
   }
+
+  const Article = ARTICLE_MAP[post.id];
+  if (Article) return <Article post={post} {...contact} />;
 
   return <ComingSoonPost post={post} />;
 }

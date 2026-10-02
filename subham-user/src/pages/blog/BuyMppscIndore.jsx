@@ -109,7 +109,7 @@ export default function BuyMppscIndore({ post, phone, whatsapp }) {
             MPPSC books
           </Link>
           ,{' '}
-          <Link to="/category/ghatna-chakra-books" className="font-semibold text-brand-600 underline">
+          <Link to="/collection/ghatna-chakra-publication" className="font-semibold text-brand-600 underline">
             Ghatna Chakra
           </Link>
           ,{' '}

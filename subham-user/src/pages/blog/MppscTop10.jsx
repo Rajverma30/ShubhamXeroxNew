@@ -17,7 +17,7 @@ const BOOKS = [
     name: 'Ghatna Chakra Purvavlokan (Samanya Adhyayan) — Subject set',
     use: 'History, Geography, Polity, Economy, Environment, Science',
     why: 'Most-recommended PYQ + topic bank for MPPSC/SSC. Use it for concept + previous-year mapping, not as a first-read textbook.',
-    link: '/category/ghatna-chakra-books',
+    link: '/collection/ghatna-chakra-publication',
   },
   {
     rank: 2,
@@ -235,8 +235,8 @@ export default function MppscTop10({ post, phone, whatsapp }) {
           body="Original Ghatna Chakra, MP Special GK, Laxmikanth, Spectrum, Speedy CA and Mains guides — with photocopy & notes printing support."
           primaryTo="/category/mppsc-books"
           primaryLabel="Shop MPPSC Books"
-          secondaryTo="/category/ghatna-chakra-books"
-          secondaryLabel="Ghatna Chakra Series"
+          secondaryTo="/collection/ghatna-chakra-publication"
+          secondaryLabel="Ghatna Chakra"
         />
       </section>
 

@@ -586,8 +586,8 @@ function MpGovtJobsArticle({ post, phone, whatsapp }) {
               current affairs
             </Link>{' '}
             and{' '}
-            <Link to="/category/ghatna-chakra-books" className="font-semibold text-brand-600 underline decoration-brand-300 underline-offset-2">
-              Ghatna Chakra series
+            <Link to="/collection/ghatna-chakra-publication" className="font-semibold text-brand-600 underline decoration-brand-300 underline-offset-2">
+              Ghatna Chakra
             </Link>
             .
           </p>

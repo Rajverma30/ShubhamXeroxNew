@@ -170,7 +170,7 @@ export default function GhatnaChakra({ post, phone, whatsapp }) {
         <ShopCta
           title="Get original Ghatna Chakra at Shubham Xerox"
           body="Purvavlokan subject sets, MPPSC combos and current affairs — available online and at Bhawarkua Square, Indore."
-          primaryTo="/category/ghatna-chakra-books"
+          primaryTo="/collection/ghatna-chakra-publication"
           primaryLabel="Shop Ghatna Chakra"
           secondaryTo="/category/mppsc-books"
           secondaryLabel="MPPSC Books"

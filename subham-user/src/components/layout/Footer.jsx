@@ -12,7 +12,7 @@ const FALLBACK_GROUPS = {
     { label: 'MPPSC Mains Books', url: '/category/mppsc-mains-books' },
     { label: 'MPESB & Vyapam Books', url: '/category/mpesb-books' },
     { label: 'Speedy Current Affairs', url: '/category/current-affairs-books' },
-    { label: 'Ghatna Chakra Series', url: '/category/ghatna-chakra-books' },
+    { label: 'Ghatna Chakra', url: '/collection/ghatna-chakra-publication' },
     { label: 'Stationery & Office', url: '/category/stationery' },
     { label: 'Free Ebooks & PDFs', url: '/ebooks' },
   ],

@@ -24,6 +24,7 @@ const Policy = lazy(() => import('./pages/Static').then((m) => ({ default: m.Pol
 const NotFound = lazy(() => import('./pages/Static').then((m) => ({ default: m.NotFound })));
 const StoreLocation = lazy(() => import('./pages/StoreLocation'));
 const Blogs = lazy(() => import('./pages/Blogs'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
 
 /** Pre-configured <Shop> variants for the themed listing routes. */
 const Ebooks = () => (
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
       { path: 'wishlist', element: <Wishlist /> },
       { path: 'store-indore', element: <StoreLocation /> },
       { path: 'blogs', element: <Blogs /> },
+      { path: 'blogs/:slug', element: <BlogPost /> },
       { path: 'about', element: <About /> },
       { path: 'contact', element: <Contact /> },
       { path: 'policy/:slug', element: <Policy /> },

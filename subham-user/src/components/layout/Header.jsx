@@ -13,6 +13,7 @@ import { Logo } from '../ui/Common';
 
 const STATIC_LINKS = [
   { label: 'All products', to: '/shop' },
+  { label: 'Exam guides', to: '/blogs' },
   { label: 'Free ebooks', to: '/ebooks' },
   { label: 'Offers', to: '/offers' },
   { label: 'Track order', to: '/track' },
@@ -79,7 +80,7 @@ export default function Header() {
                 </Link>
               </div>
             ))}
-            {STATIC_LINKS.slice(0, 2).map((l) => (
+            {STATIC_LINKS.slice(0, 3).map((l) => (
               <NavLink key={l.to} to={l.to}
                 className={({ isActive }) => `rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
                   isActive ? 'bg-ink-900 text-white' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'}`}>

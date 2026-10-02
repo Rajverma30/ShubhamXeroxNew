@@ -6,18 +6,19 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FiChevronDown, FiHeart, FiMenu, FiPhone, FiSearch, FiShoppingBag, FiTruck, FiX } from 'react-icons/fi';
+import { FiBookOpen, FiChevronDown, FiHeart, FiMenu, FiPhone, FiSearch, FiShoppingBag, FiTruck, FiX } from 'react-icons/fi';
 import { useStore } from '../../context/StoreContext';
 import { useScrolled } from '../../hooks';
 import { Logo } from '../ui/Common';
 
 const STATIC_LINKS = [
   { label: 'All products', to: '/shop' },
-  { label: 'Exam guides', to: '/blogs' },
   { label: 'Free ebooks', to: '/ebooks' },
   { label: 'Offers', to: '/offers' },
   { label: 'Track order', to: '/track' },
 ];
+
+const GUIDE_STRIP_KEY = 'sx_exam_guides_strip_dismissed';
 
 export default function Header() {
   const { settings, categories, cartCount, wishlist, setCartOpen, setSearchOpen } = useStore();
@@ -26,13 +27,67 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [barVisible, setBarVisible] = useState(true);
+  const [guideStripVisible, setGuideStripVisible] = useState(false);
 
   useEffect(() => { setMobileOpen(false); setOpenMenu(null); }, [location.pathname]);
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(GUIDE_STRIP_KEY) === '1') return;
+    } catch { /* ignore */ }
+    setGuideStripVisible(true);
+  }, []);
+
+  const dismissGuideStrip = () => {
+    setGuideStripVisible(false);
+    try { sessionStorage.setItem(GUIDE_STRIP_KEY, '1'); } catch { /* ignore */ }
+  };
+
   const announcement = settings?.announcementBar;
+  const onBlogs = location.pathname.startsWith('/blogs');
+  const showGuideStrip = guideStripVisible && !onBlogs;
 
   return (
     <>
+      {/* Exam guides promo strip — visible on every page so students notice */}
+      <AnimatePresence>
+        {showGuideStrip && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="relative overflow-hidden bg-ink-950 text-white"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.35),_transparent_55%)]" />
+            <div className="container-x relative flex flex-col items-center justify-center gap-2 py-2.5 pr-10 text-center sm:flex-row sm:gap-4 sm:py-2 sm:pr-12">
+              <p className="text-2xs sm:text-xs font-medium text-white/90 leading-snug max-w-xl">
+                <span className="inline-flex items-center gap-1.5 font-bold text-brand-300">
+                  <FiBookOpen size={13} className="shrink-0" /> Free Exam Guides
+                </span>
+                <span className="text-white/40 mx-1.5 hidden sm:inline">·</span>
+                <span className="block sm:inline mt-0.5 sm:mt-0">
+                  MPPSC books, MP Police Constable, Ghatna Chakra &amp; more — padho free, phir books lo
+                </span>
+              </p>
+              <Link
+                to="/blogs"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3.5 py-1.5 text-2xs sm:text-xs font-bold text-white shadow-soft hover:bg-brand-400 transition-colors"
+              >
+                Open Exam Guides →
+              </Link>
+              <button
+                type="button"
+                onClick={dismissGuideStrip}
+                aria-label="Dismiss exam guides banner"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/40 transition-colors hover:text-white sm:right-3"
+              >
+                <FiX size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {announcement?.enabled && announcement.text && barVisible && (
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
@@ -63,7 +118,6 @@ export default function Header() {
             <FiMenu size={21} />
           </button>
 
-          {/* the wordmark is dropped on the narrowest phones */}
           <span className="hidden min-[380px]:contents"><Logo className="h-9 w-9 sm:h-10 sm:w-10" /></span>
           <span className="min-[380px]:hidden"><Logo className="h-9 w-9" showText={false} /></span>
 
@@ -80,13 +134,20 @@ export default function Header() {
                 </Link>
               </div>
             ))}
-            {STATIC_LINKS.slice(0, 3).map((l) => (
+            {STATIC_LINKS.slice(0, 2).map((l) => (
               <NavLink key={l.to} to={l.to}
                 className={({ isActive }) => `rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
                   isActive ? 'bg-ink-900 text-white' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'}`}>
                 {l.label}
               </NavLink>
             ))}
+            <NavLink to="/blogs"
+              className={({ isActive }) => `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-ink-900 text-white border-ink-900 shadow-soft'
+                  : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'}`}>
+              <FiBookOpen size={14} /> Exam Guides
+            </NavLink>
             <NavLink to="/track"
               className={({ isActive }) => `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
                 isActive ? 'bg-brand-600 text-white border-brand-600 shadow-soft' : 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100'}`}>
@@ -102,6 +163,11 @@ export default function Header() {
               <kbd className="rounded border border-ink-200 bg-ink-50 px-1.5 py-0.5 text-2xs text-ink-400">⌘K</kbd>
             </button>
 
+            <Link to="/blogs" aria-label="Exam guides" title="Exam Guides"
+              className="btn-icon text-amber-800 hover:bg-amber-50 lg:hidden">
+              <FiBookOpen size={19} />
+            </Link>
+
             <Link to="/track" aria-label="Track order" title="Track / My Orders"
               className="btn-icon text-brand-700 hover:bg-brand-50 lg:hidden">
               <FiTruck size={19} />
@@ -112,7 +178,6 @@ export default function Header() {
               <FiSearch size={19} />
             </button>
 
-            {/* wishlist + cart live in the mobile nav on phones */}
             <Link to="/wishlist" aria-label="Wishlist" className="btn-icon relative hidden text-ink-700 hover:bg-ink-100 lg:inline-flex">
               <FiHeart size={19} />
               {wishlist.length > 0 && (
@@ -190,6 +255,15 @@ function MobileMenu({ open, onClose, categories, settings }) {
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3">
+              <Link
+                to="/blogs"
+                onClick={onClose}
+                className="mb-3 flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm font-bold text-amber-950"
+              >
+                <FiBookOpen className="text-amber-700" size={16} />
+                Free Exam Guides — MPPSC, Constable &amp; more
+              </Link>
+
               {categories.map((cat) => (
                 <div key={cat._id} className="border-b border-ink-50 last:border-0">
                   <div className="flex items-center">

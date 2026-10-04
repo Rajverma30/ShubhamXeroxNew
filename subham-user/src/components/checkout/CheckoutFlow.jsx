@@ -109,6 +109,7 @@ export default function CheckoutFlow({ onClose, items }) {
 
   const [gokwikError, setGokwikError] = useState('');
   const [gokwikStarting, setGokwikStarting] = useState(false);
+  const [gokwikOpened, setGokwikOpened] = useState(false);
   const [gokwikRetry, setGokwikRetry] = useState(0);
   const gokwikStarted = useRef(false);
   const gokwikCleanup = useRef(null);
@@ -160,19 +161,33 @@ export default function CheckoutFlow({ onClose, items }) {
     gokwikStarted.current = true;
     let active = true;
     setGokwikStarting(true);
+    setGokwikOpened(false);
     setGokwikError('');
 
     beginGokwikCheckout(checkoutCart, {
+      onOpened: () => {
+        if (!active) return;
+        setGokwikStarting(false);
+        setGokwikOpened(true);
+      },
       onComplete: (orderNumber) => {
         if (!active) return;
         clearCart?.();
         navigate(`/order-placed?order=${encodeURIComponent(orderNumber)}&provider=gokwik`, { replace: true });
         onClose?.();
       },
+      onClose: () => {
+        if (!active) return;
+        setGokwikError('GoKwik checkout was closed before the order was completed.');
+        setGokwikStarting(false);
+        setGokwikOpened(false);
+        gokwikStarted.current = false;
+      },
       onError: (err) => {
         if (!active) return;
         setGokwikError(err?.message || 'GoKwik checkout failed');
         setGokwikStarting(false);
+        setGokwikOpened(false);
         gokwikStarted.current = false;
       },
     })
@@ -189,6 +204,7 @@ export default function CheckoutFlow({ onClose, items }) {
         gokwikStarted.current = false;
         setGokwikError(err.message || 'Could not start GoKwik Checkout');
         setGokwikStarting(false);
+        setGokwikOpened(false);
       });
 
     return () => {
@@ -387,16 +403,22 @@ export default function CheckoutFlow({ onClose, items }) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
         <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
-          {!gokwikError && (
+          {!gokwikError && gokwikStarting && (
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-3 border-brand-600 border-t-transparent" />
           )}
           <h3 className="font-bold text-ink-900 text-base">
-            {gokwikError ? 'Checkout unavailable' : 'Opening GoKwik Checkout…'}
+            {gokwikError
+              ? 'Checkout unavailable'
+              : gokwikOpened
+                ? 'Complete payment in GoKwik'
+                : 'Opening GoKwik Checkout…'}
           </h3>
           <p className="mt-1.5 text-xs text-ink-500">
             {gokwikError
               ? 'We could not start online checkout.'
-              : 'Complete OTP, address and payment in the GoKwik window.'}
+              : gokwikOpened
+                ? 'OTP, address and payment open in the GoKwik window. Keep this tab open until you finish.'
+                : 'Starting secure GoKwik checkout…'}
           </p>
 
           {gokwikError && (

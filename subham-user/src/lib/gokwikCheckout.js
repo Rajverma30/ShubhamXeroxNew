@@ -1,11 +1,11 @@
 /**
  * GoKwik Checkout storefront hand-off.
  *
- * Flow (GOKWIK.md):
- *   1. POST /api/checkout/session  → { sessionKey, mid, environment, scriptUrl }
- *   2. load gokwik.js
- *   3. gokwikSdk.initCheckout({ mid, merchantParams: { merchantCheckoutId: sessionKey } })
- *   4. on order-complete → /order-placed?order=SX-…
+ * Matches GoKwik's WooCommerce plugin (kwikcheckout-woo gokwik-custom.js):
+ *   gokwikSdk.initCheckout({
+ *     environment, type: 'merchantInfo', mid,
+ *     merchantParams: { merchantCheckoutId: sessionKey }
+ *   })
  *
  * Secrets never reach the browser — only mid / environment / scriptUrl / sessionKey.
  */
@@ -38,82 +38,133 @@ export async function createGokwikSession(cart) {
   }
 }
 
+function waitForSdk(timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
+    const tick = () => {
+      const sdk = window.gokwikSdk;
+      if (sdk && typeof sdk.initCheckout === 'function') {
+        resolve(sdk);
+        return;
+      }
+      if (Date.now() - started > timeoutMs) {
+        reject(new Error('GoKwik checkout script did not become ready. Check your connection and try again.'));
+        return;
+      }
+      setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    if (window.gokwikSdk) {
+    if (window.gokwikSdk && typeof window.gokwikSdk.initCheckout === 'function') {
       resolve(window.gokwikSdk);
       return;
     }
-    const existing = document.querySelector(`script[data-gokwik-sdk="1"]`);
+
+    const existing = document.querySelector('script[data-gokwik-sdk="1"]');
     if (existing) {
-      existing.addEventListener('load', () => resolve(window.gokwikSdk));
-      existing.addEventListener('error', () => reject(new Error('Failed to load GoKwik checkout')));
+      waitForSdk().then(resolve).catch(reject);
       return;
     }
+
     const script = document.createElement('script');
     script.src = src;
     script.async = true;
     script.dataset.gokwikSdk = '1';
     script.onload = () => {
-      if (window.gokwikSdk) resolve(window.gokwikSdk);
-      else reject(new Error('GoKwik script loaded but SDK is unavailable'));
+      waitForSdk().then(resolve).catch(reject);
     };
     script.onerror = () => reject(new Error('Failed to load GoKwik checkout'));
     document.head.appendChild(script);
   });
 }
 
+function pickOrderNumber(payload) {
+  if (!payload) return null;
+  if (typeof payload === 'string') return payload;
+  return (
+    payload.merchant_order_id
+    || payload.id
+    || payload.order_id
+    || payload.orderId
+    || payload.orderNumber
+    || payload.detail?.merchant_order_id
+    || payload.detail?.id
+    || payload.detail?.order_id
+    || null
+  );
+}
+
 /**
  * Open the GoKwik popup for an existing session.
  * @returns {() => void} cleanup — remove listeners
  */
-export async function openGokwikCheckout(session, { onComplete, onError } = {}) {
+export async function openGokwikCheckout(session, { onComplete, onError, onClose, onOpened } = {}) {
   const { sessionKey, mid, environment, scriptUrl } = session;
   const sdk = await loadScript(scriptUrl);
 
+  if (!sdk || typeof sdk.initCheckout !== 'function') {
+    throw new Error('GoKwik SDK or initCheckout function not available');
+  }
+
+  let settled = false;
   const finish = (orderNumber) => {
-    if (!orderNumber) return;
+    if (settled || !orderNumber) return;
+    settled = true;
     onComplete?.(String(orderNumber));
   };
 
-  const onOrderComplete = (payload) => {
-    const orderNumber =
-      (typeof payload === 'string' && payload)
-      || payload?.id
-      || payload?.order_id
-      || payload?.orderId
-      || payload?.merchant_order_id
-      || payload?.detail?.id
-      || payload?.detail?.order_id
-      || payload?.detail?.merchant_order_id;
-    finish(orderNumber);
+  const fail = (err) => {
+    if (settled) return;
+    settled = true;
+    const error = err instanceof Error ? err : new Error(String(err?.message || err || 'GoKwik checkout failed'));
+    onError?.(error);
   };
 
-  const onWindowEvent = (event) => onOrderComplete(event?.detail ?? event);
+  const onOrderComplete = (payload) => finish(pickOrderNumber(payload));
+  const onInitFailure = (payload) => {
+    const msg = payload?.message || payload?.error || payload?.failure_reason
+      || 'GoKwik could not open checkout. Confirm your Merchant ID is mapped to this store.';
+    fail(new Error(typeof msg === 'string' ? msg : 'GoKwik checkout failed to start'));
+  };
+  const onCheckoutClose = () => {
+    if (settled) return;
+    settled = true;
+    onClose?.();
+  };
 
-  window.addEventListener('gokwik.order-complete', onWindowEvent);
-  window.addEventListener('order-complete', onWindowEvent);
-  if (typeof sdk?.on === 'function') {
-    try { sdk.on('order-complete', onOrderComplete); } catch { /* older SDK */ }
+  if (typeof sdk.on === 'function') {
+    try { sdk.on('order-complete', onOrderComplete); } catch { /* ignore */ }
+    try { sdk.on('checkout-initiation-failure', onInitFailure); } catch { /* ignore */ }
+    try { sdk.on('checkout-close', onCheckoutClose); } catch { /* ignore */ }
   }
 
+  // Same payload shape as GoKwik's WooCommerce plugin (gokwik-custom.js).
+  const gcObj = {
+    environment: environment || 'production',
+    type: 'merchantInfo',
+    mid,
+    merchantParams: {
+      merchantCheckoutId: sessionKey,
+    },
+  };
+
   try {
-    sdk.initCheckout({
-      mid,
-      environment: environment || 'production',
-      type: 'checkout',
-      merchantParams: {
-        merchantCheckoutId: sessionKey,
-      },
-    });
+    sdk.initCheckout(gcObj);
+    onOpened?.();
   } catch (err) {
-    onError?.(err);
+    fail(err);
     throw err;
   }
 
   return () => {
-    window.removeEventListener('gokwik.order-complete', onWindowEvent);
-    window.removeEventListener('order-complete', onWindowEvent);
+    settled = true;
+    try {
+      if (typeof sdk.close === 'function') sdk.close();
+    } catch { /* ignore */ }
   };
 }
 

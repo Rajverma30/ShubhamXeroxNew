@@ -14,6 +14,7 @@ import {
   sendOtp, verifyOtp, createDirectSession, getQuote, placeOrder, preloadCheckout, normalisePhone, cleanPhoneInput,
 } from '../../lib/checkout';
 import { beginShiprocketCheckout } from '../../lib/shiprocketSession';
+import { beginGokwikCheckout } from '../../lib/gokwikCheckout';
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
@@ -51,7 +52,9 @@ const writeAddress = (form) => {
 export default function CheckoutFlow({ onClose, items }) {
   const { cart: storeCart, clearCart, settings, toast } = useStore();
   const navigate = useNavigate();
-  const useShiprocket = settings?.checkout?.mode === 'shiprocket';
+  const checkoutMode = settings?.checkout?.mode;
+  const useShiprocket = checkoutMode === 'shiprocket';
+  const useGokwik = checkoutMode === 'gokwik';
 
   const [checkoutCart, setCheckoutCart] = useState(() => (items?.length ? items : storeCart));
 
@@ -104,6 +107,12 @@ export default function CheckoutFlow({ onClose, items }) {
   const [shiprocketRetry, setShiprocketRetry] = useState(0);
   const shiprocketStarted = useRef(false);
 
+  const [gokwikError, setGokwikError] = useState('');
+  const [gokwikStarting, setGokwikStarting] = useState(false);
+  const [gokwikRetry, setGokwikRetry] = useState(0);
+  const gokwikStarted = useRef(false);
+  const gokwikCleanup = useRef(null);
+
   const [form, setForm] = useState(() => ({
     name: '', email: '', address: '', address2: '', landmark: '',
     city: '', state: '', pincode: '',
@@ -144,6 +153,50 @@ export default function CheckoutFlow({ onClose, items }) {
       });
     return () => { active = false; };
   }, [useShiprocket, shiprocketRetry, checkoutCart]);
+
+  /* GoKwik Checkout Mode — OTP / address / pay inside GoKwik popup */
+  useEffect(() => {
+    if (!useGokwik || gokwikStarted.current) return;
+    gokwikStarted.current = true;
+    let active = true;
+    setGokwikStarting(true);
+    setGokwikError('');
+
+    beginGokwikCheckout(checkoutCart, {
+      onComplete: (orderNumber) => {
+        if (!active) return;
+        clearCart?.();
+        navigate(`/order-placed?order=${encodeURIComponent(orderNumber)}&provider=gokwik`, { replace: true });
+        onClose?.();
+      },
+      onError: (err) => {
+        if (!active) return;
+        setGokwikError(err?.message || 'GoKwik checkout failed');
+        setGokwikStarting(false);
+        gokwikStarted.current = false;
+      },
+    })
+      .then(({ cleanup }) => {
+        if (!active) {
+          cleanup?.();
+          return;
+        }
+        gokwikCleanup.current = cleanup;
+        setGokwikStarting(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        gokwikStarted.current = false;
+        setGokwikError(err.message || 'Could not start GoKwik Checkout');
+        setGokwikStarting(false);
+      });
+
+    return () => {
+      active = false;
+      try { gokwikCleanup.current?.(); } catch { /* ignore */ }
+      gokwikCleanup.current = null;
+    };
+  }, [useGokwik, gokwikRetry, checkoutCart, clearCart, navigate, onClose]);
 
   /* Live Real-time Status Polling (1s interval during active checkout) */
   useEffect(() => {
@@ -329,6 +382,55 @@ export default function CheckoutFlow({ onClose, items }) {
     && /^\d{6}$/.test(form.pincode);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  if (useGokwik) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+          {!gokwikError && (
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-3 border-brand-600 border-t-transparent" />
+          )}
+          <h3 className="font-bold text-ink-900 text-base">
+            {gokwikError ? 'Checkout unavailable' : 'Opening GoKwik Checkout…'}
+          </h3>
+          <p className="mt-1.5 text-xs text-ink-500">
+            {gokwikError
+              ? 'We could not start online checkout.'
+              : 'Complete OTP, address and payment in the GoKwik window.'}
+          </p>
+
+          {gokwikError && (
+            <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 font-medium">
+              {gokwikError}
+            </div>
+          )}
+
+          <div className="mt-5 flex gap-2">
+            {gokwikError && (
+              <button
+                type="button"
+                className="btn-primary flex-1 text-xs py-2.5"
+                disabled={gokwikStarting}
+                onClick={() => {
+                  gokwikStarted.current = false;
+                  setGokwikRetry((n) => n + 1);
+                }}
+              >
+                Try again
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn-outline flex-1 text-xs py-2.5"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (useShiprocket) {
     return (

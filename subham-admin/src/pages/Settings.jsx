@@ -43,7 +43,9 @@ export default function Settings() {
         ...data.checkout,
         // Settings documents created before this selector had `auto`; after a
         // save the store always has one explicit, supported checkout path.
-        mode: data.checkout?.mode === 'shiprocket' ? 'shiprocket' : 'razorpay',
+        mode: ['shiprocket', 'gokwik'].includes(data.checkout?.mode)
+          ? data.checkout.mode
+          : 'razorpay',
       },
       popularSearches: (data.popularSearches || []).join(', '),
       seo: {
@@ -215,19 +217,34 @@ export default function Settings() {
                 <Select {...register('checkout.mode')}>
                   <option value="razorpay">Razorpay — OTP, address and payment on this store</option>
                   <option value="shiprocket">Shiprocket / Fastrr — hosted Shiprocket checkout</option>
+                  <option value="gokwik">GoKwik — OTP, address and payment on this store</option>
                 </Select>
               </Field>
 
               <div className="rounded-xl border border-ink-100 bg-ink-50/60 p-4 text-sm">
                 <p className="font-semibold text-ink-800">
-                  {checkoutMode === 'shiprocket' ? 'Shiprocket Checkout selected' : 'Razorpay Checkout selected'}
+                  {checkoutMode === 'shiprocket'
+                    ? 'Shiprocket Checkout selected'
+                    : checkoutMode === 'gokwik'
+                      ? 'GoKwik Checkout selected'
+                      : 'Razorpay Checkout selected'}
                 </p>
                 {checkoutMode === 'shiprocket' ? (
                   <p className="mt-1.5 leading-relaxed text-ink-500">
                     Products and collections sync automatically after every admin add, edit, flag change or delete.
                     The initial full sync button is useful after connecting a new Fastrr account.
                   </p>
-                ) : <p className="mt-1.5 leading-relaxed text-ink-500">The existing OTP + Razorpay checkout remains active. Shiprocket can still be used for shipping rates and tracking.</p>}
+                ) : checkoutMode === 'gokwik' ? (
+                  <p className="mt-1.5 leading-relaxed text-ink-500">
+                    Customers complete OTP, address and payment inside the GoKwik popup. Prices stay on this server;
+                    Shiprocket can still be used for delivery estimates and tracking. Set GOKWIK_MID, GOKWIK_APP_ID
+                    and GOKWIK_APP_SECRET on the server — they are never shown in the browser.
+                  </p>
+                ) : (
+                  <p className="mt-1.5 leading-relaxed text-ink-500">
+                    The existing OTP + Razorpay checkout remains active. Shiprocket can still be used for shipping rates and tracking.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -278,8 +295,9 @@ export default function Settings() {
             </div>
 
             <p className="mt-2 text-2xs text-ink-400">
-              Required server variables: SHIPROCKET_CHECKOUT_API_KEY, SHIPROCKET_CHECKOUT_API_SECRET, FASTRR_SELLER_DOMAIN,
-              FASTRR_PRODUCT_WEBHOOK_URL, FASTRR_COLLECTION_WEBHOOK_URL, FASTRR_API_KEY and FASTRR_WEBHOOK_SECRET.
+              {checkoutMode === 'gokwik'
+                ? 'Required server variables: GOKWIK_ENV, GOKWIK_MID, GOKWIK_APP_ID, GOKWIK_APP_SECRET, GOKWIK_ENABLED. Optional: GOKWIK_REFUND_HMAC.'
+                : 'Required server variables: SHIPROCKET_CHECKOUT_API_KEY, SHIPROCKET_CHECKOUT_API_SECRET, FASTRR_SELLER_DOMAIN, FASTRR_PRODUCT_WEBHOOK_URL, FASTRR_COLLECTION_WEBHOOK_URL, FASTRR_API_KEY and FASTRR_WEBHOOK_SECRET.'}
             </p>
           </SectionCard>
 

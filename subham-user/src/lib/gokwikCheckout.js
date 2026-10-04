@@ -126,9 +126,15 @@ export async function openGokwikCheckout(session, { onComplete, onError, onClose
 
   const onOrderComplete = (payload) => finish(pickOrderNumber(payload));
   const onInitFailure = (payload) => {
-    const msg = payload?.message || payload?.error || payload?.failure_reason
-      || 'GoKwik could not open checkout. Confirm your Merchant ID is mapped to this store.';
-    fail(new Error(typeof msg === 'string' ? msg : 'GoKwik checkout failed to start'));
+    try {
+      // Helpful when debugging with GoKwik support — never includes App Secret.
+      console.warn('[GoKwik] checkout-initiation-failure', payload);
+    } catch { /* ignore */ }
+    const raw = payload?.message || payload?.error || payload?.failure_reason || payload?.reason;
+    const msg = typeof raw === 'string' && raw.trim()
+      ? raw.trim()
+      : 'GoKwik could not open checkout. Ask GoKwik to map your Merchant ID to https://subhamapi.hypernxt.space/wp-json/gokwik/v1/cart — until they do, the popup cannot load the cart.';
+    fail(new Error(msg));
   };
   const onCheckoutClose = () => {
     if (settled) return;

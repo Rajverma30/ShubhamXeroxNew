@@ -66,14 +66,14 @@ GoKwik has to point your Merchant ID at this server. Send their integration / on
 > Our store runs on a custom Node.js backend that implements the same merchant cart API as
 > your WooCommerce plugin (kwikcheckout-woo v1.1.6), at the same paths.
 >
-> - Store / API base URL: `https://subhamapi.hypernxt.space`
-> - Cart API: `https://subhamapi.hypernxt.space/wp-json/gokwik/v1/cart`
->   (also available at `/gokwik/v1/cart`)
-> - Health check: `https://subhamapi.hypernxt.space/wp-json/gokwik/v1/cart/health-check`
+> - Store / API base URL: `https://www.shubhamxerox.in`
+> - Cart API: `https://www.shubhamxerox.in/wp-json/gokwik/v1/cart`
+>   (also available at `/gokwik/v1/cart`; proxied to the Node backend)
+> - Health check: `https://www.shubhamxerox.in/wp-json/gokwik/v1/cart/health-check`
 > - Auth: `appid` + `appsecret` headers (also accepts `app-id`/`app-secret`, `gk-app-id`/`gk-app-secret`)
 > - `merchantCheckoutId` passed to `gokwikSdk.initCheckout` is the `session_key` for every cart call
 > - `place-order` returns `{ "id": "SX-261004-AB12C" }` — a string order number, used as `merchant_order_id`
-> - Storefront domain: `https://shubhamxerox.in`
+> - Storefront domain: `https://www.shubhamxerox.in`
 >
 > Please configure our MID for this endpoint and confirm.
 

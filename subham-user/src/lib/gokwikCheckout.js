@@ -131,7 +131,7 @@ export async function openGokwikCheckout(session, { onComplete, onError, onClose
       console.warn('[GoKwik] checkout-initiation-failure', payload);
     } catch { /* ignore */ }
     const raw = payload?.message || payload?.error || payload?.failure_reason || payload?.reason;
-    const cartApi = `${(import.meta.env.VITE_SITE_URL || 'https://shubhamxerox.in').replace(/\/$/, '')}/wp-json/gokwik/v1/cart`;
+    const cartApi = `${(import.meta.env.VITE_SITE_URL || 'https://www.shubhamxerox.in').replace(/\/$/, '')}/wp-json/gokwik/v1/cart`;
     const msg = typeof raw === 'string' && raw.trim()
       ? raw.trim()
       : `GoKwik could not open checkout. Ask GoKwik to map your Merchant ID to ${cartApi} — until they do, the popup cannot load the cart.`;

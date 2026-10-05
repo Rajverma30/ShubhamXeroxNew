@@ -13,6 +13,14 @@
       "destination": "https://subhamapi.hypernxt.space/api/:path*"
     },
     {
+      "source": "/wp-json/gokwik/v1/:path*",
+      "destination": "https://subhamapi.hypernxt.space/wp-json/gokwik/v1/:path*"
+    },
+    {
+      "source": "/gokwik/v1/:path*",
+      "destination": "https://subhamapi.hypernxt.space/gokwik/v1/:path*"
+    },
+    {
       "source": "/uploads/:path*",
       "destination": "https://subhamapi.hypernxt.space/uploads/:path*"
     },

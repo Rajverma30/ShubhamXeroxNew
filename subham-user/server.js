@@ -112,6 +112,43 @@ app.get(['/product/:slug', '/share/product/:slug', '/og/product/:slug'], async (
   next();
 });
 
+// Proxy GoKwik cart API → backend (same paths WooCommerce uses).
+app.use(['/wp-json/gokwik/v1', '/gokwik/v1'], (req, res) => {
+  const prefix = req.baseUrl;
+  const target = new URL(`${BACKEND_TARGET}${prefix}${req.url}`);
+  const lib = target.protocol === 'https:' ? https : http;
+
+  const headers = { ...req.headers, host: target.host };
+  delete headers['accept-encoding'];
+
+  const proxyReq = lib.request(
+    {
+      protocol: target.protocol,
+      hostname: target.hostname,
+      port: target.port || (target.protocol === 'https:' ? 443 : 80),
+      path: `${target.pathname}${target.search}`,
+      method: req.method,
+      headers,
+      timeout: 60000,
+    },
+    (proxyRes) => {
+      const outHeaders = { ...proxyRes.headers };
+      delete outHeaders['transfer-encoding'];
+      res.writeHead(proxyRes.statusCode || 502, outHeaders);
+      proxyRes.pipe(res);
+    },
+  );
+
+  proxyReq.on('error', (err) => {
+    console.error('GoKwik cart API proxy error:', err.message);
+    if (!res.headersSent) {
+      res.status(502).json({ error: 'Proxy error', message: err.message });
+    }
+  });
+
+  req.pipe(proxyReq);
+});
+
 // Proxy /shiprocket-checkout → backend.
 // CRITICAL: do NOT use req.body here. This server has no body parser for these
 // routes; reading req.body yielded `{}` and Fastrr payment webhooks arrived

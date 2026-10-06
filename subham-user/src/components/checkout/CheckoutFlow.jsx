@@ -114,6 +114,8 @@ export default function CheckoutFlow({ onClose, items }) {
   const gokwikStarted = useRef(false);
   const gokwikCleanup = useRef(null);
 
+  const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' | 'cod'
+
   const [form, setForm] = useState(() => ({
     name: '', email: '', address: '', address2: '', landmark: '',
     city: '', state: '', pincode: '',
@@ -374,6 +376,7 @@ export default function CheckoutFlow({ onClose, items }) {
           address: form.address, address2: form.address2, landmark: form.landmark,
           city: form.city, state: form.state, pincode: form.pincode,
         },
+        paymentMethod,
         storeName: settings?.storeName,
         logo: settings?.logo,
       });
@@ -565,15 +568,68 @@ export default function CheckoutFlow({ onClose, items }) {
 
             <StationeryUpsell compact onItemAdded={handleStationeryAdded} onItemRemoved={handleStationeryRemoved} />
 
-            <div className="rounded-lg bg-ink-50 p-3 text-sm">
-              <Row label="Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />
+            {/* Payment Method Selector */}
+            <div className="space-y-1.5 pt-1">
+              <span className="block text-xs font-semibold text-ink-600">Select Payment Option</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('online')}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all ${
+                    paymentMethod === 'online'
+                      ? 'border-brand-600 bg-brand-50 text-brand-900 ring-2 ring-brand-600/20 font-bold shadow-2xs'
+                      : 'border-ink-200 bg-white text-ink-700 hover:bg-ink-50'
+                  }`}
+                >
+                  <span className="text-xs font-bold">💳 Online Payment</span>
+                  <span className="mt-0.5 text-[10px] text-ink-500 font-medium">Full Amount Prepaid</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('cod')}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all ${
+                    paymentMethod === 'cod'
+                      ? 'border-amber-600 bg-amber-50 text-amber-900 ring-2 ring-amber-600/20 font-bold shadow-2xs'
+                      : 'border-ink-200 bg-white text-ink-700 hover:bg-ink-50'
+                  }`}
+                >
+                  <span className="text-xs font-bold text-amber-900">🚚 Cash on Delivery</span>
+                  <span className="mt-0.5 text-[10px] text-amber-700 font-semibold">Pay ₹69 Delivery Online</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-ink-200 bg-ink-50 p-3 text-sm space-y-1.5">
+              <Row label="Items Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />
               <Row
-                label="Delivery"
-                value={quoting ? 'Checking…' : (quote ? (quote.shippingCharge ? money(quote.shippingCharge) : 'Free') : '—')}
+                label={paymentMethod === 'cod' ? "Delivery Charge (COD)" : "Delivery Charge"}
+                value={paymentMethod === 'cod' ? money(69) : (quoting ? 'Checking…' : (quote ? (quote.shippingCharge ? money(quote.shippingCharge) : 'Free') : '—'))}
               />
-              {quote?.shipping?.etd && <p className="mt-1 text-xs text-ink-500">Estimated delivery: {quote.shipping.etd}</p>}
-              <div className="mt-2 flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">
-                <span>Total</span><span>{money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}</span>
+              {quote?.shipping?.etd && paymentMethod !== 'cod' && (
+                <p className="mt-1 text-xs text-ink-500">Estimated delivery: {quote.shipping.etd}</p>
+              )}
+              {paymentMethod === 'cod' && (
+                <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Pay Online Now (Razorpay):</span>
+                    <span className="font-bold text-emerald-700">{money(69)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Pay on Delivery (Cash):</span>
+                    <span className="font-bold text-amber-950">{money(quote?.subtotal ?? liveSubtotal)}</span>
+                  </div>
+                </div>
+              )}
+              <div className="mt-2 flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900 text-base">
+                <span>Total Order Amount</span>
+                <span>
+                  {money(
+                    paymentMethod === 'cod'
+                      ? ((quote?.subtotal ?? liveSubtotal) + 69)
+                      : (quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))
+                  )}
+                </span>
               </div>
             </div>
 
@@ -582,7 +638,11 @@ export default function CheckoutFlow({ onClose, items }) {
               disabled={busy || !addressValid}
               className="btn-primary block w-full py-3.5"
             >
-              {step === 'paying' ? 'Opening Payment…' : `Pay ${money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}`}
+              {step === 'paying'
+                ? 'Opening Payment…'
+                : paymentMethod === 'cod'
+                  ? `Pay ₹69 Delivery Charge & Place COD Order`
+                  : `Pay ${money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}`}
             </button>
 
             <div className="flex items-center justify-between text-xs text-ink-400">

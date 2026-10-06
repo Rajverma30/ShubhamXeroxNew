@@ -152,7 +152,7 @@ export function preloadCheckout() {
  * @param {Object} args  { token, customer:{name,email}, address, storeName, logo }
  * @returns {Promise<{orderNumber, total}>} resolves only after payment is verified
  */
-export async function placeOrder(cart, { token, customer, address, storeName, logo }) {
+export async function placeOrder(cart, { token, customer, address, paymentMethod = 'online', storeName, logo }) {
   if (!cart?.length) throw new Error('Your cart is empty');
   if (!token) throw new Error('Please verify your mobile number first');
 
@@ -165,6 +165,7 @@ export async function placeOrder(cart, { token, customer, address, storeName, lo
       items: toItems(cart),
       customer,
       address,
+      paymentMethod,
     }, auth);
     order = res.data?.data ?? res.data;
   } catch (err) {
@@ -173,6 +174,11 @@ export async function placeOrder(cart, { token, customer, address, storeName, lo
 
   await loadRazorpay();
 
+  const isCod = paymentMethod === 'cod';
+  const description = isCod
+    ? `Order ${order.orderNumber} (₹69 Delivery Charge)`
+    : `Order ${order.orderNumber}`;
+
   /* 2. hand off to Razorpay */
   const result = await new Promise((resolve, reject) => {
     const rzp = new window.Razorpay({
@@ -180,7 +186,7 @@ export async function placeOrder(cart, { token, customer, address, storeName, lo
       amount: order.amount,             // paise, straight from the server
       currency: order.currency || 'INR',
       name: storeName || 'Shubham Xerox',
-      description: `Order ${order.orderNumber}`,
+      description,
       image: logo || undefined,
       order_id: order.razorpayOrderId,
       prefill: {
@@ -188,8 +194,8 @@ export async function placeOrder(cart, { token, customer, address, storeName, lo
         email: customer?.email || '',
         contact: order.customer?.phone || '',
       },
-      notes: { orderNumber: order.orderNumber },
-      theme: { color: '#7f1d1d' },
+      notes: { orderNumber: order.orderNumber, paymentMethod },
+      theme: { color: isCod ? '#d97706' : '#7f1d1d' },
       handler: (response) => resolve(response),
       modal: {
         ondismiss: () => reject(new Error('Payment cancelled. Your order has not been placed.')),

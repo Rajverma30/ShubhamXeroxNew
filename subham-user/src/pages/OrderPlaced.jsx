@@ -246,9 +246,25 @@ export default function OrderPlaced() {
 
             <dl className="space-y-1.5 border-t border-ink-100 bg-ink-50/60 p-4 text-sm">
               <Row label="Subtotal" value={money(order.subtotal)} />
-              <Row label="Delivery" value={order.shippingCharge ? money(order.shippingCharge) : 'Free'} />
+              <Row label={(order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') ? "Delivery Charge (COD)" : "Delivery"} value={order.shippingCharge ? money(order.shippingCharge) : 'Free'} />
+              {(order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') && (
+                <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900 border border-amber-200 my-2 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Payment Method:</span>
+                    <span className="font-bold">Cash on Delivery (COD)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Delivery Fee Paid Online:</span>
+                    <span className="font-bold text-emerald-700">{money(order.shippingCharge || 69)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold pt-1 border-t border-amber-200">
+                    <span>Pay on Delivery (Cash):</span>
+                    <span className="font-bold text-amber-950 text-sm">{money(order.subtotal)}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">
-                <dt>{isPaid ? 'Total paid' : 'Total due'}</dt><dd>{money(order.total)}</dd>
+                <dt>{isPaid ? 'Total Order Amount' : 'Total due'}</dt><dd>{money(order.total)}</dd>
               </div>
             </dl>
 

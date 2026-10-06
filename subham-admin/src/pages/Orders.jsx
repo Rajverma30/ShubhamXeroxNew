@@ -211,9 +211,20 @@ export default function Orders() {
                   <td className="hidden px-4 py-3 text-ink-500 md:table-cell">{(o.items || []).length}</td>
                   <td className="px-4 py-3 text-right font-semibold text-ink-900">{money(o.total)}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={o.payment?.status === 'paid' ? 'green' : o.payment?.status === 'failed' ? 'rose' : 'amber'}>
-                      {o.payment?.status === 'created' ? 'Attempted' : (o.payment?.status || 'Attempted')}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge tone={o.payment?.status === 'paid' ? 'green' : o.payment?.status === 'failed' ? 'rose' : 'amber'}>
+                        {o.payment?.status === 'created' ? 'Attempted' : (o.payment?.status || 'Attempted')}
+                      </Badge>
+                      {(o.payment?.type === 'CASH_ON_DELIVERY' || o.payment?.method === 'cod') ? (
+                        <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
+                          COD (₹69 Paid)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
+                          Online Prepaid
+                        </span>
+                      )}
+                    </div>
                     {o.payment?.method && <p className="mt-0.5 text-2xs text-ink-400">{o.payment.method}</p>}
                   </td>
                   <td className="px-4 py-3">
@@ -379,6 +390,25 @@ function OrderDetail({ id, onClose, onSaved }) {
               </p>
             </Info>
           </div>
+
+          {(order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3.5 space-y-1.5 shadow-2xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-950">
+                <span className="text-base">🚚</span>
+                CASH ON DELIVERY (COD) ORDER DETAILS
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs text-amber-900 pt-1">
+                <div className="rounded-lg bg-white/80 p-2.5 border border-amber-200">
+                  <span className="block text-[11px] font-medium text-amber-700">Delivery Charge (Paid Online via Razorpay):</span>
+                  <span className="font-bold text-emerald-700 text-sm">{money(order.shippingCharge || 69)}</span>
+                </div>
+                <div className="rounded-lg bg-white/80 p-2.5 border border-amber-200">
+                  <span className="block text-[11px] font-medium text-amber-700">Cash to Collect on Delivery:</span>
+                  <span className="font-bold text-amber-950 text-sm">{money(order.subtotal)}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Shiprocket Delivery Integration Controls */}
           {!order.isShiprocketSession && (

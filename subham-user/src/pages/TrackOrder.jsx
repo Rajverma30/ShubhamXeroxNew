@@ -138,9 +138,11 @@ export default function TrackOrder() {
 
             {phoneOrdersList.map((ord) => {
               const isPaid = ord.payment?.status === 'paid';
+              const isCodOrder = ord.payment?.type === 'CASH_ON_DELIVERY' || ord.payment?.method === 'cod' || ord.payment?.provider === 'cod' || ord.status === 'confirmed';
               const phone = ord.customer?.phone || '';
               const ordId = ord._id || ord.orderNumber;
               const isPayingThis = payingOrderId === ordId;
+              const trackingUrl = (ord.tracking?.url || ord.trackUrl || '').trim();
 
               return (
                 <div key={ordId} className="overflow-hidden rounded-3xl border border-ink-100 bg-white p-5 shadow-soft transition-all hover:border-brand-200">
@@ -150,8 +152,8 @@ export default function TrackOrder() {
                       <p className="font-display text-lg font-bold text-ink-900">{ord.orderNumber}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Tag tone={isPaid ? 'green' : 'amber'}>
-                        {isPaid ? 'PAID & CONFIRMED' : 'AWAITING PAYMENT'}
+                      <Tag tone={isPaid ? 'green' : isCodOrder ? 'brand' : 'amber'}>
+                        {isPaid ? 'PAID & CONFIRMED' : isCodOrder ? 'COD CONFIRMED' : 'AWAITING PAYMENT'}
                       </Tag>
                       <Tag tone={ord.status === 'delivered' ? 'green' : ord.status === 'shipped' ? 'brand' : 'gray'}>
                         {ORDER_STATUS_LABEL[ord.status] || ord.status}
@@ -200,7 +202,7 @@ export default function TrackOrder() {
                       View Details <FiChevronRight size={14} />
                     </Link>
 
-                    {!isPaid ? (
+                    {!isPaid && !isCodOrder ? (
                       <button
                         type="button"
                         onClick={() => handlePayOrder(ord)}
@@ -210,13 +212,24 @@ export default function TrackOrder() {
                         {isPayingThis ? <Spinner size={14} /> : <FiCreditCard size={14} />}
                         Pay {money(ord.total)} Now
                       </button>
-                    ) : (
-                      <Link
-                        to={`/track?order=${ord.orderNumber}`}
-                        className="btn-primary btn-sm gap-1.5"
+                    ) : trackingUrl ? (
+                      <a
+                        href={trackingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-primary btn-sm gap-1.5 bg-ink-900 text-white hover:bg-ink-800"
                       >
                         <FiTruck size={13} /> Live Courier Track
-                      </Link>
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        title="Tracking link will be available once shipped by admin"
+                        className="btn-primary btn-sm gap-1.5 bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed"
+                      >
+                        <FiTruck size={13} /> Live Courier Track
+                      </button>
                     )}
                   </div>
                 </div>

@@ -278,8 +278,10 @@ function OrderDetail({ id, onClose, onSaved }) {
   });
 
   const paid = order?.payment?.status === 'paid';
-  const isCod = order?.payment?.type === 'CASH_ON_DELIVERY' || order?.payment?.method === 'cod';
+  const gokwikCod = order?.payment?.provider === 'gokwik' && String(order?.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
+  const isCod = order?.payment?.type === 'CASH_ON_DELIVERY' || order?.payment?.method === 'cod' || order?.payment?.provider === 'cod' || gokwikCod;
   const canPush = paid || isCod || (order?.status && order?.status !== 'awaiting-payment' && order?.status !== 'cancelled');
+  const showTrackingFields = form.status !== 'awaiting-payment' && form.status !== 'cancelled';
   const needsTracking = ['shipped', 'delivered'].includes(form.status);
 
   const [sendingWa, setSendingWa] = useState(false);
@@ -361,10 +363,10 @@ function OrderDetail({ id, onClose, onSaved }) {
             </p>
           )}
 
-          {!paid && !order.isShiprocketSession && (
+          {!paid && !isCod && !order.isShiprocketSession && (
             <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
               <FiAlertCircle size={15} className="mt-px shrink-0" />
-              This order has not been paid for. Only “cancelled” can be set until Razorpay confirms payment.
+              This order has not been paid for. Only “cancelled” can be set until payment is confirmed.
             </p>
           )}
 
@@ -513,6 +515,17 @@ function OrderDetail({ id, onClose, onSaved }) {
                   </button>
                 )}
 
+                {(order.tracking?.url || form.trackingUrl) && (
+                  <button
+                    type="button"
+                    onClick={() => handleSendWhatsApp('tracking')}
+                    disabled={sendingWa}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors"
+                  >
+                    {sendingWa ? <Spinner size={12} /> : <FiSend size={12} />} Send Tracking Link on WhatsApp
+                  </button>
+                )}
+
                 <a
                   href={`https://wa.me/91${String(order.customer.phone).replace(/\D/g, '').slice(-10)}`}
                   target="_blank"
@@ -585,33 +598,33 @@ function OrderDetail({ id, onClose, onSaved }) {
               >
                 {order.status === 'awaiting-payment' && <option value="awaiting-payment">awaiting-payment</option>}
                 {FULFILMENT.map((s) => (
-                  <option key={s} value={s} disabled={!paid && s !== 'cancelled'}>{s}</option>
+                  <option key={s} value={s} disabled={!canPush && s !== 'cancelled'}>{s}</option>
                 ))}
               </Select>
             </Field>
 
-            {needsTracking && (
+            {showTrackingFields && (
               <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50/60 p-3">
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-sky-800">
                   <FiTruck size={14} /> Courier details
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Courier" required>
+                  <Field label="Courier" required={needsTracking}>
                     <Input
                       value={form.courier} placeholder="Delhivery, DTDC, India Post…"
                       onChange={(e) => setForm((f) => ({ ...f, courier: e.target.value }))}
                     />
                   </Field>
-                  <Field label="AWB / tracking number" required>
+                  <Field label="AWB / tracking number" required={needsTracking}>
                     <Input
                       value={form.awb} placeholder="1234567890"
                       onChange={(e) => setForm((f) => ({ ...f, awb: e.target.value }))}
                     />
                   </Field>
                 </div>
-                <Field label="Tracking URL" hint="Optional — the customer-facing link">
+                <Field label="Tracking URL" hint="Customer-facing live link (saves & sends WhatsApp)">
                   <Input
-                    value={form.trackingUrl} placeholder="https://…"
+                    value={form.trackingUrl} placeholder="https://..."
                     onChange={(e) => setForm((f) => ({ ...f, trackingUrl: e.target.value }))}
                   />
                 </Field>

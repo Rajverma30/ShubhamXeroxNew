@@ -93,36 +93,32 @@ export default function Orders() {
           <button
             type="button"
             onClick={() => update({ status: '', paymentStatus: '', source: '' })}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              !params.status && !params.paymentStatus && !params.source ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${!params.status && !params.paymentStatus && !params.source ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+              }`}
           >
             All Orders
           </button>
           <button
             type="button"
             onClick={() => update({ status: '', paymentStatus: 'paid', source: '' })}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              params.paymentStatus === 'paid' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${params.paymentStatus === 'paid' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              }`}
           >
             Paid Orders
           </button>
           <button
             type="button"
             onClick={() => update({ status: 'awaiting-payment', paymentStatus: '', source: '' })}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              (params.status === 'awaiting-payment' || params.paymentStatus === 'created') && !params.source ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${(params.status === 'awaiting-payment' || params.paymentStatus === 'created') && !params.source ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+              }`}
           >
             Manual Attempts
           </button>
           <button
             type="button"
             onClick={() => update({ status: 'shiprocket-attempt', paymentStatus: '', source: 'shiprocket' })}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              params.source === 'shiprocket' || params.status === 'shiprocket-attempt' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${params.source === 'shiprocket' || params.status === 'shiprocket-attempt' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'
+              }`}
           >
             Shiprocket Attempts
           </button>
@@ -133,11 +129,10 @@ export default function Orders() {
             type="button"
             onClick={() => toggleAutoPush.mutate(!settingsData?.shiprocketAutoPush)}
             disabled={toggleAutoPush.isPending}
-            className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border ${
-              settingsData?.shiprocketAutoPush
+            className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border ${settingsData?.shiprocketAutoPush
                 ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
                 : 'bg-white text-ink-700 border-ink-200 hover:bg-ink-50'
-            }`}
+              }`}
           >
             <FiTruck size={14} />
             Auto-Push (paid only): <span className="font-bold uppercase">{settingsData?.shiprocketAutoPush ? 'ON' : 'OFF'}</span>
@@ -217,7 +212,7 @@ export default function Orders() {
                       </Badge>
                       {(o.payment?.type === 'CASH_ON_DELIVERY' || o.payment?.method === 'cod') ? (
                         <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
-                          COD (₹69 Paid)
+                          COD
                         </span>
                       ) : (
                         <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
@@ -433,10 +428,10 @@ function OrderDetail({ id, onClose, onSaved }) {
                   {order.shiprocket?.orderId
                     ? `✅ Order #${order.shiprocket.orderId}`
                     : order.shiprocket?.error
-                    ? '⚠️ Push Failed'
-                    : order.shiprocket?.pushedAt
-                    ? '⚠️ Push incomplete (no Shiprocket id)'
-                    : '⏳ Delivery Not Created'}
+                      ? '⚠️ Push Failed'
+                      : order.shiprocket?.pushedAt
+                        ? '⚠️ Push incomplete (no Shiprocket id)'
+                        : '⏳ Delivery Not Created'}
                 </span>
               </div>
 

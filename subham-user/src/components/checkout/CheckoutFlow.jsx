@@ -603,9 +603,12 @@ export default function CheckoutFlow({ onClose, items }) {
             <div className="rounded-xl border border-ink-200 bg-ink-50 p-3 text-sm space-y-1.5">
               <Row label="Items Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />
               <Row
-                label={paymentMethod === 'cod' ? "Delivery Charge (COD)" : "Delivery Charge"}
+                label={paymentMethod === 'cod' ? "Delivery Charge" : "Delivery Charge"}
                 value={paymentMethod === 'cod' ? money(69) : (quoting ? 'Checking…' : (quote ? (quote.shippingCharge ? money(quote.shippingCharge) : 'Free') : '—'))}
               />
+              {paymentMethod === 'cod' && (
+                <Row label="COD Fee" value={money(49)} />
+              )}
               {quote?.shipping?.etd && paymentMethod !== 'cod' && (
                 <p className="mt-1 text-xs text-ink-500">Estimated delivery: {quote.shipping.etd}</p>
               )}
@@ -613,9 +616,9 @@ export default function CheckoutFlow({ onClose, items }) {
                 <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 space-y-1">
                   <div className="flex justify-between font-semibold">
                     <span>Payable on Delivery (Cash/UPI):</span>
-                    <span className="font-bold text-amber-950">{money((quote?.subtotal ?? liveSubtotal) + 69)}</span>
+                    <span className="font-bold text-amber-950">{money((quote?.subtotal ?? liveSubtotal) + 69 + 49)}</span>
                   </div>
-                  <p className="text-[11px] text-amber-700">Includes ₹69 delivery charge. No online payment required now.</p>
+                  <p className="text-[11px] text-amber-700">Includes ₹69 delivery charge + ₹49 COD handling fee. No online payment required now.</p>
                 </div>
               )}
               <div className="mt-2 flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900 text-base">
@@ -623,7 +626,7 @@ export default function CheckoutFlow({ onClose, items }) {
                 <span>
                   {money(
                     paymentMethod === 'cod'
-                      ? ((quote?.subtotal ?? liveSubtotal) + 69)
+                      ? ((quote?.subtotal ?? liveSubtotal) + 69 + 49)
                       : (quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))
                   )}
                 </span>

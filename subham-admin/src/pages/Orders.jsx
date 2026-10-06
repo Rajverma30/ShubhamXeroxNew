@@ -400,7 +400,7 @@ function OrderDetail({ id, onClose, onSaved }) {
                 </div>
                 <span className="rounded bg-amber-200 px-2 py-0.5 text-2xs text-amber-900">COD</span>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-xs text-amber-900 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-amber-900 pt-1">
                 <div className="rounded-lg bg-white/80 p-2 border border-amber-200">
                   <span className="block text-[10px] font-medium text-amber-700">Subtotal:</span>
                   <span className="font-bold text-amber-950 text-xs">{money(order.subtotal)}</span>
@@ -408,6 +408,10 @@ function OrderDetail({ id, onClose, onSaved }) {
                 <div className="rounded-lg bg-white/80 p-2 border border-amber-200">
                   <span className="block text-[10px] font-medium text-amber-700">Delivery Charge:</span>
                   <span className="font-bold text-amber-950 text-xs">{money(order.shippingCharge || 69)}</span>
+                </div>
+                <div className="rounded-lg bg-white/80 p-2 border border-amber-200">
+                  <span className="block text-[10px] font-medium text-amber-700">COD Fee:</span>
+                  <span className="font-bold text-amber-950 text-xs">{money(order.codCharges || 49)}</span>
                 </div>
                 <div className="rounded-lg bg-amber-100 p-2 border border-amber-300">
                   <span className="block text-[10px] font-bold text-amber-800">Collect on Delivery:</span>

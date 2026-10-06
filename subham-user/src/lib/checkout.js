@@ -158,7 +158,7 @@ export async function placeOrder(cart, { token, customer, address, paymentMethod
 
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
-  /* 1. our order + a Razorpay order id */
+  /* 1. our order */
   let order;
   try {
     const res = await api.raw.post('/checkout/order', {
@@ -169,7 +169,12 @@ export async function placeOrder(cart, { token, customer, address, paymentMethod
     }, auth);
     order = res.data?.data ?? res.data;
   } catch (err) {
-    throw new Error(err?.message || 'Could not start the payment. Please try again.');
+    throw new Error(err?.message || 'Could not start order creation. Please try again.');
+  }
+
+  // If COD order, payment is handled on delivery — no online Razorpay widget needed!
+  if (order.isCod || paymentMethod === 'cod') {
+    return { orderNumber: order.orderNumber, total: order.total, paid: false, isCod: true };
   }
 
   await loadRazorpay();

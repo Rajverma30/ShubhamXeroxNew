@@ -595,7 +595,7 @@ export default function CheckoutFlow({ onClose, items }) {
                   }`}
                 >
                   <span className="text-xs font-bold text-amber-900">🚚 Cash on Delivery</span>
-                  <span className="mt-0.5 text-[10px] text-amber-700 font-semibold">Pay ₹69 Delivery Online</span>
+                  <span className="mt-0.5 text-[10px] text-amber-700 font-semibold">Pay Full Amount on Delivery</span>
                 </button>
               </div>
             </div>
@@ -611,14 +611,11 @@ export default function CheckoutFlow({ onClose, items }) {
               )}
               {paymentMethod === 'cod' && (
                 <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Pay Online Now (Razorpay):</span>
-                    <span className="font-bold text-emerald-700">{money(69)}</span>
-                  </div>
                   <div className="flex justify-between font-semibold">
-                    <span>Pay on Delivery (Cash):</span>
-                    <span className="font-bold text-amber-950">{money(quote?.subtotal ?? liveSubtotal)}</span>
+                    <span>Payable on Delivery (Cash/UPI):</span>
+                    <span className="font-bold text-amber-950">{money((quote?.subtotal ?? liveSubtotal) + 69)}</span>
                   </div>
+                  <p className="text-[11px] text-amber-700">Includes ₹69 delivery charge. No online payment required now.</p>
                 </div>
               )}
               <div className="mt-2 flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900 text-base">
@@ -639,9 +636,9 @@ export default function CheckoutFlow({ onClose, items }) {
               className="btn-primary block w-full py-3.5"
             >
               {step === 'paying'
-                ? 'Opening Payment…'
+                ? 'Placing Order…'
                 : paymentMethod === 'cod'
-                  ? `Pay ₹69 Delivery Charge & Place COD Order`
+                  ? `Place Order (Cash on Delivery)`
                   : `Pay ${money(quote?.total ?? (liveSubtotal + (quote?.shippingCharge || 0)))}`}
             </button>
 

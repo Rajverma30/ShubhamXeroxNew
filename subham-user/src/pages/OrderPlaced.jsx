@@ -253,14 +253,11 @@ export default function OrderPlaced() {
                     <span>Payment Method:</span>
                     <span className="font-bold">Cash on Delivery (COD)</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Delivery Fee Paid Online:</span>
-                    <span className="font-bold text-emerald-700">{money(order.shippingCharge || 69)}</span>
-                  </div>
                   <div className="flex justify-between font-semibold pt-1 border-t border-amber-200">
-                    <span>Pay on Delivery (Cash):</span>
-                    <span className="font-bold text-amber-950 text-sm">{money(order.subtotal)}</span>
+                    <span>Total Payable on Delivery (Cash/UPI):</span>
+                    <span className="font-bold text-amber-950 text-sm">{money(order.total)}</span>
                   </div>
+                  <p className="text-[11px] text-amber-700">Includes ₹{order.shippingCharge || 69} delivery charge. Pay when your order arrives.</p>
                 </div>
               )}
               <div className="flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">

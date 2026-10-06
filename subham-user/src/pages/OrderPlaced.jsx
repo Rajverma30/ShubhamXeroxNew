@@ -101,12 +101,23 @@ export default function OrderPlaced() {
     }
   };
 
+  const gokwikCod = order?.payment?.provider === 'gokwik' && String(order?.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
+  const isCod = Boolean(order) && (
+    order.payment?.type === 'CASH_ON_DELIVERY' ||
+    order.payment?.method === 'cod' ||
+    order.payment?.provider === 'cod' ||
+    gokwikCod ||
+    (order.status === 'confirmed' && order.payment?.status !== 'paid')
+  );
+
   const isPaid = Boolean(order) && (
     order.payment?.status === 'paid' ||
-    (['confirmed', 'processing', 'dispatched', 'delivered', 'completed'].includes(order.status) &&
+    (order.status && ['processing', 'dispatched', 'shipped', 'delivered', 'completed'].includes(order.status) &&
       order.payment?.status !== 'created' &&
       order.payment?.status !== 'failed')
   ) && order.status !== 'awaiting-payment';
+
+  const isConfirmed = isPaid || isCod;
 
   if (loading) {
     return (
@@ -119,7 +130,7 @@ export default function OrderPlaced() {
 
   return (
     <>
-      <Seo title={isPaid ? "Order Confirmed" : "Complete Payment"} path="/order-placed" noIndex />
+      <Seo title={isConfirmed ? "Order Confirmed" : "Complete Payment"} path="/order-placed" noIndex />
 
       <div className="container-x max-w-xl py-10 text-center sm:py-14">
         {orderError ? (
@@ -135,21 +146,25 @@ export default function OrderPlaced() {
               <FiRefreshCw size={14} /> Try Reloading
             </button>
           </div>
-        ) : isPaid ? (
+        ) : isConfirmed ? (
           <>
             <motion.div
               initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-glow"
+              className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-glow ${isPaid ? 'bg-emerald-500' : 'bg-amber-600'}`}
             >
               <FiCheck size={30} strokeWidth={3} />
             </motion.div>
 
             <h1 className="font-display text-2xl font-bold text-ink-900 sm:text-3xl">
-              Order placed successfully
+              {isCod ? 'COD Order Placed Successfully 🎉' : 'Order placed successfully'}
             </h1>
             <p className="mt-2 text-pretty text-sm leading-relaxed text-ink-500">
-              Your payment has been received and your order is confirmed. We will contact you on the number you verified when it ships.
+              {isCod ? (
+                <>Aapka Cash On Delivery order place ho gaya hai! Delivery ke waqt aapko <span className="font-bold text-ink-900">{money(order?.total)}</span> cash ya UPI se pay karna hoga.</>
+              ) : (
+                'Your payment has been received and your order is confirmed. We will contact you on the number you verified when it ships.'
+              )}
             </p>
           </>
         ) : (
@@ -172,8 +187,8 @@ export default function OrderPlaced() {
         )}
 
         {orderNumber && (
-          <div className={`mt-6 rounded-2xl border px-5 py-4 ${isPaid ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
-            <p className={`text-2xs font-bold uppercase tracking-wide ${isPaid ? 'text-emerald-700' : 'text-amber-800'}`}>
+          <div className={`mt-6 rounded-2xl border px-5 py-4 ${isConfirmed ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+            <p className={`text-2xs font-bold uppercase tracking-wide ${isConfirmed ? 'text-emerald-700' : 'text-amber-800'}`}>
               Your order number
             </p>
             <button
@@ -181,15 +196,15 @@ export default function OrderPlaced() {
               className="mt-1 inline-flex items-center gap-2 font-display text-2xl font-bold text-ink-900"
             >
               {orderNumber}
-              <FiCopy size={15} className={isPaid ? "text-emerald-600" : "text-amber-600"} />
+              <FiCopy size={15} className={isConfirmed ? "text-emerald-600" : "text-amber-600"} />
             </button>
-            <p className={`mt-1.5 text-2xs ${isPaid ? 'text-emerald-700' : 'text-amber-800'}`}>
+            <p className={`mt-1.5 text-2xs ${isConfirmed ? 'text-emerald-700' : 'text-amber-800'}`}>
               Save this number to track your order status anytime.
             </p>
           </div>
         )}
 
-        {!isPaid && order && (
+        {!isConfirmed && order && (
           <div className="mt-5 rounded-2xl border border-amber-300 bg-amber-50/90 p-5 text-left shadow-soft">
             <div className="flex items-start gap-3">
               <FiAlertCircle size={22} className="mt-0.5 shrink-0 text-amber-600" />
@@ -246,8 +261,8 @@ export default function OrderPlaced() {
 
             <dl className="space-y-1.5 border-t border-ink-100 bg-ink-50/60 p-4 text-sm">
               <Row label="Subtotal" value={money(order.subtotal)} />
-              <Row label={(order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') ? "Delivery Charge (COD)" : "Delivery"} value={order.shippingCharge ? money(order.shippingCharge) : 'Free'} />
-              {(order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') && (
+              <Row label={(isCod || order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') ? "Delivery Charge (COD)" : "Delivery"} value={order.shippingCharge ? money(order.shippingCharge) : 'Free'} />
+              {(isCod || order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod') && (
                 <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900 border border-amber-200 my-2 space-y-1">
                   <div className="flex justify-between">
                     <span>Payment Method:</span>
@@ -261,7 +276,7 @@ export default function OrderPlaced() {
                 </div>
               )}
               <div className="flex justify-between border-t border-ink-200 pt-2 font-bold text-ink-900">
-                <dt>{isPaid ? 'Total Order Amount' : 'Total due'}</dt><dd>{money(order.total)}</dd>
+                <dt>{isCod ? 'Total Payable on Delivery' : isPaid ? 'Total Order Amount' : 'Total due'}</dt><dd>{money(order.total)}</dd>
               </div>
             </dl>
 

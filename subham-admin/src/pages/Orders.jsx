@@ -278,6 +278,8 @@ function OrderDetail({ id, onClose, onSaved }) {
   });
 
   const paid = order?.payment?.status === 'paid';
+  const isCod = order?.payment?.type === 'CASH_ON_DELIVERY' || order?.payment?.method === 'cod';
+  const canPush = paid || isCod || (order?.status && order?.status !== 'awaiting-payment' && order?.status !== 'cancelled');
   const needsTracking = ['shipped', 'delivered'].includes(form.status);
 
   const [sendingWa, setSendingWa] = useState(false);
@@ -453,15 +455,15 @@ function OrderDetail({ id, onClose, onSaved }) {
                 <button
                   type="button"
                   onClick={handlePushShiprocket}
-                  disabled={pushingShiprocket || !paid}
-                  title={!paid ? 'Only paid orders can be pushed to Shiprocket' : undefined}
+                  disabled={pushingShiprocket || !canPush}
+                  title={!canPush ? 'Only confirmed or paid orders can be pushed to Shiprocket' : undefined}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-2xs"
                 >
                   {pushingShiprocket ? <Spinner size={12} /> : <FiSend size={12} />}
                   {order.shiprocket?.orderId ? 'Re-push Order to Shiprocket' : 'Push to Shiprocket (Create Delivery)'}
                 </button>
-                {!paid && (
-                  <span className="text-2xs text-amber-700">Payment confirm hone ke baad hi push hoga.</span>
+                {!canPush && (
+                  <span className="text-2xs text-amber-700">Order confirm hone ke baad hi push ho sakta hai.</span>
                 )}
 
                 {order.shiprocket?.orderId && (
@@ -483,7 +485,7 @@ function OrderDetail({ id, onClose, onSaved }) {
                 </div>
                 {order.whatsappNotifications && (
                   <span className="text-2xs font-medium text-emerald-800">
-                    {paid
+                    {(paid || isCod || order.status === 'confirmed')
                       ? order.whatsappNotifications.orderConfirmedSent ? '✅ Confirmation Sent' : '⏳ Confirmation Pending'
                       : order.whatsappNotifications.awaitingPaymentSent ? '✅ Payment Link Sent' : '⏳ Link Pending'}
                   </span>
@@ -491,7 +493,7 @@ function OrderDetail({ id, onClose, onSaved }) {
               </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
-                {!paid ? (
+                {(!paid && !isCod && order.status === 'awaiting-payment') ? (
                   <button
                     type="button"
                     onClick={() => handleSendWhatsApp('payment-pending')}

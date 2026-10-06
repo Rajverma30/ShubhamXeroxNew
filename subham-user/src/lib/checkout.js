@@ -103,10 +103,11 @@ export async function createDirectSession(phone) {
  * Live totals for the cart, including delivery for a pincode.
  * Safe to call on every pincode keystroke-complete — it writes nothing.
  */
-export async function getQuote(cart, pincode) {
+export async function getQuote(cart, pincode, paymentMethod) {
   const res = await api.raw.post('/checkout/quote', {
     items: toItems(cart),
     pincode: pincode || undefined,
+    paymentMethod,
   });
   return res.data?.data ?? res.data;
 }

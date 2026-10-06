@@ -331,12 +331,12 @@ export default function CheckoutFlow({ onClose, items }) {
     if (step !== 'address' || !/^\d{6}$/.test(form.pincode)) { setQuote(null); return undefined; }
     let cancelled = false;
     setQuoting(true);
-    getQuote(checkoutCart, form.pincode)
+    getQuote(checkoutCart, form.pincode, paymentMethod)
       .then((q) => { if (!cancelled) setQuote(q); })
       .catch(() => { if (!cancelled) setQuote(null); })
       .finally(() => { if (!cancelled) setQuoting(false); });
     return () => { cancelled = true; };
-  }, [form.pincode, step, checkoutCart]);
+  }, [form.pincode, step, checkoutCart, paymentMethod]);
 
   const run = async (fn) => {
     setBusy(true); setError('');

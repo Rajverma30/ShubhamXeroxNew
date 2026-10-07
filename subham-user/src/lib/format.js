@@ -87,11 +87,17 @@ export const imgUrl = (image, size = 'card') => {
   return resolveAssetUrl(image.cardUrl || image.url || image.thumbUrl);
 };
 
-/** Image load error handler: hide image immediately with zero fallbacks */
+/** Image load error handler: fallback to SVG book placeholder so images never disappear */
 export function handleImgError(e) {
   const img = e.currentTarget || e.target;
   if (!img) return;
-  img.style.display = 'none';
+  if (img.dataset.hasFailed) {
+    img.style.display = 'block';
+    return;
+  }
+  img.dataset.hasFailed = 'true';
+  img.src = placeholderImage('Book');
+  img.style.display = 'block';
   if (img.parentElement && img.parentElement.classList.contains('relative')) {
     const skeleton = img.parentElement.querySelector('.skeleton');
     if (skeleton) skeleton.style.display = 'none';

@@ -24,6 +24,20 @@ import {
   SearchInput, Select, Spinner, TableSkeleton,
 } from '../components/Ui';
 
+/** Popular couriers list for quick dropdown selection */
+const POPULAR_COURIERS = [
+  'Amazon Shipping',
+  'Shiprocket',
+  'India Post',
+  'Delhivery',
+  'DTDC',
+  'Blue Dart',
+  'Xpressbees',
+  'Ecom Express',
+  'Shadowfax',
+  'Professional Courier',
+];
+
 /** Fulfilment states, in the order an order actually moves through them. */
 const FULFILMENT = ['confirmed', 'packed', 'shipped', 'delivered', 'cancelled'];
 
@@ -192,42 +206,73 @@ export default function Orders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-100">
-              {items.map((o) => (
-                <tr
-                  key={o._id}
-                  onClick={() => setOpen(o._id)}
-                  className="cursor-pointer transition-colors hover:bg-ink-50/60"
-                >
-                  <td className="px-4 py-3 font-semibold text-ink-900">{o.orderNumber}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-ink-800">{o.customer?.name}</p>
-                    <p className="text-2xs text-ink-400">{o.customer?.phone}</p>
-                  </td>
-                  <td className="hidden px-4 py-3 text-ink-500 md:table-cell">{(o.items || []).length}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-ink-900">{money(o.total)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <Badge tone={o.payment?.status === 'paid' ? 'green' : o.payment?.status === 'failed' ? 'rose' : 'amber'}>
-                        {o.payment?.status === 'created' ? 'Attempted' : (o.payment?.status || 'Attempted')}
-                      </Badge>
-                      {(o.payment?.type === 'CASH_ON_DELIVERY' || o.payment?.method === 'cod') ? (
-                        <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
-                          COD
-                        </span>
+              {items.map((o) => {
+                const gokwikCod = o.payment?.provider === 'gokwik' && String(o.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
+                const isCod = o.payment?.type === 'CASH_ON_DELIVERY' || o.payment?.method === 'cod' || o.payment?.provider === 'cod' || gokwikCod;
+                const isPaid = o.payment?.status === 'paid';
+                const isFailed = o.payment?.status === 'failed';
+                const subtextClass = (isCod || isPaid) ? 'text-emerald-700 font-semibold' : isFailed ? 'text-rose-700 font-semibold' : 'text-amber-700 font-semibold';
+                const methodLabel = o.payment?.method || (isCod ? 'cod' : 'online');
+
+                return (
+                  <tr
+                    key={o._id}
+                    onClick={() => setOpen(o._id)}
+                    className="cursor-pointer transition-colors hover:bg-ink-50/60"
+                  >
+                    <td className="px-4 py-3 font-semibold text-ink-900">{o.orderNumber}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-ink-800">{o.customer?.name}</p>
+                      <p className="text-2xs text-ink-400">{o.customer?.phone}</p>
+                    </td>
+                    <td className="hidden px-4 py-3 text-ink-500 md:table-cell">{(o.items || []).length}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-ink-900">{money(o.total)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-1">
+                        {isCod ? (
+                          <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
+                            COD
+                          </span>
+                        ) : isPaid ? (
+                          <>
+                            <Badge tone="green">Paid</Badge>
+                            <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
+                              Online Prepaid
+                            </span>
+                          </>
+                        ) : isFailed ? (
+                          <>
+                            <Badge tone="rose">Failed</Badge>
+                            <span className="inline-flex items-center rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-800 border border-rose-300">
+                              Online
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Badge tone="amber">
+                              {o.payment?.status === 'created' ? 'Attempted' : (o.payment?.status || 'Attempted')}
+                            </Badge>
+                            <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
+                              Online
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <p className={`mt-0.5 text-2xs ${subtextClass}`}>{methodLabel}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isCod ? (
+                        <Badge tone={o.status === 'cancelled' ? 'rose' : 'green'}>
+                          {o.status === 'awaiting-payment' || o.status === 'pending' ? 'confirmed' : o.status}
+                        </Badge>
                       ) : (
-                        <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
-                          Online Prepaid
-                        </span>
+                        <Badge tone={TONE[o.status] || 'neutral'}>{o.status}</Badge>
                       )}
-                    </div>
-                    {o.payment?.method && <p className="mt-0.5 text-2xs text-ink-400">{o.payment.method}</p>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge tone={TONE[o.status] || 'neutral'}>{o.status}</Badge>
-                  </td>
-                  <td className="hidden px-4 py-3 text-2xs text-ink-400 lg:table-cell">{dateTime(o.createdAt)}</td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="hidden px-4 py-3 text-2xs text-ink-400 lg:table-cell">{dateTime(o.createdAt)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -609,11 +654,46 @@ function OrderDetail({ id, onClose, onSaved }) {
                   <FiTruck size={14} /> Courier details
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Courier" required={needsTracking}>
-                    <Input
-                      value={form.courier} placeholder="Delhivery, DTDC, India Post…"
-                      onChange={(e) => setForm((f) => ({ ...f, courier: e.target.value }))}
-                    />
+                  <Field label="Courier *" required={needsTracking}>
+                    <div className="space-y-2">
+                      <Select
+                        value={POPULAR_COURIERS.includes(form.courier) ? form.courier : (form.courier ? 'other' : '')}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val && val !== 'other') {
+                            setForm((f) => ({ ...f, courier: val }));
+                          }
+                        }}
+                      >
+                        <option value="">-- Select Courier --</option>
+                        {POPULAR_COURIERS.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                        <option value="other">Other / Custom</option>
+                      </Select>
+                      <Input
+                        value={form.courier}
+                        placeholder="Or enter courier name (e.g. Amazon, Shiprocket, India Post…)"
+                        onChange={(e) => setForm((f) => ({ ...f, courier: e.target.value }))}
+                      />
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        <span className="text-[10px] font-medium text-ink-400 self-center mr-1">Quick select:</span>
+                        {POPULAR_COURIERS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, courier: c }))}
+                            className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition-all border ${
+                              form.courier === c
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
+                                : 'bg-white text-ink-700 border-ink-200 hover:bg-sky-50 hover:border-sky-300'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </Field>
                   <Field label="AWB / tracking number" required={needsTracking}>
                     <Input

@@ -1,6 +1,6 @@
 /**
  * Route table. Every page is code-split with React.lazy; <Layout> renders a
- * Suspense fallback while a chunk loads.
+ * Suspense fallback while a chunk 
  */
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';

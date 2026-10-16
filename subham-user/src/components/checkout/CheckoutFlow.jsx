@@ -123,6 +123,14 @@ export default function CheckoutFlow({ onClose, items }) {
   }));
   const [quote, setQuote] = useState(null);
   const [quoting, setQuoting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const nameRef = useRef(null);
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
+  const cityRef = useRef(null);
+  const stateRef = useRef(null);
+  const pincodeRef = useRef(null);
 
   const otpRef = useRef(null);
 
@@ -328,10 +336,13 @@ export default function CheckoutFlow({ onClose, items }) {
 
   /* Re-quote on pincode complete or checkoutCart update */
   useEffect(() => {
-    if (step !== 'address' || !/^\d{6}$/.test(form.pincode)) { setQuote(null); return undefined; }
+    if (step !== 'address') return undefined;
+    if (form.pincode && !/^\d{6}$/.test(form.pincode)) {
+      return undefined;
+    }
     let cancelled = false;
     setQuoting(true);
-    getQuote(checkoutCart, form.pincode, paymentMethod)
+    getQuote(checkoutCart, form.pincode || '', paymentMethod)
       .then((q) => { if (!cancelled) setQuote(q); })
       .catch(() => { if (!cancelled) setQuote(null); })
       .finally(() => { if (!cancelled) setQuoting(false); });
@@ -394,13 +405,60 @@ export default function CheckoutFlow({ onClose, items }) {
     }
   });
 
-  const addressValid = form.name.trim().length >= 2
-    && normalisePhone(phone)
-    && form.address.trim().length >= 5
-    && form.city.trim() && form.state.trim()
-    && /^\d{6}$/.test(form.pincode);
+  const validateAddress = () => {
+    const errors = {};
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+    if (!form.name || form.name.trim().length < 2) {
+      errors.name = 'Please enter your full name (at least 2 characters)';
+    }
+
+    if (!normalisePhone(phone)) {
+      errors.phone = 'Please enter a valid 10-digit mobile number';
+    }
+
+    if (!form.address || form.address.trim().length < 5) {
+      errors.address = 'Please enter complete address (at least 5 characters)';
+    }
+
+    if (!form.city || !form.city.trim()) {
+      errors.city = 'Please enter your city';
+    }
+
+    if (!form.state || !form.state.trim()) {
+      errors.state = 'Please enter your state';
+    }
+
+    if (form.pincode && !/^\d{6}$/.test(form.pincode.trim())) {
+      errors.pincode = 'Please enter a valid 6-digit PIN code or leave it blank';
+    }
+
+    setFieldErrors(errors);
+
+    // Auto-focus on the first field with an error
+    if (errors.name) {
+      nameRef.current?.focus();
+    } else if (errors.phone) {
+      phoneRef.current?.focus();
+    } else if (errors.address) {
+      addressRef.current?.focus();
+    } else if (errors.city) {
+      cityRef.current?.focus();
+    } else if (errors.state) {
+      stateRef.current?.focus();
+    } else if (errors.pincode) {
+      pincodeRef.current?.focus();
+    }
+
+    return Object.keys(errors).length === 0;
+  };
+
+  const set = (k) => (e) => {
+    const val = e.target.value;
+    setForm((f) => ({ ...f, [k]: val }));
+    if (fieldErrors[k]) {
+      setFieldErrors((prev) => ({ ...prev, [k]: '' }));
+    }
+  };
 
   if (useGokwik) {
     return (
@@ -535,35 +593,106 @@ export default function CheckoutFlow({ onClose, items }) {
 
         {/* ── Direct 1-Page Custom Checkout Form ── */}
         {(step === 'address' || step === 'paying') && (
-          <form onSubmit={(e) => { e.preventDefault(); doPay(); }} className="w-full space-y-3">
-            <Field label="Full name" value={form.name} onChange={set('name')} autoComplete="name" autoFocus required placeholder="Enter your full name" />
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!validateAddress()) return;
+              doPay();
+            }}
+            className="w-full space-y-3"
+          >
+            <Field
+              inputRef={nameRef}
+              label="Full name"
+              value={form.name}
+              error={fieldErrors.name}
+              onChange={set('name')}
+              autoComplete="name"
+              autoFocus
+              placeholder="Enter your full name"
+            />
             
             <label className="block w-full">
               <span className="mb-1 block text-xs font-semibold text-ink-600">Mobile Number</span>
-              <div className="flex w-full items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 py-2.5">
+              <div
+                className={`flex w-full items-center gap-2 rounded-lg border bg-white px-3 py-2.5 transition-all ${
+                  fieldErrors.phone
+                    ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20'
+                    : 'border-ink-200 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/10'
+                }`}
+              >
                 <span className="text-sm font-semibold text-ink-500">+91</span>
                 <input
-                  type="tel" inputMode="numeric" autoComplete="tel" required
-                  value={phone} onChange={(e) => setPhone(cleanPhoneInput(e.target.value))}
+                  ref={phoneRef}
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(cleanPhoneInput(e.target.value));
+                    if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: '' }));
+                  }}
                   placeholder="10-digit mobile number"
                   className="w-full min-w-0 bg-transparent text-base outline-none placeholder:text-ink-400"
                 />
               </div>
+              {fieldErrors.phone && (
+                <span className="mt-1 block text-xs font-medium text-rose-600">
+                  {fieldErrors.phone}
+                </span>
+              )}
             </label>
 
-            <Field label="Address" value={form.address} onChange={set('address')} autoComplete="street-address" required placeholder="House no / street / area" />
+            <Field
+              inputRef={addressRef}
+              label="Address"
+              value={form.address}
+              error={fieldErrors.address}
+              onChange={set('address')}
+              autoComplete="street-address"
+              placeholder="House no / street / area (min 5 characters)"
+            />
             <Field label="Landmark (optional)" value={form.landmark} onChange={set('landmark')} placeholder="Near school / hospital / park" />
             
             <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
               <div className="min-w-0">
-                <Field label="PIN code" value={form.pincode} inputMode="numeric" autoComplete="postal-code"
-                  onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))} required placeholder="6-digit PIN" />
+                <Field
+                  inputRef={pincodeRef}
+                  label="PIN code (optional)"
+                  value={form.pincode}
+                  error={fieldErrors.pincode}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setForm((f) => ({ ...f, pincode: val }));
+                    if (fieldErrors.pincode) setFieldErrors((prev) => ({ ...prev, pincode: '' }));
+                  }}
+                  placeholder="6-digit PIN (optional)"
+                />
               </div>
               <div className="min-w-0">
-                <Field label="City" value={form.city} onChange={set('city')} autoComplete="address-level2" required placeholder="City" />
+                <Field
+                  inputRef={cityRef}
+                  label="City"
+                  value={form.city}
+                  error={fieldErrors.city}
+                  onChange={set('city')}
+                  autoComplete="address-level2"
+                  placeholder="City"
+                />
               </div>
             </div>
-            <Field label="State" value={form.state} onChange={set('state')} autoComplete="address-level1" required placeholder="State" />
+            <Field
+              inputRef={stateRef}
+              label="State"
+              value={form.state}
+              error={fieldErrors.state}
+              onChange={set('state')}
+              autoComplete="address-level1"
+              placeholder="State"
+            />
             <Field label="Email (optional)" type="email" value={form.email} onChange={set('email')} autoComplete="email" placeholder="For instant invoice receipt" />
 
             <StationeryUpsell compact onItemAdded={handleStationeryAdded} onItemRemoved={handleStationeryRemoved} />
@@ -603,8 +732,18 @@ export default function CheckoutFlow({ onClose, items }) {
             <div className="rounded-xl border border-ink-200 bg-ink-50 p-3 text-sm space-y-1.5">
               <Row label="Items Subtotal" value={money(quote?.subtotal ?? liveSubtotal)} />
               <Row
-                label={paymentMethod === 'cod' ? "Delivery Charge" : "Delivery Charge"}
-                value={paymentMethod === 'cod' ? money(69) : (quoting ? 'Checking…' : (quote ? (quote.shippingCharge ? money(quote.shippingCharge) : 'Free') : '—'))}
+                label="Delivery Charge"
+                value={
+                  paymentMethod === 'cod'
+                    ? money(69)
+                    : quoting
+                      ? 'Checking…'
+                      : quote
+                        ? quote.shippingCharge
+                          ? money(quote.shippingCharge)
+                          : 'Free'
+                        : 'Free'
+                }
               />
               {paymentMethod === 'cod' && (
                 <Row label="COD Fee" value={money(49)} />
@@ -635,7 +774,7 @@ export default function CheckoutFlow({ onClose, items }) {
 
             <button
               type="submit"
-              disabled={busy || !addressValid}
+              disabled={busy}
               className="btn-primary block w-full py-3.5"
             >
               {step === 'paying'
@@ -656,14 +795,24 @@ export default function CheckoutFlow({ onClose, items }) {
   );
 }
 
-function Field({ label, className = '', ...props }) {
+function Field({ label, error, inputRef, className = '', ...props }) {
   return (
     <label className="block w-full">
       <span className="mb-1 block text-xs font-semibold text-ink-600">{label}</span>
       <input
+        ref={inputRef}
         {...props}
-        className={`block w-full min-w-0 box-border appearance-none rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-base leading-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-600 ${className}`}
+        className={`block w-full min-w-0 box-border appearance-none rounded-lg border bg-white px-3 py-2.5 text-base leading-normal text-ink-900 outline-none placeholder:text-ink-400 transition-all ${
+          error
+            ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20 focus:border-rose-600'
+            : 'border-ink-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-500/10'
+        } ${className}`}
       />
+      {error && (
+        <span className="mt-1 block text-xs font-medium text-rose-600">
+          {error}
+        </span>
+      )}
     </label>
   );
 }

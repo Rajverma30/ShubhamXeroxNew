@@ -1,4 +1,231 @@
 {
+  "redirects": [
+    {
+      "source": "/product/ctet-paper-2-social-science-best-notes-updated-edition-by-sachin-choudhary-bilingual",
+      "destination": "/product/ctet-paper-2-social-science-sachin-choudhary",
+      "permanent": true
+    },
+    {
+      "source": "/product/drishti-mppsc-prelims-practice-series-book-5-3rd-edition-or-includes-1450-2020-2025-pyqs-hindi-medium",
+      "destination": "/product/drishti-ias-mppsc-prelims-science-technology-environment-health-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/drishti-mppsc-prelims-practice-series-book-2-3rd-edition-or-includes-3300-2020-2025-pyqs-hindi-medium",
+      "destination": "/product/drishti-ias-mppsc-prelims-geography-india-madhya-pradesh-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/drishti-mppsc-prelims-practice-series-book-1-3rd-edition-or-includes-3300-2020-2025-pyqs-hindi-medium",
+      "destination": "/product/drishti-ias-mppsc-prelims-itihas-sanskriti-sahitya-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/edu-teria-current-affairs-mcqs-power-book-june-2025-to-october-2026-hindi-medium-for-all-competitive-exams",
+      "destination": "/product/edu-teria-current-affairs-mcqs-power-book-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/pw-neet-39-years-physics-chapter-wise-and-topic-wise-solved-papers-2026-1988",
+      "destination": "/product/pw-neet-pyq-39-years-physics-2027-english",
+      "permanent": true
+    },
+    {
+      "source": "/product/exampedia-madhya-pradesh-current-affairs-yearbook-2026-hindi-medium-2026-mppsc-pre-mains-mpesb-mpsi-adpo-assistant-profe",
+      "destination": "/product/exampedia-mp-current-affairs-yearly-book-2026-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/pre-selection-tak-mpgs-2027-general-studies-for-mppsc-and-mpesb-exams-madhya-pradesh-gs-book-latest-edition-by-selection-tak-publication",
+      "destination": "/product/selection-tak-mpgs-2027-english-edition-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/geography-marathon-topicwise-solved-pyqs-or-or-for-assistant-professor-net-set-1st-grade-pgt-tgt-gic-gdc-and-lt-grade-exams-or-by-dr-suraj-solanki-or-hindi-medium",
+      "destination": "/product/geography-marathon-topicwise-solved-pyqs-suraj-solanki-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/madhya-pradesh-general-knowledge-2nd-edition-by-disha-publication-complete-mp-gk-book-for-mppsc",
+      "destination": "/product/disha-madhya-pradesh-general-knowledge-2nd-edition",
+      "permanent": true
+    },
+    {
+      "source": "/product/selection-tak-mpgk-4th-edition-madhya-pradesh-selection-tak-2026-mp-gk-2026-all-mppsc-exams-and-other-all-mp-exams-2026",
+      "destination": "/product/selection-tak-mpgk-4th-edition-2026-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/pratiyogita-ghatna-chakra-madhya-pradesh-current-affairs-2025-26-mp-gk-annual-book-budget-economic-survey-hindi-medium",
+      "destination": "/product/pratiyogita-ghatna-chakra-mp-current-affairs-2026-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/nirman-ias-mppsc-prelims-unit-7-science-environment-and-health-1400-objective-questions-english-xerox",
+      "destination": "/product/nirman-ias-mppsc-prelims-unit-7-science-environment-english",
+      "permanent": true
+    },
+    {
+      "source": "/product/mrunal-s-economy-for-upsc-prelims-2026-27-pcb15-powerhouse-for-prelims-set-of-5-booklets-in-spiral-bound-black-and-white",
+      "destination": "/product/mrunals-economy-upsc-prelims-pcb15-set-of-5",
+      "permanent": true
+    },
+    {
+      "source": "/product/drishti-ias-mppsc-prelims-practice-series-book-3-bharat-evam-madhya-pradesh-ki-sanvaidhanik-vyavastha-polity-and-constitution-or-hindi-medium-or-3rd-edition",
+      "destination": "/product/drishti-ias-mppsc-prelims-polity-constitution-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/parikshadham-samanya-prabandhan-or-or-general-management-or-new-syllabus-book-in-hindi-for-mp-patwari-group-2-subgroup-4-and-all-mppeb-exams-2026-27",
+      "destination": "/product/parikshadham-samanya-prabandhan-book-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/mpesb-mpsi-solved-papers-book-2025-26-or-madhya-pradesh-police-sub-inspector-si-pre-and-mains-or-12-prelims-2-mains-solved-papers-or-hindi-medium-or-detailed-explanatory-solutions",
+      "destination": "/product/punekar-mpesb-mpsi-solved-papers-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/exampedia-mpesb-samanya-prabandhan-fundamentals-and-principles-or-2nd-edition-2026-27-or-theory-chapterwise-mcqs-pyqs-or-ncert-ignou-and-nios-based-or-hindi-medium",
+      "destination": "/product/exampedia-mpesb-samanya-prabandhan-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/mpesb-group-2-sub-group-4-notes-2026-or-patwari-mandi-inspector-amin-assistant-auditor-gramodyog-extension-officer-or-hindi-medium-or-latest-study-notes",
+      "destination": "/product/punekar-mpesb-group-2-sub-group-4-notes",
+      "permanent": true
+    },
+    {
+      "source": "/product/general-science-book-2000-objective-questions-or-questions-asked-in-2025-exams-or-aptech-pattern-or-mpesb-mppsc-and-madhya-pradesh-competitive-exams-or-by-dev-yadav-sir",
+      "destination": "/product/general-science-2000-objective-book-dev-yadav",
+      "permanent": true
+    },
+    {
+      "source": "/product/latest-edition-2026-upsc-mppsc-other-state-psc-by-shubham-gupta-hindi-medium-print-out",
+      "destination": "/product/modern-indian-history-shubham-gupta-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/mpesb-group-2-sub-group-4-patwari-solved-papers-book-2027-or-selected-question-papers-2022-2017-or-hindi-medium-or-madhya-pradesh-employee-selection-board-mpesb-exam-preparation",
+      "destination": "/product/punekar-mpesb-patwari-solved-papers-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/madhya-pradesh-pariksha-dham-2026-5th-edition-mp-general-studies-mpgk-for-mppsc-state-exams",
+      "destination": "/product/madhya-pradesh-parikshadham-mpgk-5th-edition-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/pre-order-exampedia-mppsc-pyqs-general-studies-paper-1-part-a-or-36-years-solved-previous-year-questions-1990-2026-or-80-gs-papers-or-3550-questions-or-10000-facts-or-hindi-medium-or-first-edition",
+      "destination": "/product/exampedia-mppsc-pyqs-gs-paper-1-solved-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/state-psc-ssc-other-competitive-exams-by-shuham-gupta-sir-2",
+      "destination": "/product/ancient-indian-history-shubham-gupta-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/indian-geography-spiral-book-by-shubham-gupta-complete-syllabus-for-mppsc-upsc-hindi-medium-updated-notes-pyq-coverage-b",
+      "destination": "/product/indian-geography-spiral-notes-shubham-gupta-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/indian-geography-spiral-book-by-shubham-gupta-or-complete-syllabus-for-mppscupsc-or-english-medium-or-updated-notes-and-pyq-coverage-bandw",
+      "destination": "/product/indian-geography-spiral-notes-shubham-gupta-english-2",
+      "permanent": true
+    },
+    {
+      "source": "/product/pariksha-dham-computer-parikshadham-2025-by-praveen-sahu-3rd-edition-hindi-medium",
+      "destination": "/product/computer-parikshadham-praveen-sahu-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/modern-indian-history-latest-edition-2026-upsc-mppsc-other-state-psc-by-shubham-gupta-english-medium-print-out",
+      "destination": "/product/modern-indian-history-shubham-gupta-english",
+      "permanent": true
+    },
+    {
+      "source": "/product/indian-polity-by-m-laxmikanth-8th-edition-2025-hindi-mcgraw-hill-civil-services-exam-book",
+      "destination": "/product/indian-polity-laxmikanth-8th-edition-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/parikshadham-mpgk-2027-first-edition-or-parikshadham-publication-english-medium",
+      "destination": "/product/parikshadham-mpgk-2027-first-edition-parikshadham",
+      "permanent": true
+    },
+    {
+      "source": "/product/aakar-ias-mppsc-prelims-complete-study-material-notes-book-set-unit-1-to-10-hindi-medium-or-latest-updated-syllabus-edition-for-mppscxerox",
+      "destination": "/product/aakar-ias-mppsc-prelims",
+      "permanent": true
+    },
+    {
+      "source": "/product/tathya-ban-madhya-pradesh-current-affairs-varshiki-2026-27",
+      "destination": "/product/tathya-ban-madhya-pradesh-current-affairs",
+      "permanent": true
+    },
+    {
+      "source": "/product/parikshadham-static-gk-book-2nd-edition-samanya-gyan-target-60-days-plan",
+      "destination": "/product/parikshadham-static-gk-book-2nd-edition-samanya",
+      "permanent": true
+    },
+    {
+      "source": "/product/parmar-ssc-fatman-hindi-gk-gs-theory-book-2nd-edition-2026-hindi-medium",
+      "destination": "/product/parmar-ssc-fatman-hindi-gk-gs-theory-book-2nd",
+      "permanent": true
+    },
+    {
+      "source": "/product/sharma-classes-madhya-pradesh-samanya-gyan-book-or-latest-updated-mp-gk-for-mppsc-mpesb-patwari-police-si-jail-prahari-teacher-and-all-mp-competitive-exams-or-hindi-medium-or-paperback",
+      "destination": "/product/sharma-classes-madhya-pradesh-samanya-gyan-book",
+      "permanent": true
+    },
+    {
+      "source": "/product/madhya-pradesh-current-affairs-year-book-2026-or-mppsc-prelims-and-mains-or-mpesb-assistant-professor-adpo-scientific-officer-mpsi-or-hindi-medium-or-latest-mp-budget-economic-survey-and-200-important-questions",
+      "destination": "/product/madhya-pradesh-current-affairs-year-book-2026",
+      "permanent": true
+    },
+    {
+      "source": "/product/punekar-madhya-pradesh-police-constable-recruitment-exam-notes-2026-27-or-mpesb-police-constable-study-material-or-solved-papers-and-previous-year-questions-or-hindi-medium",
+      "destination": "/product/punekar-mp-police-constable-exam-notes-hindi",
+      "permanent": true
+    },
+    {
+      "source": "/product/mppsc-pyqs-paper-1-part-a-samanya-adhyayan-or-36-years-previous-year-questions-1990-2026-or-vyakhya-sahit-vastunishth-prashn-sangrah-or-mppsc-prelims-gs-study-material-or-exampedia",
+      "destination": "/product/mppsc-pyqs-paper-1-part-a-samanya-adhyayan-36",
+      "permanent": true
+    },
+    {
+      "source": "/product/exampedia-madhya-pradesh-current-affairs-yearbook-2026-hindi-medium-or-2026-or-mppsc-pre-and-mains-or-mpesb-or-mpsi-or-adpo-or-assistant-professor-or-latest-mp-current-affairs-book",
+      "destination": "/product/exampedia-madhya-pradesh-current-affairs-yearbook",
+      "permanent": true
+    },
+    {
+      "source": "/product/champion-square-sociology-mppsc-mains-paper-2-part-b-unit-3-4-5-hindi-medium-latest-syllabus-based-sociology-notes-study",
+      "destination": "/product/champion-square-sociology-mppsc-mains-paper-2",
+      "permanent": true
+    },
+    {
+      "source": "/product/utkarsh-classes-current-affairs-quarterly-book-01-july-to-30-september-2026-compiled-by-kumar-gaurav-sir",
+      "destination": "/product/utkarsh-classes-current-affairs-quarterly-book-01",
+      "permanent": true
+    },
+    {
+      "source": "/product/samanya-prabandhan-general-management-or-fundamentals-and-principles-or-mp-esb-mpesb-patwari-special-or-2350-practice-questions-or-abhyansika-1850-questions-or-hindi-medium-or-sanjay-gupta",
+      "destination": "/product/samanya-prabandhan-general-management",
+      "permanent": true
+    },
+    {
+      "source": "/product/selection-tak-mpgk-4rd-edition-madhya-pradesh-selection-tak-2027-mp-gk-2027-all-mppsc-exams-and-other-all-mp-exams-2027",
+      "destination": "/product/selection-tak-mpgk-4rd-edition-madhya-pradesh",
+      "permanent": true
+    },
+    {
+      "source": "/product/karma-ias-assistant-professor-test-series-2025-or-history-or-20-tests-or-10-unit-wise-tests-10-full-length-tests-or-hindi-and-english-medium-or-with-answers-or-mppsc-assistant-professor-preparation",
+      "destination": "/product/karma-ias-assistant-professor-test-series-2025",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/shiprocket-checkout",
